@@ -20,7 +20,7 @@ const CFG = {
   },
 
   /* ── Google Sheet ID ───────────────────────────────── */
-  SHEET_ID: '19sJGS0cONVqqg6v26iAY2TtiNjBVE8cJL_2ZGkbv_Rs',
+  SHEET_ID: '1j0So-QvjT10NtSfx8avDMob1bK4gem8FLJLs5yiEgi4',
 
   /* ── Session ───────────────────────────────────────── */
   SESSION_KEY: 'kib_wfm_v2_session',
