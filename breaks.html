@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0A4A8A">
+<title>KIB WFM — Breaks</title>
+<link rel="stylesheet" href="css/kib.css">
+<style>
+.break-bal {
+  background: linear-gradient(135deg,var(--navy2),var(--navy) 60%,#0A7FAE);
+  border-radius: var(--rl); padding: 17px; margin-bottom: 12px;
+  position: relative; overflow: hidden;
+}
+.break-bal::after { content:''; position:absolute; bottom:0;left:0;right:0;height:3px; background:linear-gradient(90deg,transparent,var(--teal2),var(--teal-b),var(--teal2),transparent); }
+.bbal-num { font-size:42px; font-weight:900; color:#fff; line-height:1; }
+.bbal-unit{ font-size:12px; color:rgba(255,255,255,.45); padding-bottom:6px; }
+.bbal-sub { font-size:11px; color:rgba(255,255,255,.4); margin-bottom:10px; }
+.bbal-prog{ background:rgba(255,255,255,.12); border-radius:3px; height:4px; overflow:hidden; }
+.bbal-fill{ height:100%; border-radius:3px; background:linear-gradient(90deg,var(--teal),var(--teal2)); transition:width .4s; }
+
+.slot-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-bottom:12px; }
+@media(min-width:400px){ .slot-grid { grid-template-columns:repeat(4,1fr); } }
+.slot { border:1.5px solid var(--border); border-radius:var(--r); padding:10px 4px; text-align:center; cursor:pointer; transition:.14s; background:var(--white); }
+.slot:active { transform:scale(.96); }
+.slot.sel    { border-color:var(--navy); background:rgba(13,92,166,.06); }
+.slot.full   { background:var(--red-bg); border-color:rgba(220,38,38,.2); cursor:default; }
+.slot.mine   { background:var(--teal-bg); border-color:var(--teal-b); cursor:default; }
+.slot.blocked{ background:var(--bg); opacity:.4; cursor:not-allowed; }
+.slot-time   { font-size:12px; font-weight:800; }
+.slot-cnt    { font-size:10px; color:var(--t2); margin-top:2px; }
+.slot.mine .slot-time { color:var(--teal); }
+.slot.full .slot-time { color:var(--red); }
+.slot.sel  .slot-time { color:var(--navy); }
+
+.dur-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+.dur-btn { padding:7px 14px; border-radius:20px; border:1.5px solid var(--border); background:var(--white); font-size:12px; font-weight:700; color:var(--t2); cursor:pointer; transition:.12s; }
+.dur-btn.sel { background:var(--navy); border-color:var(--navy); color:#fff; }
+.dur-btn:disabled { opacity:.35; cursor:not-allowed; }
+
+.break-active {
+  background:linear-gradient(135deg,#0A4A8A,#0D5CA6);
+  border-radius:var(--rl); padding:15px; margin-bottom:12px;
+  display:none;
+}
+.break-active.show { display:block; }
+.ba-timer { font-size:38px; font-weight:900; color:var(--teal2); letter-spacing:3px; font-family:'DM Mono',monospace; }
+
+.team-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border2); }
+.team-row:last-child { border-bottom:none; }
+.tr-av { width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0; }
+.tr-name { font-size:13px; font-weight:700; }
+.tr-info { font-size:11px; color:var(--t2); margin-top:1px; }
+</style>
+</head>
+<body>
+<div id="kib-topbar"></div>
+<div id="kib-app">
+  <div id="user-strip-container"></div>
+  <div class="page-content">
+
+    <!-- Break balance card -->
+    <div class="break-bal" id="bal-card">
+      <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;">Daily Break Balance</div>
+      <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:4px;">
+        <div class="bbal-num" id="bal-rem">—</div>
+        <div class="bbal-unit">min left</div>
+      </div>
+      <div class="bbal-sub" id="bal-sub">0 of 60 minutes used</div>
+      <div class="bbal-prog"><div class="bbal-fill" id="bal-fill" style="width:0%;"></div></div>
+    </div>
+
+    <!-- Active break banner -->
+    <div class="break-active" id="active-banner">
+      <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;">Break In Progress</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#fff;" id="active-type">—</div>
+          <div class="ba-timer" id="active-timer">00:00</div>
+        </div>
+      </div>
+      <button class="btn btn-block" style="margin-top:11px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);color:#fff;" onclick="endBreak()">
+        End Break
+      </button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-bar">
+      <button class="tab-item active" id="tab-book" onclick="switchTab('book')">☕ Book Break</button>
+      <button class="tab-item" id="tab-team" onclick="switchTab('team')">👥 Team View</button>
+      <button class="tab-item" id="tab-history" onclick="switchTab('bhistory')">🕓 History</button>
+    </div>
+
+    <!-- Book Break -->
+    <div id="pane-book">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Select Break Slot</div>
+          <span id="date-lbl" class="text-sm text-muted"></span>
+        </div>
+        <div class="card-body">
+          <div class="slot-grid" id="slot-grid">
+            <div class="skel" style="height:56px;border-radius:8px;"></div>
+            <div class="skel" style="height:56px;border-radius:8px;"></div>
+            <div class="skel" style="height:56px;border-radius:8px;"></div>
+            <div class="skel" style="height:56px;border-radius:8px;"></div>
+          </div>
+          <div class="sec-hdr">Duration</div>
+          <div class="dur-row" id="dur-row">
+            <button class="dur-btn sel" onclick="selectDur(15,this)">15 min</button>
+            <button class="dur-btn"     onclick="selectDur(30,this)">30 min</button>
+            <button class="dur-btn"     onclick="selectDur(45,this)">45 min</button>
+            <button class="dur-btn"     onclick="selectDur(60,this)">60 min</button>
+          </div>
+          <button class="btn btn-navy btn-block" id="book-btn" onclick="bookBreak()" disabled>
+            Book Break
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Team view -->
+    <div id="pane-team" style="display:none;">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Team Break Status</div>
+          <span id="team-count" class="pill pill-teal"></span>
+        </div>
+        <div id="team-list" class="card-body">
+          <div class="skel" style="height:52px;margin-bottom:8px;border-radius:8px;"></div>
+          <div class="skel" style="height:52px;border-radius:8px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div id="pane-bhistory" style="display:none;">
+      <div class="card">
+        <div class="card-header"><div class="card-title">My Break History</div></div>
+        <div id="bhistory-list" class="card-body">
+          <div class="skel" style="height:52px;margin-bottom:8px;border-radius:8px;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div id="kib-bottomnav"></div>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/nav.js"></script>
+<script>
+if (!Auth.guard()) throw 0;
+
+const user  = Auth.user();
+const today = U.today();
+let allData = null;
+let selSlot = null;
+let selDur  = 15;
+let activeBreak = null;
+let timerInt  = null;
+const DAILY_MIN = 60;
+
+Nav.init('breaks');
+document.getElementById('user-strip-container').innerHTML = Nav.renderUserStrip();
+document.getElementById('date-lbl').textContent = U.fmtDisplay(today);
+
+async function init() {
+  try {
+    allData = await API.getAll();
+    renderBalance();
+    checkActiveBreak();
+    buildSlotGrid();
+  } catch(e) { U.toast('Failed to load break data','err'); }
+}
+
+function switchTab(tab) {
+  ['book','team','bhistory'].forEach(t => {
+    document.getElementById('pane-'+t).style.display = t===tab?'':'none';
+    document.getElementById('tab-'+(t==='book'?'book':t==='team'?'team':'history')).classList.toggle('active',t===tab);
+  });
+  if (tab==='team')     renderTeam();
+  if (tab==='bhistory') renderBHistory();
+}
+
+function renderBalance() {
+  const breaks = (allData?.breaks||[]).filter(b => b.date===today && (b.agent===user.name) && b.status!=='cancelled');
+  const used   = breaks.reduce((s,b) => s + (parseInt(b.duration)||0), 0);
+  const rem    = Math.max(0, DAILY_MIN - used);
+  const pct    = Math.min(100, (used/DAILY_MIN)*100);
+  U.se('bal-rem',  rem);
+  U.se('bal-sub',  `${used} of ${DAILY_MIN} minutes used`);
+  document.getElementById('bal-fill').style.width = pct + '%';
+}
+
+function checkActiveBreak() {
+  const active = (allData?.breaks||[]).find(b => b.date===today && b.agent===user.name && b.status==='active');
+  if (active) {
+    activeBreak = active;
+    document.getElementById('active-banner').classList.add('show');
+    document.getElementById('active-type').textContent = `${active.duration}min break`;
+    startTimer(new Date(active.startedAt || active.ts).getTime());
+  }
+}
+
+function startTimer(startTs) {
+  if (timerInt) clearInterval(timerInt);
+  const tick = () => {
+    const el = document.getElementById('active-timer');
+    if (el) el.textContent = U.elapsedStr(startTs);
+  };
+  tick();
+  timerInt = setInterval(tick, 1000);
+}
+
+function buildSlotGrid() {
+  // Generate slots from shift start to shift end at 15-min intervals
+  const shifts = CFG.SHIFTS;
+  const myAgent = (allData?.agents||[]).find(a => (a.n||a.name)===user.name);
+  const todayIdx = (allData?.dates||[]).map(d=>U.normDate(d)).indexOf(today);
+  const myShiftCode = myAgent && todayIdx>=0 ? CFG.normalizeShiftCode(myAgent.sch?.[todayIdx]||'') : '';
+  const myShiftDef  = CFG.getShift(myShiftCode);
+  const startMin = myShiftDef ? U.toMin(myShiftDef.start) + 90 : U.toMin('08:00');
+  const endMin   = myShiftDef ? U.toMin(myShiftDef.end)   - 30 : U.toMin('16:00');
+
+  // Build slot times
+  const slots = [];
+  for (let m = startMin; m <= endMin; m += 15) {
+    slots.push(U.fromMin(m));
+  }
+
+  const breaks = (allData?.breaks||[]).filter(b => b.date===today && b.status!=='cancelled');
+  const nowMin = U.toMin(U.nowHHMM());
+
+  document.getElementById('slot-grid').innerHTML = slots.map(t => {
+    const slotMin  = U.toMin(t);
+    const slotBreaks = breaks.filter(b => b.breakStart===t);
+    const myBreak  = slotBreaks.find(b => b.agent===user.name);
+    const full     = slotBreaks.length >= 3;
+    const passed   = slotMin < nowMin;
+    const isMine   = !!myBreak;
+    const cls      = isMine?'mine':full?'full':passed?'blocked':'';
+
+    return `<div class="slot ${cls}" onclick="${!isMine&&!full&&!passed?`selectSlot('${t}',this)`:''}" id="slot-${t.replace(':','-')}">
+      <div class="slot-time">${U.fmt12(t)}</div>
+      <div class="slot-cnt">${isMine?'✓ Booked':full?'Full':`${slotBreaks.length}/3`}</div>
+    </div>`;
+  }).join('');
+}
+
+function selectSlot(t, el) {
+  document.querySelectorAll('.slot.sel').forEach(s => s.classList.remove('sel'));
+  el.classList.add('sel');
+  selSlot = t;
+  document.getElementById('book-btn').disabled = false;
+}
+
+function selectDur(d, el) {
+  document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+  selDur = d;
+}
+
+async function bookBreak() {
+  if (!selSlot) return;
+  const btn = document.getElementById('book-btn');
+  btn.disabled = true; btn.textContent = 'Booking…';
+
+  const breakObj = {
+    id: U.uid(), agent: user.name, date: today,
+    breakStart: selSlot, duration: selDur,
+    status: 'active', startedAt: new Date().toISOString(),
+  };
+
+  try {
+    await API.saveBreaks({ action:'saveBreak', break: breakObj });
+    activeBreak = breakObj;
+    document.getElementById('active-banner').classList.add('show');
+    document.getElementById('active-type').textContent = `${selDur}min break`;
+    startTimer(Date.now());
+    allData = await API.getAll(true);
+    renderBalance();
+    buildSlotGrid();
+    selSlot = null;
+    U.toast('Break booked ✓', 'ok');
+  } catch(e) { U.toast('Failed to book break','err'); }
+  finally { btn.disabled = false; btn.textContent = 'Book Break'; }
+}
+
+async function endBreak() {
+  if (!activeBreak) return;
+  if (!confirm('End your break now?')) return;
+  try {
+    await API.saveBreaks({ action:'endBreak', id: activeBreak.id, agent: user.name });
+    activeBreak = null;
+    document.getElementById('active-banner').classList.remove('show');
+    if (timerInt) clearInterval(timerInt);
+    allData = await API.getAll(true);
+    renderBalance();
+    buildSlotGrid();
+    U.toast('Break ended ✓', 'ok');
+  } catch(e) { U.toast('Failed to end break','err'); }
+}
+
+function renderTeam() {
+  const breaks = (allData?.breaks||[]).filter(b => b.date===today && b.status==='active');
+  document.getElementById('team-count').textContent = breaks.length + ' on break';
+  if (!breaks.length) {
+    document.getElementById('team-list').innerHTML = `<div class="empty-state"><div class="empty-icon">☕</div><div class="empty-msg">No one is on break right now</div></div>`;
+    return;
+  }
+  document.getElementById('team-list').innerHTML = breaks.map(b => {
+    const color = U.avatarColor(b.agent);
+    return `<div class="team-row">
+      <div class="tr-av" style="background:${color}">${U.initials(b.agent)}</div>
+      <div>
+        <div class="tr-name">${b.agent}</div>
+        <div class="tr-info">Since ${U.fmt12(b.breakStart)} · ${b.duration}min</div>
+      </div>
+      <div style="margin-left:auto;"><span class="pill pill-amber">● On Break</span></div>
+    </div>`;
+  }).join('');
+}
+
+function renderBHistory() {
+  const hist = (allData?.breaks||[]).filter(b => b.agent===user.name).reverse().slice(0,20);
+  if (!hist.length) {
+    document.getElementById('bhistory-list').innerHTML = `<div class="empty-state"><div class="empty-icon">🕓</div><div class="empty-msg">No break history</div></div>`;
+    return;
+  }
+  document.getElementById('bhistory-list').innerHTML = hist.map(b => {
+    const statusPill = b.status==='completed'?'pill-gray':b.status==='active'?'pill-teal':'pill-red';
+    return `<div class="row-item">
+      <div class="row-icon" style="background:var(--bg);">☕</div>
+      <div class="row-info">
+        <div class="row-title">${b.date} · ${U.fmt12(b.breakStart)}</div>
+        <div class="row-meta">${b.duration} min</div>
+      </div>
+      <span class="pill ${statusPill}">${b.status||'—'}</span>
+    </div>`;
+  }).join('');
+}
+
+init();
+</script>
+</body>
+</html>

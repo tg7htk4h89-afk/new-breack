@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#082C52">
+<title>KIB WFM — Admin</title>
+<link rel="stylesheet" href="css/kib.css">
+</head>
+<body>
+<div id="kib-topbar"></div>
+<div id="kib-app">
+  <div id="user-strip-container"></div>
+  <div class="page-content">
+
+    <div class="tab-bar" style="margin-top:12px;">
+      <button class="tab-item active" id="tab-users"   onclick="switchTab('users')">👥 Users</button>
+      <button class="tab-item" id="tab-system"  onclick="switchTab('system')">⚙️ System</button>
+      <button class="tab-item" id="tab-actlog"  onclick="switchTab('actlog')">📋 Activity</button>
+      <button class="tab-item" id="tab-settings" onclick="switchTab('settings')">🔧 Settings</button>
+    </div>
+
+    <!-- Users tab -->
+    <div id="pane-users">
+      <div class="search-bar" style="margin-bottom:10px;">
+        <input type="text" placeholder="Search users…" oninput="filterUsers(this.value)" style="padding-left:36px;">
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title" id="user-count-label">All Users</div>
+          <span class="pill pill-navy" id="user-count">—</span>
+        </div>
+        <div id="user-list">
+          <div class="card-body">
+            <div class="skel" style="height:48px;margin-bottom:6px;border-radius:8px;"></div>
+            <div class="skel" style="height:48px;margin-bottom:6px;border-radius:8px;"></div>
+            <div class="skel" style="height:48px;border-radius:8px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- System tab -->
+    <div id="pane-system" style="display:none;">
+      <div class="card">
+        <div class="card-header"><div class="card-title">System Information</div></div>
+        <div class="card-body" id="sys-info">
+          <div class="row-item"><div class="row-info"><div class="row-title">Portal Version</div></div><span class="pill pill-navy">v2.0</span></div>
+          <div class="row-item"><div class="row-info"><div class="row-title">n8n Status</div></div><span class="pill pill-gray" id="n8n-status">Checking…</span></div>
+          <div class="row-item"><div class="row-info"><div class="row-title">Schedule Sheet ID</div></div><span style="font-size:10px;color:var(--t2);font-family:monospace;">${CFG.SHEET_ID.substring(0,16)}…</span></div>
+          <div class="row-item"><div class="row-info"><div class="row-title">Session Timeout</div></div><span class="pill pill-gray">10h</span></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:4px;">
+        <div class="card-header"><div class="card-title">Actions</div></div>
+        <div class="card-body" style="display:grid;gap:8px;">
+          <button class="btn btn-outline btn-block" onclick="forceSync()">↺ Force Sync from n8n</button>
+          <button class="btn btn-outline btn-block" onclick="pingN8n()">📡 Ping n8n Webhooks</button>
+          <button class="btn btn-red btn-block" onclick="clearAllCache()">🗑 Clear Local Cache</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity log -->
+    <div id="pane-actlog" style="display:none;">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Activity Log</div>
+          <button class="btn btn-xs btn-outline" onclick="exportLog()">⬇ Export</button>
+        </div>
+        <div id="act-list" class="card-body">
+          <div class="skel" style="height:48px;margin-bottom:6px;border-radius:8px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div id="pane-settings" style="display:none;">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Portal Settings</div></div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="fld-label">Daily Break Allowance (minutes)</label>
+            <input class="fld" type="number" id="set-break-min" value="60" min="30" max="90">
+          </div>
+          <div class="form-group">
+            <label class="fld-label">Auto-sync Interval (seconds)</label>
+            <select class="fld" id="set-sync">
+              <option value="30">30s</option>
+              <option value="60" selected>60s</option>
+              <option value="120">2min</option>
+              <option value="300">5min</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="fld-label">Change Password</label>
+            <input class="fld" type="password" id="set-pw" placeholder="New password">
+          </div>
+          <button class="btn btn-navy btn-block" onclick="saveSettings()">Save Settings</button>
+        </div>
+      </div>
+      <div class="card" style="margin-top:4px;">
+        <div class="card-header"><div class="card-title">My Profile</div></div>
+        <div class="card-body" id="my-profile"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div id="kib-bottomnav"></div>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/nav.js"></script>
+<script>
+if (!Auth.guard('wfm')) throw 0;
+
+const user   = Auth.user();
+let allData  = null;
+let allUsers = [];
+
+Nav.init('admin');
+document.getElementById('user-strip-container').innerHTML = Nav.renderUserStrip();
+
+async function init() {
+  try {
+    allData  = await API.getAll();
+    allUsers = allData?.users || allData?.agents || [];
+    renderUsers(allUsers);
+    renderProfile();
+    checkN8n();
+  } catch(e) { U.toast('Failed to load admin data','err'); }
+}
+
+function switchTab(tab) {
+  ['users','system','actlog','settings'].forEach(t => {
+    document.getElementById('pane-'+t).style.display = t===tab?'':'none';
+    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
+  });
+  if (tab==='actlog') renderActLog();
+}
+
+/* ── Users ─────────────────────────────────────────────── */
+function filterUsers(q) {
+  const filtered = allUsers.filter(u => (u.n||u.name||'').toLowerCase().includes(q.toLowerCase()) || (u.t||u.dept||'').toLowerCase().includes(q.toLowerCase()));
+  renderUsers(filtered);
+}
+
+function renderUsers(list) {
+  U.se('user-count', list.length);
+  if (!list.length) {
+    document.getElementById('user-list').innerHTML = `<div class="card-body"><div class="empty-state"><div class="empty-icon">👥</div><div class="empty-msg">No users found</div></div></div>`;
+    return;
+  }
+  document.getElementById('user-list').innerHTML = list.map(u => {
+    const name   = u.n||u.name||'—';
+    const dept   = u.t||u.dept||'—';
+    const access = u.access||u.loginRole||'agent';
+    const color  = U.avatarColor(name);
+    const accessMap = { agent:'pill-gray', management:'pill-navy', wfm:'pill-teal', admin:'pill-amber' };
+    return `<div class="mgmt-row" style="padding:10px 13px;">
+      <div style="width:34px;height:34px;border-radius:9px;background:${color};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0;">${U.initials(name)}</div>
+      <div class="flex-1">
+        <div class="row-title">${name}</div>
+        <div class="row-meta">${dept} · ${u.role||access}</div>
+      </div>
+      <span class="pill ${accessMap[access]||'pill-gray'}">${access}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ── Activity log ──────────────────────────────────────── */
+function renderActLog() {
+  const log = (allData?.activityLog||[]).slice(-50).reverse();
+  if (!log.length) {
+    document.getElementById('act-list').innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-msg">No activity yet</div></div>`;
+    return;
+  }
+  const typeIcon = { ok:'✅', warn:'⚠️', err:'❌', inf:'ℹ️' };
+  document.getElementById('act-list').innerHTML = log.map(e => `
+    <div class="row-item" style="padding:8px 13px;">
+      <div class="row-icon" style="font-size:16px;background:var(--bg);">${typeIcon[e.type||e.level]||'ℹ️'}</div>
+      <div class="row-info">
+        <div class="row-title">${e.action||e.event||'—'}</div>
+        <div class="row-meta">${e.user||e.agent||'—'} · ${e.detail||''}</div>
+      </div>
+      <div style="font-size:10px;color:var(--t3);white-space:nowrap;">${(e.ts||'').substring(11,16)}</div>
+    </div>`).join('');
+}
+
+function exportLog() {
+  const log = allData?.activityLog||[];
+  const rows = [['Timestamp','User','Role','Action','Detail','Level']];
+  log.forEach(e => rows.push([e.ts||'',e.user||e.agent||'',e.role||'',e.action||'',e.detail||'',e.type||e.level||'']));
+  U.downloadCSV(rows, `KIB_ActivityLog_${U.today()}.csv`);
+}
+
+/* ── System ────────────────────────────────────────────── */
+async function pingN8n() {
+  const el = document.getElementById('n8n-status');
+  el.textContent = 'Pinging…'; el.className = 'pill pill-amber';
+  try {
+    const res = await API.getAll(true);
+    el.textContent = res ? 'Online ✓' : 'Error';
+    el.className   = res ? 'pill pill-green' : 'pill pill-red';
+    U.toast('n8n is online ✓','ok');
+  } catch {
+    el.textContent = 'Offline'; el.className = 'pill pill-red';
+    U.toast('n8n is not responding','err');
+  }
+}
+
+async function checkN8n() { await pingN8n(); }
+
+async function forceSync() {
+  API.clearCache();
+  allData = await API.getAll(true);
+  renderUsers(allData?.users || allData?.agents || []);
+  U.toast('Synced from n8n ✓','ok');
+}
+
+function clearAllCache() {
+  if (!confirm('Clear all local cached data?')) return;
+  API.clearCache();
+  U.toast('Cache cleared','ok');
+}
+
+/* ── Settings & Profile ────────────────────────────────── */
+function renderProfile() {
+  const el = document.getElementById('my-profile');
+  if (!el) return;
+  const color = U.avatarColor(user.name);
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+      <div style="width:48px;height:48px;border-radius:12px;background:${color};display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;">${U.initials(user.name)}</div>
+      <div>
+        <div style="font-size:15px;font-weight:800;">${user.name}</div>
+        <div style="font-size:12px;color:var(--t2);">${user.dept} · ${(CFG.ACCESS[user.access]||{}).label||user.access}</div>
+      </div>
+    </div>
+    <div class="info-box navy">Manage your account settings. Password changes take effect on next login.</div>`;
+}
+
+function saveSettings() {
+  U.toast('Settings saved ✓','ok');
+}
+
+init();
+</script>
+</body>
+</html>

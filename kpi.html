@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0A4A8A">
+<title>KIB WFM — KPI</title>
+<link rel="stylesheet" href="css/kib.css">
+</head>
+<body>
+<div id="kib-topbar"></div>
+<div id="kib-app">
+  <div id="user-strip-container"></div>
+  <div class="page-content">
+
+    <div class="tab-bar" style="margin-top:12px;">
+      <button class="tab-item active" id="tab-log"  onclick="switchTab('log')">📝 Log Entry</button>
+      <button class="tab-item" id="tab-dash" onclick="switchTab('dash')">📊 Dashboard</button>
+    </div>
+
+    <!-- Log entry -->
+    <div id="pane-log">
+      <div class="sec-hdr">Extra Break</div>
+      <div class="card">
+        <div class="card-body">
+          <div class="form-group">
+            <label class="fld-label">Agent</label>
+            <select class="fld" id="kpi-agent-extra"></select>
+          </div>
+          <div class="form-group">
+            <label class="fld-label">Duration (minutes)</label>
+            <input class="fld" type="number" id="kpi-extra-dur" placeholder="e.g. 10" min="1" max="60">
+          </div>
+          <div class="form-group">
+            <label class="fld-label">Reason</label>
+            <input class="fld" type="text" id="kpi-extra-reason" placeholder="Reason for extra break">
+          </div>
+          <button class="btn btn-navy btn-block" onclick="logKPI('extra')">Log Extra Break</button>
+        </div>
+      </div>
+
+      <div class="sec-hdr">Meeting / Training</div>
+      <div class="card">
+        <div class="card-body">
+          <div class="form-group">
+            <label class="fld-label">Agent(s)</label>
+            <select class="fld" id="kpi-agent-meeting"></select>
+          </div>
+          <div class="form-group">
+            <label class="fld-label">Duration (minutes)</label>
+            <input class="fld" type="number" id="kpi-meet-dur" placeholder="e.g. 30">
+          </div>
+          <div class="form-group">
+            <label class="fld-label">Meeting Type</label>
+            <select class="fld" id="kpi-meet-type">
+              <option value="meeting">Meeting</option>
+              <option value="training">Training</option>
+              <option value="coaching">Coaching</option>
+              <option value="briefing">Briefing</option>
+            </select>
+          </div>
+          <button class="btn btn-teal btn-block" onclick="logKPI('meeting')">Log Meeting</button>
+        </div>
+      </div>
+
+      <div class="sec-hdr">Permission / Permission</div>
+      <div class="card">
+        <div class="card-body">
+          <div class="form-group">
+            <label class="fld-label">Agent</label>
+            <select class="fld" id="kpi-agent-perm"></select>
+          </div>
+          <div class="form-group">
+            <label class="fld-label">Duration (minutes)</label>
+            <input class="fld" type="number" id="kpi-perm-dur" placeholder="e.g. 20">
+          </div>
+          <div class="form-group">
+            <label class="fld-label">Reason</label>
+            <input class="fld" type="text" id="kpi-perm-reason" placeholder="Permission reason">
+          </div>
+          <button class="btn btn-amber btn-block" onclick="logKPI('permission')">Log Permission</button>
+        </div>
+      </div>
+
+      <div class="sec-hdr">System Issue</div>
+      <div class="card">
+        <div class="card-body">
+          <div class="form-group">
+            <label class="fld-label">Affected Team / System</label>
+            <input class="fld" type="text" id="kpi-issue-sys" placeholder="e.g. IVR, CRM, Internet">
+          </div>
+          <div class="form-group">
+            <label class="fld-label">Duration (minutes)</label>
+            <input class="fld" type="number" id="kpi-issue-dur" placeholder="Duration of issue">
+          </div>
+          <div class="form-group">
+            <label class="fld-label">Description</label>
+            <textarea class="fld" id="kpi-issue-desc" rows="2" placeholder="Describe the issue…" style="resize:none;"></textarea>
+          </div>
+          <button class="btn btn-red btn-block" onclick="logKPI('issue')">Log System Issue</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="pane-dash" style="display:none;">
+      <div class="card" style="margin-top:8px;">
+        <div class="card-header">
+          <div class="card-title">Today's KPI Summary</div>
+          <input type="date" id="kpi-date" class="fld" style="width:auto;padding:5px 9px;font-size:12px;" onchange="renderDash()">
+        </div>
+        <div class="card-body">
+          <div class="stat-grid">
+            <div class="stat-card c-amber"><div class="stat-num" id="kd-extra">0</div><div class="stat-label">Extra Breaks</div></div>
+            <div class="stat-card c-teal"><div class="stat-num" id="kd-meet">0</div><div class="stat-label">Meetings</div></div>
+            <div class="stat-card c-navy"><div class="stat-num" id="kd-perm">0</div><div class="stat-label">Permissions</div></div>
+            <div class="stat-card c-red"><div class="stat-num" id="kd-issue">0</div><div class="stat-label">Issues</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Recent Entries</div></div>
+        <div id="kpi-log-list" class="card-body">
+          <div class="skel" style="height:48px;margin-bottom:6px;border-radius:8px;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div id="kib-bottomnav"></div>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/nav.js"></script>
+<script>
+if (!Auth.guard()) throw 0; // All roles can submit KPI
+
+const user  = Auth.user();
+let allData = null;
+
+Nav.init('kpi');
+document.getElementById('user-strip-container').innerHTML = Nav.renderUserStrip();
+document.getElementById('kpi-date').value = U.today();
+
+async function init() {
+  try {
+    allData = await API.getAll();
+    populateAgentSelects();
+  } catch(e) { U.toast('Failed to load KPI data','err'); }
+}
+
+function populateAgentSelects() {
+  const isAgent = !Auth.isManagement();
+  const agents = isAgent
+    ? [{ n: user.name, t: user.dept }]  // agents only see themselves
+    : (allData?.agents||[]).filter(a=>a.t!=='Management').sort((a,b)=>(a.n||a.name).localeCompare(b.n||b.name));
+  ['kpi-agent-extra','kpi-agent-meeting','kpi-agent-perm'].forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="">— Select agent —</option>' +
+      agents.map(a=>`<option value="${a.n||a.name}">${a.n||a.name} (${a.t})</option>`).join('');
+  });
+}
+
+function switchTab(tab) {
+  ['log','dash'].forEach(t => {
+    document.getElementById('pane-'+t).style.display = t===tab?'':'none';
+    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
+  });
+  if (tab==='dash') renderDash();
+}
+
+async function logKPI(type) {
+  let entry = { type, date: U.today(), loggedBy: user.name, ts: new Date().toISOString() };
+
+  if (type==='extra') {
+    entry.agent    = document.getElementById('kpi-agent-extra').value;
+    entry.duration = document.getElementById('kpi-extra-dur').value;
+    entry.reason   = document.getElementById('kpi-extra-reason').value;
+    if (!entry.agent||!entry.duration) { U.toast('Fill all fields','warn'); return; }
+  } else if (type==='meeting') {
+    entry.agent    = document.getElementById('kpi-agent-meeting').value;
+    entry.duration = document.getElementById('kpi-meet-dur').value;
+    entry.kind     = document.getElementById('kpi-meet-type').value;
+    if (!entry.agent||!entry.duration) { U.toast('Fill all fields','warn'); return; }
+  } else if (type==='permission') {
+    entry.agent    = document.getElementById('kpi-agent-perm').value;
+    entry.duration = document.getElementById('kpi-perm-dur').value;
+    entry.reason   = document.getElementById('kpi-perm-reason').value;
+    if (!entry.agent||!entry.duration) { U.toast('Fill all fields','warn'); return; }
+  } else if (type==='issue') {
+    entry.system   = document.getElementById('kpi-issue-sys').value;
+    entry.duration = document.getElementById('kpi-issue-dur').value;
+    entry.desc     = document.getElementById('kpi-issue-desc').value;
+    if (!entry.system||!entry.duration) { U.toast('Fill all fields','warn'); return; }
+  }
+
+  try {
+    await API.saveKPI(type, entry);
+    U.toast(`${type} logged ✓`, 'ok');
+    API.clearCache();
+    allData = await API.getAll(true);
+  } catch(e) { U.toast('Failed to log KPI','err'); }
+}
+
+function renderDash() {
+  const selDate = document.getElementById('kpi-date').value || U.today();
+  const kpiData = allData?.kpi || {};
+  const extra   = (kpiData.extra    ||[]).filter(e => U.normDate(e.date)===selDate);
+  const meeting = (kpiData.meeting  ||[]).filter(e => U.normDate(e.date)===selDate);
+  const perm    = (kpiData.permission||[]).filter(e => U.normDate(e.date)===selDate);
+  const issue   = (kpiData.issue    ||[]).filter(e => U.normDate(e.date)===selDate);
+
+  U.se('kd-extra', extra.length);
+  U.se('kd-meet',  meeting.length);
+  U.se('kd-perm',  perm.length);
+  U.se('kd-issue', issue.length);
+
+  const typeIcon = {extra:'☕',meeting:'📋',permission:'🚪',issue:'⚠️'};
+  const typeColor= {extra:'var(--amber-bg)',meeting:'var(--teal-bg)',permission:'rgba(13,92,166,.08)',issue:'var(--red-bg)'};
+
+  const allEntries = [
+    ...extra.map(e=>({...e,_t:'extra'})),
+    ...meeting.map(e=>({...e,_t:'meeting'})),
+    ...perm.map(e=>({...e,_t:'permission'})),
+    ...issue.map(e=>({...e,_t:'issue'})),
+  ].sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0));
+
+  document.getElementById('kpi-log-list').innerHTML = allEntries.length
+    ? allEntries.map(e=>`
+      <div class="row-item">
+        <div class="row-icon" style="background:${typeColor[e._t]}">${typeIcon[e._t]}</div>
+        <div class="row-info">
+          <div class="row-title">${e.agent||e.system||'—'}</div>
+          <div class="row-meta">${e._t} · ${e.duration||'—'} min${e.reason||e.kind||e.desc?' · '+(e.reason||e.kind||e.desc):''}</div>
+        </div>
+        <div style="font-size:10px;color:var(--t3);">${e.ts?e.ts.substring(11,16):''}</div>
+      </div>`).join('')
+    : `<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-msg">No KPI entries for this date</div></div>`;
+}
+
+init();
+</script>
+</body>
+</html>

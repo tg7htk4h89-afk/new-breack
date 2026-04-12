@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0A4A8A">
+<title>KIB WFM — Home</title>
+<link rel="stylesheet" href="css/kib.css">
+</head>
+<body>
+<div id="kib-topbar"></div>
+<div id="kib-app">
+  <div id="user-strip-container"></div>
+  <div class="page-content">
+
+    <!-- Hero -->
+    <div class="hero-card" id="hero-card" style="margin-top:12px;">
+      <div style="position:relative;z-index:1;">
+        <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px;">Today's Shift</div>
+        <div id="hero-shift" style="font-size:26px;font-weight:900;color:#fff;line-height:1;margin-bottom:4px;">—</div>
+        <div id="hero-date" style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:12px;"></div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span id="hero-pill" class="pill pill-teal">● Working</span>
+          <span id="hero-times" style="font-size:12px;color:rgba(255,255,255,.4);"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats (management+) -->
+    <div id="stats-row" style="display:none;">
+      <div class="sec-hdr">Live Overview</div>
+      <div class="stat-grid">
+        <div class="stat-card c-green"> <div class="stat-num" id="s-ontime">—</div><div class="stat-label">On Time</div></div>
+        <div class="stat-card c-amber"> <div class="stat-num" id="s-late">—</div>  <div class="stat-label">Late</div></div>
+        <div class="stat-card c-red">   <div class="stat-num" id="s-absent">—</div><div class="stat-label">Absent</div></div>
+        <div class="stat-card c-purple"><div class="stat-num" id="s-break">—</div> <div class="stat-label">On Break</div></div>
+      </div>
+    </div>
+
+    <!-- Week grid -->
+    <div class="sec-hdr">This Week</div>
+    <div class="card mb-12"><div class="card-body" id="week-grid" style="padding:10px;"></div></div>
+
+    <!-- Quick actions -->
+    <div class="sec-hdr">Quick Actions</div>
+    <div id="quick-actions" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;"></div>
+
+    <!-- Approvals (management+) -->
+    <div id="approvals-section" style="display:none;">
+      <div class="sec-hdr">Pending Approvals</div>
+      <div class="card"><div class="card-body" id="approvals-body"><div class="skel" style="height:52px;border-radius:8px;"></div></div></div>
+    </div>
+
+    <!-- Recent (agents) -->
+    <div id="recent-section">
+      <div class="sec-hdr">Recent Requests</div>
+      <div class="card"><div class="card-body" id="recent-list">
+        <div class="skel" style="height:50px;margin-bottom:8px;border-radius:8px;"></div>
+        <div class="skel" style="height:50px;border-radius:8px;"></div>
+      </div></div>
+    </div>
+
+  </div>
+</div>
+<div id="kib-bottomnav"></div>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/nav.js"></script>
+<script>
+if (!Auth.guard()) throw 0;
+const user = Auth.user(), today = U.today();
+let D = null;
+
+Nav.init('home');
+document.getElementById('user-strip-container').innerHTML = Nav.renderUserStrip(
+  `<div style="margin-left:auto;font-size:11px;color:var(--t2);">${U.fmtDisplay(today)}</div>`
+);
+
+async function init() {
+  try {
+    D = await API.getAll();
+    hero(); week(); quickActions();
+    if (Auth.isManagement()) { stats(); approvals(); }
+    else { recent(); }
+  } catch(e) { U.toast('Load failed — refresh', 'err'); }
+}
+
+function hero() {
+  const ag  = (D.agents||[]).find(a=>(a.n||a.name)===user.name);
+  const idx = (D.dates||[]).indexOf(today);
+  const raw = ag&&idx>=0&&ag.sch ? ag.sch[idx] : '';
+  const code= CFG.normalizeShiftCode(raw||'OFF');
+  const def = CFG.getShift(code);
+  const off = CFG.isOff(code);
+  U.se('hero-shift', raw||'Not Scheduled');
+  U.se('hero-date',  U.fmtFull(today));
+  U.se('hero-times', (def&&!off&&def.start)?`${U.fmt12(def.start)} – ${U.fmt12(def.end)}`:'');
+  if (off) document.getElementById('hero-card').style.background='linear-gradient(135deg,#2D3748,#1A202C)';
+  const p=document.getElementById('hero-pill');
+  p.textContent=off?'● Day Off':'● Working';
+  p.className=`pill ${off?'pill-gray':'pill-teal'}`;
+}
+
+function week() {
+  const ag=(D.agents||[]).find(a=>(a.n||a.name)===user.name);
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  U.sh('week-grid','<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">'+
+    U.getWeekDates(today).map((date,i)=>{
+      const idx=(D.dates||[]).indexOf(date);
+      const raw=ag&&idx>=0&&ag.sch?ag.sch[idx]:'';
+      const code=CFG.normalizeShiftCode(raw||'OFF');
+      const def=CFG.getShift(code);
+      const isT=date===today,isOff=CFG.isOff(code);
+      const d=new Date(date+'T00:00:00');
+      const bg=isT?'var(--navy)':isOff?'#F3F4F6':'var(--teal-bg)';
+      const clr=isT?'#fff':isOff?'#9CA3AF':'var(--teal)';
+      const bdr=isT?'2px solid var(--navy)':'1.5px solid var(--border)';
+      return `<div style="border-radius:9px;padding:7px 3px;text-align:center;background:${bg};border:${bdr};">
+        <div style="font-size:9px;font-weight:700;color:${isT?'rgba(255,255,255,.5)':'var(--t3)'};">${days[i]}</div>
+        <div style="font-size:13px;font-weight:900;color:${isT?'#fff':'var(--t1)'};">${d.getDate()}</div>
+        <div style="font-size:9px;font-weight:700;color:${isT?'rgba(255,255,255,.7)':isOff?'#9CA3AF':def?.color||'var(--teal)'};">${def?.short||code}</div>
+      </div>`;
+    }).join('')+'</div>');
+}
+
+function quickActions() {
+  const isWFM=Auth.isWFM(),isMgmt=Auth.isManagement();
+  const acts=isWFM?[
+    {icon:'📅',label:'Edit Schedule', page:'schedule-edit.html',color:'var(--navy)'},
+    {icon:'✅',label:'Attendance',    page:'attendance.html',   color:'var(--teal)'},
+    {icon:'📌',label:'KPI Tracker',  page:'kpi.html',          color:'var(--amber)'},
+    {icon:'⚙️',label:'Admin',        page:'admin.html',        color:'var(--t2)'},
+  ]:isMgmt?[
+    {icon:'📅',label:'Full Schedule', page:'schedule.html',     color:'var(--navy)'},
+    {icon:'👥',label:'Monitor Breaks',page:'breaks.html',       color:'var(--teal)'},
+    {icon:'✅',label:'Attendance',    page:'attendance.html',   color:'var(--amber)'},
+    {icon:'🔔',label:'Approvals',     page:'requests.html',     color:'var(--green)'},
+  ]:[
+    {icon:'☕',label:'Book Break',    page:'breaks.html',       color:'var(--teal)'},
+    {icon:'📅',label:'My Schedule',  page:'schedule.html',     color:'var(--navy)'},
+    {icon:'📌',label:'Daily KPI',    page:'kpi.html',          color:'var(--amber)'},
+    {icon:'👤',label:'My Profile',   page:'settings.html',     color:'var(--t2)'},
+  ];
+  U.sh('quick-actions', acts.map(a=>`
+    <a href="${a.page}" style="background:var(--white);border:1px solid var(--border);border-radius:var(--rl);padding:14px;display:flex;flex-direction:column;gap:7px;text-decoration:none;box-shadow:var(--shadow);-webkit-tap-highlight-color:transparent;">
+      <div style="font-size:26px;">${a.icon}</div>
+      <div style="font-size:13px;font-weight:700;color:var(--t1);">${a.label}</div>
+      <div style="height:2.5px;background:${a.color};border-radius:2px;opacity:.5;"></div>
+    </a>`).join(''));
+}
+
+function stats() {
+  document.getElementById('stats-row').style.display='';
+  const att=(D.attendance||[]).filter(a=>U.normDate(a.date)===today);
+  const brk=(D.breakLog||D.breaks||[]).filter(b=>U.normDate(b.date)===today&&b.status==='active');
+  U.se('s-ontime',att.filter(a=>a.status==='on_time').length);
+  U.se('s-late',  att.filter(a=>a.status==='late').length);
+  U.se('s-absent',att.filter(a=>a.status==='sick'||a.status==='noshow').length);
+  U.se('s-break', brk.length);
+}
+
+function approvals() {
+  document.getElementById('approvals-section').style.display='';
+  const pl=(D.leaves||[]).filter(l=>l.status==='pending');
+  const ps=(D.swaps ||[]).filter(s=>s.status==='pending_mgmt');
+  const total=pl.length+ps.length;
+  if(total>0) Nav.setBadge('requests',total);
+  const body=document.getElementById('approvals-body');
+  if(!total){body.innerHTML='<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-msg">No pending approvals</div></div>';return;}
+  body.innerHTML=[...pl.map(l=>`
+    <div class="row-item">
+      <div class="row-icon" style="background:var(--amber-bg);font-size:18px;">🏖️</div>
+      <div class="row-info"><div class="row-title">${l.agent}</div><div class="row-meta">${l.type||'Leave'} · ${l.startDate||''}</div></div>
+      <a href="requests.html" class="btn btn-xs btn-outline">Review</a>
+    </div>`),
+    ...ps.map(s=>`
+    <div class="row-item">
+      <div class="row-icon" style="background:var(--teal-bg);font-size:18px;">🔄</div>
+      <div class="row-info"><div class="row-title">${s.from||''} ↔ ${s.to||''}</div><div class="row-meta">Swap · ${s.date||''}</div></div>
+      <a href="requests.html" class="btn btn-xs btn-outline">Review</a>
+    </div>`)].join('');
+}
+
+function recent() {
+  const sp=s=>s==='approved'?'pill-green':s==='rejected'?'pill-red':'pill-amber';
+  const all=[...(D.leaves||[]).filter(l=>l.agent===user.name).slice(-3).reverse().map(l=>({...l,_i:'🏖️'})),
+             ...(D.scheduleRequests||[]).filter(r=>r.agent===user.name).slice(-2).reverse().map(r=>({...r,_i:'📅'}))];
+  U.sh('recent-list',all.length?all.map(r=>`
+    <div class="row-item">
+      <div class="row-icon" style="background:var(--bg);font-size:18px;">${r._i}</div>
+      <div class="row-info"><div class="row-title">${r.type||r.requestedShift||'Request'} · ${r.startDate||r.periodFrom||''}</div><div class="row-meta">${U.timeAgo(r.ts||'')}</div></div>
+      <span class="pill ${sp(r.status)}">${r.status||'pending'}</span>
+    </div>`).join('')
+    :'<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-msg">No recent requests</div></div>');
+}
+
+init();
+</script>
+</body>
+</html>

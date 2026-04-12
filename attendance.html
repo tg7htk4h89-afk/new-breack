@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0A4A8A">
+<title>KIB WFM — Attendance</title>
+<link rel="stylesheet" href="css/kib.css">
+<style>
+.att-chip { display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700; }
+.att-present { background:var(--green-bg); color:var(--green); }
+.att-absent  { background:var(--red-bg);   color:var(--red);   }
+.att-late    { background:var(--amber-bg);  color:var(--amber); }
+.att-leave   { background:rgba(124,58,237,.1); color:var(--purple); }
+.att-unknown { background:#F3F4F6; color:#6B7280; }
+
+.att-table-wrap { overflow-x:auto; }
+.att-row { display:grid; grid-template-columns:1fr auto auto; gap:8px; align-items:center; padding:10px 13px; border-bottom:1px solid var(--border2); }
+.att-row:last-child { border-bottom:none; }
+
+.mgmt-row { display:flex; align-items:center; gap:10px; padding:10px 13px; border-bottom:1px solid var(--border2); }
+.mgmt-row:last-child { border-bottom:none; }
+.mgmt-av { width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0; }
+</style>
+</head>
+<body>
+<div id="kib-topbar"></div>
+<div id="kib-app">
+  <div id="user-strip-container"></div>
+  <div class="page-content">
+
+    <!-- Date selector -->
+    <div class="card" style="margin-top:12px;">
+      <div class="card-header">
+        <div class="card-title">Attendance</div>
+        <input type="date" class="fld" id="att-date" style="width:auto;padding:6px 10px;font-size:12px;" onchange="onDateChange()">
+      </div>
+    </div>
+
+    <!-- Stats (management) -->
+    <div id="att-stats" style="display:none;">
+      <div class="stat-grid">
+        <div class="stat-card c-green"><div class="stat-num" id="s-present">—</div><div class="stat-label">Present</div></div>
+        <div class="stat-card c-amber"><div class="stat-num" id="s-late">—</div><div class="stat-label">Late</div></div>
+        <div class="stat-card c-red"><div class="stat-num" id="s-absent">—</div><div class="stat-label">Absent</div></div>
+        <div class="stat-card c-purple"><div class="stat-num" id="s-leave">—</div><div class="stat-label">Leave</div></div>
+      </div>
+    </div>
+
+    <!-- Agent self-check-in -->
+    <div id="agent-checkin" style="display:none;">
+      <div class="card">
+        <div class="card-header"><div class="card-title">My Attendance</div></div>
+        <div class="card-body">
+          <div id="my-att-status" class="info-box navy" style="margin-bottom:12px;">Checking status…</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <button class="btn btn-green" onclick="logAttendance('on_time')">✓ On Time</button>
+            <button class="btn btn-amber" onclick="logAttendance('late')">⏰ Late</button>
+            <button class="btn btn-red"   onclick="logAttendance('noshow')">✕ Absent</button>
+            <button class="btn btn-outline" onclick="logAttendance('sick')">🏖 On Leave</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Management: full team view -->
+    <div id="mgmt-att-view" style="display:none;">
+      <!-- Team filter -->
+      <div class="tab-bar" id="att-team-tabs" style="margin-bottom:8px;"></div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title" id="att-table-title">Team Attendance</div>
+          <button class="btn btn-xs btn-outline" onclick="exportAtt()">⬇ Export</button>
+        </div>
+        <div id="att-agent-list">
+          <div class="card-body">
+            <div class="skel" style="height:48px;margin-bottom:6px;border-radius:8px;"></div>
+            <div class="skel" style="height:48px;margin-bottom:6px;border-radius:8px;"></div>
+            <div class="skel" style="height:48px;border-radius:8px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div id="kib-bottomnav"></div>
+
+<!-- Status edit modal trigger -->
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/nav.js"></script>
+<script>
+if (!Auth.guard()) throw 0;
+
+const user   = Auth.user();
+let allData  = null;
+let selDate  = U.today();
+let teamFilt = 'All';
+
+Nav.init('attendance');
+document.getElementById('user-strip-container').innerHTML = Nav.renderUserStrip();
+document.getElementById('att-date').value = selDate;
+document.getElementById('att-date').max   = U.today();
+
+const isMgmt = Auth.isManagement();
+
+async function init() {
+  try {
+    allData = await API.getAll();
+    if (isMgmt) {
+      document.getElementById('att-stats').style.display = '';
+      document.getElementById('mgmt-att-view').style.display = '';
+      buildTeamTabs();
+      renderMgmtView();
+    } else {
+      document.getElementById('agent-checkin').style.display = '';
+      renderAgentStatus();
+    }
+  } catch(e) { U.toast('Failed to load attendance','err'); }
+}
+
+function onDateChange() {
+  selDate = document.getElementById('att-date').value;
+  if (isMgmt) renderMgmtView();
+  else renderAgentStatus();
+}
+
+/* ── Agent self check-in ───────────────────────────── */
+function renderAgentStatus() {
+  const att = (allData?.attendance||[]).find(a => a.agent===user.name && U.normDate(a.date)===selDate);
+  const el  = document.getElementById('my-att-status');
+  if (att) {
+    const map = {on_time:'green',late:'amber',noshow:'red',sick:'red',permission:'navy',change:'navy'};
+    const cls = map[att.status] || 'navy';
+    el.className = `info-box ${cls}`;
+    el.innerHTML = `Status: <strong>${att.status?.toUpperCase()}</strong> · Logged at ${att.time||'—'}`;
+  } else {
+    el.className = 'info-box navy';
+    el.textContent = selDate === U.today() ? 'Not yet logged today — tap below to log' : 'No attendance record for this date';
+  }
+}
+
+async function logAttendance(status) {
+  try {
+    const rec = { agent:user.name, date:selDate, status, time:U.nowHHMM(), loggedBy:user.name, ts:new Date().toISOString() };
+    await API.saveAttendance([rec]);
+    allData = await API.getAll(true);
+    renderAgentStatus();
+    U.toast(`Logged as ${status} ✓`, 'ok');
+  } catch(e) { U.toast('Failed to log attendance','err'); }
+}
+
+/* ── Management view ───────────────────────────────── */
+function buildTeamTabs() {
+  const teams = ['All', ...CFG.TEAMS.filter(t => (allData?.agents||[]).some(a => a.t===t))];
+  document.getElementById('att-team-tabs').innerHTML = teams.map(t =>
+    `<button class="tab-item ${t==='All'?'active':''}" onclick="setAttTeam('${t}',this)">${t}</button>`
+  ).join('');
+}
+
+function setAttTeam(t, el) {
+  teamFilt = t;
+  document.querySelectorAll('#att-team-tabs .tab-item').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderMgmtView();
+}
+
+function renderMgmtView() {
+  let agents = (allData?.agents||[]).filter(a => a.t !== 'Management');
+  if (teamFilt !== 'All') agents = agents.filter(a => a.t === teamFilt);
+  const att = (allData?.attendance||[]).filter(a => U.normDate(a.date) === selDate);
+
+  // Stats
+  let present=0, late=0, absent=0, leave=0;
+  agents.forEach(ag => {
+    const name = ag.n||ag.name;
+    const rec  = att.find(a => a.agent===name);
+    if (!rec)                         return;
+    if (rec.status==='present')       present++;
+    else if (rec.status==='late')     late++;
+    else if (rec.status==='absent')   absent++;
+    else if (rec.status==='leave'||rec.status==='sick') leave++;
+  });
+  U.se('s-present', present);
+  U.se('s-late',    late);
+  U.se('s-absent',  absent);
+  U.se('s-leave',   leave);
+
+  document.getElementById('att-table-title').textContent = `${teamFilt === 'All' ? 'All Teams' : teamFilt} (${agents.length})`;
+
+  const html = agents.map(ag => {
+    const name  = ag.n||ag.name;
+    const color = U.avatarColor(name);
+    const rec   = att.find(a => a.agent===name);
+    const status= rec?.status || 'unknown';
+    const statusMap = {
+      on_time:'att-present', late:'att-late', sick:'att-absent',
+      permission:'att-leave', noshow:'att-absent', unknown:'att-unknown'
+    };
+    const chipCls = statusMap[status] || 'att-unknown';
+    const label   = status.charAt(0).toUpperCase()+status.slice(1);
+
+    return `<div class="mgmt-row">
+      <div class="mgmt-av" style="background:${color}">${U.initials(name)}</div>
+      <div class="flex-1">
+        <div class="row-title">${name}</div>
+        <div class="row-meta">${ag.t||'—'} · ${rec?.time||'—'}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="att-chip ${chipCls}">${label}</span>
+        ${Auth.isWFM()?`<button class="btn btn-xs btn-outline" onclick="editStatus('${name}','${status}')">Edit</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('att-agent-list').innerHTML = html || `<div class="card-body"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-msg">No agents in this team</div></div></div>`;
+}
+
+async function editStatus(agentName, currentStatus) {
+  const opts = ['present','late','absent','leave','sick'];
+  const bodyHtml = `
+    <div class="form-group">
+      <label class="fld-label">Agent</label>
+      <div style="font-weight:700;">${agentName}</div>
+    </div>
+    <div class="form-group">
+      <label class="fld-label">Status</label>
+      <select class="fld" id="modal-status">
+        ${opts.map(o=>`<option value="${o}" ${o===currentStatus?'selected':''}>${o.charAt(0).toUpperCase()+o.slice(1)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="fld-label">Note</label>
+      <input class="fld" type="text" id="modal-note" placeholder="Optional note">
+    </div>`;
+
+  U.modal('Edit Attendance Status', bodyHtml,
+    `<button class="btn btn-outline flex-1" onclick="U.closeModal()">Cancel</button>
+     <button class="btn btn-navy flex-1" onclick="saveEditStatus('${agentName}')">Save</button>`);
+}
+
+async function saveEditStatus(agentName) {
+  const status = document.getElementById('modal-status').value;
+  const note   = document.getElementById('modal-note')?.value||'';
+  try {
+    await API.saveAttendance([{ agent:agentName, date:selDate, status, time:U.nowHHMM(), note, loggedBy:user.name, ts:new Date().toISOString() }]);
+    U.closeModal();
+    allData = await API.getAll(true);
+    renderMgmtView();
+    U.toast(`${agentName} → ${status} ✓`, 'ok');
+  } catch(e) { U.toast('Failed to update','err'); }
+}
+
+function exportAtt() {
+  let agents = (allData?.agents||[]).filter(a => a.t!=='Management');
+  if (teamFilt !== 'All') agents = agents.filter(a => a.t===teamFilt);
+  const att = (allData?.attendance||[]).filter(a => U.normDate(a.date)===selDate);
+  const rows = [['Agent','Team','Date','Status','Time','Note']];
+  agents.forEach(ag => {
+    const name = ag.n||ag.name;
+    const rec  = att.find(a => a.agent===name)||{};
+    rows.push([name, ag.t, selDate, rec.status||'', rec.time||'', rec.note||'']);
+  });
+  U.downloadCSV(rows, `KIB_Attendance_${selDate}.csv`);
+}
+
+init();
+</script>
+</body>
+</html>

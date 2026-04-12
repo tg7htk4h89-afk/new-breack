@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#082C52">
+<title>KIB WFM — Schedule Editor</title>
+<link rel="stylesheet" href="css/kib.css">
+<style>
+/* ── Editor-specific overrides ──────────────────────── */
+body { background: #F0F5FB; }
+
+.editor-toolbar {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  position: sticky;
+  top: var(--topbar-h);
+  z-index: 50;
+}
+
+.filter-chip {
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--t2);
+  cursor: pointer;
+  transition: .12s;
+  white-space: nowrap;
+}
+.filter-chip.active {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+.filter-chips {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-wrap: nowrap;
+}
+.filter-chips::-webkit-scrollbar { display: none; }
+
+/* Grid wrap */
+.grid-outer {
+  overflow: auto;
+  flex: 1;
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: var(--rl);
+  background: var(--white);
+  box-shadow: var(--shadow);
+  margin: 0 14px;
+}
+.sch-grid {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: max-content;
+  min-width: 100%;
+}
+
+/* Sticky header row */
+.sch-grid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 12;
+  background: #0A2E5A;
+  color: rgba(255,255,255,.7);
+  padding: 10px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  border-right: 1px solid rgba(255,255,255,.06);
+  border-bottom: 2px solid rgba(255,255,255,.08);
+  line-height: 1.3;
+  min-width: 60px;
+}
+.sch-grid thead th.th-name {
+  position: sticky;
+  left: 0;
+  z-index: 22;
+  text-align: left;
+  padding-left: 14px;
+  min-width: 196px;
+  width: 196px;
+  border-right: 2px solid rgba(255,255,255,.1);
+}
+.sch-grid thead th.th-today {
+  background: var(--teal);
+  color: #fff;
+}
+.sch-grid thead th.th-wknd {
+  background: #0D2040;
+  color: rgba(255,255,255,.4);
+}
+
+/* Body cells */
+.sch-grid td {
+  border-right: 1px solid var(--border2);
+  border-bottom: 1px solid var(--border2);
+  vertical-align: middle;
+  height: 48px;
+  padding: 0;
+}
+.sch-grid td.td-name {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  background: var(--white);
+  border-right: 2px solid var(--border);
+  padding: 6px 12px;
+  white-space: nowrap;
+  min-width: 196px;
+  width: 196px;
+}
+.sch-grid tr:hover td { background: rgba(13,92,166,.025); }
+.sch-grid tr:hover td.td-name { background: rgba(13,92,166,.04); }
+
+/* Name cell content */
+.ag-name  { font-size: 12px; font-weight: 700; color: var(--t1); line-height: 1.2; }
+.ag-badge {
+  display: inline-block;
+  font-size: 8px; font-weight: 700;
+  color: #fff;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-top: 2px;
+}
+
+/* Group header rows */
+.sch-grid .grp-row td {
+  background: #EEF4FC !important;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--navy2);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  padding: 5px 14px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  position: sticky;
+  left: 0;
+}
+
+/* Shift cells */
+.sch-cell {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 4px 3px;
+  transition: background .1s;
+  min-width: 60px;
+}
+.sch-cell:hover { background: rgba(13,92,166,.05); }
+.sch-cell.is-wknd { opacity: .7; }
+.sch-cell.is-today { background: rgba(0,168,154,.06); }
+.sch-cell.is-today:hover { background: rgba(0,168,154,.12); }
+
+.cell-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  width: 52px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: transform .1s;
+  position: relative;
+}
+.sch-cell:hover .cell-chip { transform: scale(1.06); }
+.cell-chip.changed {
+  outline: 2px solid var(--amber);
+  outline-offset: 1px;
+}
+
+/* Pending bar */
+.pending-bar {
+  position: fixed;
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
+  left: 0; right: 0;
+  background: #0A2E5A;
+  color: #fff;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  z-index: 100;
+  box-shadow: 0 -3px 20px rgba(0,0,0,.3);
+  transform: translateY(100%);
+  transition: transform .2s;
+}
+.pending-bar.show { transform: translateY(0); }
+.pb-msg { font-size: 13px; font-weight: 600; }
+.pb-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* Cell dropdown popup */
+.cell-popup {
+  position: fixed;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(13,92,166,.2);
+  z-index: 500;
+  min-width: 200px;
+  overflow: hidden;
+  animation: fadeIn .15s;
+}
+@keyframes fadeIn { from { opacity:0; transform:scale(.95); } }
+.popup-header {
+  background: var(--navy3);
+  color: rgba(255,255,255,.8);
+  padding: 10px 13px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.popup-header strong { color: #fff; font-size: 12px; display: block; }
+.popup-divider {
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--t3);
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  padding: 6px 13px 3px;
+}
+.popup-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 13px;
+  cursor: pointer;
+  transition: background .1s;
+  border-bottom: 1px solid var(--border2);
+}
+.popup-option:last-child { border-bottom: none; }
+.popup-option:hover { background: rgba(13,92,166,.05); }
+.popup-option .opt-chip {
+  width: 44px; height: 22px;
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 800;
+  flex-shrink: 0;
+}
+.popup-option .opt-label { font-size: 12px; font-weight: 700; }
+.popup-option .opt-sub   { font-size: 10px; color: var(--t2); }
+
+/* Legend bar */
+.legend-bar {
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  padding: 8px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.leg-item {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 600; color: var(--t2);
+}
+.leg-dot {
+  width: 20px; height: 14px;
+  border-radius: 3px; flex-shrink: 0;
+}
+
+/* Search box in toolbar */
+.sch-search {
+  padding: 7px 11px 7px 32px;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--t1);
+  background: var(--bg);
+  outline: none;
+  width: 160px;
+  transition: .2s;
+}
+.sch-search:focus { border-color: var(--navy); width: 200px; }
+.sch-search-wrap { position: relative; }
+.sch-search-wrap::before {
+  content: '⌕';
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  font-size: 14px; color: var(--t3); pointer-events: none;
+}
+
+/* Publish toggle */
+.pub-btn {
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--green);
+  background: none;
+  color: var(--green);
+  font-size: 12px; font-weight: 700;
+  cursor: pointer;
+  transition: .15s;
+}
+.pub-btn:hover { background: var(--green); color: #fff; }
+.pub-btn.published { background: var(--green); color: #fff; border-color: var(--green); }
+</style>
+</head>
+<body>
+
+<div id="kib-topbar"></div>
+
+<!-- Sticky toolbar -->
+<div class="editor-toolbar" id="editor-toolbar" style="margin-top:var(--topbar-h);">
+  <!-- Week navigation -->
+  <div class="week-nav">
+    <button onclick="prevWeek()" title="Previous week">‹</button>
+    <div class="wn-label" id="week-label">Loading…</div>
+    <button onclick="nextWeek()" title="Next week">›</button>
+  </div>
+
+  <button class="btn btn-xs btn-outline" onclick="goToday()" title="Jump to today">Today</button>
+
+  <!-- Team filter chips -->
+  <div class="filter-chips" id="team-chips">
+    <div class="filter-chip active" onclick="setTeam('All',this)">All</div>
+    <!-- Populated by JS -->
+  </div>
+
+  <!-- Search -->
+  <div class="sch-search-wrap" style="margin-left:auto;">
+    <input class="sch-search" id="agent-search" type="text" placeholder="Search agent…" oninput="onSearch()">
+  </div>
+
+  <!-- Publish button -->
+  <button class="pub-btn" id="pub-btn" onclick="togglePublish()">📢 Publish</button>
+</div>
+
+<!-- Grid container -->
+<div id="kib-app" style="padding-top:0;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 56px);">
+  <div class="grid-outer" id="grid-outer">
+    <div id="grid-container" style="min-height:200px;display:flex;align-items:center;justify-content:center;">
+      <div>
+        <div class="kib-spin" style="margin:0 auto 10px;"></div>
+        <div style="font-size:13px;color:var(--t2);">Loading schedule from n8n…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend-bar" style="margin:10px 14px 0;">
+    <span style="font-size:10px;font-weight:700;color:var(--t2);margin-right:4px;">SHIFTS:</span>
+    <!-- Populated by JS -->
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<div id="kib-bottomnav"></div>
+
+<!-- Pending changes bar -->
+<div class="pending-bar" id="pending-bar">
+  <div class="pb-msg" id="pb-msg">0 unsaved changes</div>
+  <div class="pb-actions">
+    <button class="btn btn-xs btn-red" onclick="discardChanges()">✕ Discard</button>
+    <button class="btn btn-xs btn-teal" onclick="saveAllChanges()" id="save-btn">✓ Save All</button>
+  </div>
+</div>
+
+<!-- Cell popup (hidden by default) -->
+<div class="cell-popup" id="cell-popup" style="display:none;">
+  <div style="display:none;height:4px;width:40px;background:rgba(255,255,255,.3);border-radius:4px;margin:8px auto -4px;" id="popup-handle"></div>
+  <div class="popup-header">
+    <strong id="popup-agent">Agent Name</strong><br><span id="popup-date" style="font-weight:400;">Date</span>
+  </div>
+  <div id="popup-options"></div>
+</div>
+
+<!-- Backdrop to close popup -->
+<div id="popup-backdrop" style="display:none;position:fixed;inset:0;z-index:499;" onclick="closePopup()"></div>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/nav.js"></script>
+<script>
+if (!Auth.guard('management')) throw 0; // TL/ATL/QA/BackOffice/WFM/Admin can edit schedule
+
+const user = Auth.user();
+Nav.init('schedule-edit');
+
+/* ── State ─────────────────────────────────────────── */
+let allData      = null;    // from n8n getAll
+let allAgents    = [];      // [{n, t, sch:[], ...}]
+let allDates     = [];      // ["YYYY-MM-DD", ...]
+let weekDates    = [];      // 7 dates currently shown
+let weekAnchor   = U.today();
+let teamFilter   = 'All';
+let searchQuery  = '';
+let pendingChanges = {};    // { "agent|date": { agent, date, shift, orig } }
+let isPublished  = false;
+
+/* ── Boot ──────────────────────────────────────────── */
+async function init() {
+  try {
+    allData   = await API.getAll();
+    allAgents = (allData.agents || []).filter(a => a.t !== 'Management');
+    allDates  = (allData.dates  || []).map(d => U.normDate(d));
+    isPublished = allData.published || false;
+    updatePublishBtn();
+    buildTeamChips();
+    buildLegend();
+    renderGrid();
+  } catch(e) {
+    console.error(e);
+    document.getElementById('grid-container').innerHTML =
+      `<div style="padding:40px;text-align:center;color:var(--red);">⚠ Failed to load from n8n.<br><button class="btn btn-sm btn-outline" onclick="init()" style="margin-top:10px;">Retry</button></div>`;
+  }
+}
+
+/* ── Team chips ────────────────────────────────────── */
+function buildTeamChips() {
+  const teams = ['All', ...CFG.TEAMS.filter(t => allAgents.some(a => a.t === t))];
+  const el = document.getElementById('team-chips');
+  el.innerHTML = teams.map(t =>
+    `<div class="filter-chip ${t==='All'?'active':''}" onclick="setTeam('${t}',this)">${t}</div>`
+  ).join('');
+}
+
+function setTeam(t, el) {
+  teamFilter = t;
+  document.querySelectorAll('#team-chips .filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderGrid();
+}
+
+function onSearch() {
+  searchQuery = document.getElementById('agent-search').value.toLowerCase();
+  renderGrid();
+}
+
+/* ── Legend ────────────────────────────────────────── */
+function buildLegend() {
+  const bar = document.querySelector('.legend-bar');
+  const themeItems = CFG.SHIFT_THEME.map(t => ({short:t.short, label:t.label, bg:t.bg, color:t.color}));
+  const items = [...themeItems, ...CFG.DAY_TYPES].map(s =>
+    `<div class="leg-item">
+      <div class="leg-dot" style="background:${s.bg||'#eee'};border:1px solid ${s.color};"></div>
+      ${s.short||s.code}
+    </div>`
+  ).join('');
+  bar.innerHTML = `<span style="font-size:10px;font-weight:700;color:var(--t2);">LEGEND:</span> ${items}`;
+}
+
+/* ── Week navigation ───────────────────────────────── */
+function prevWeek() { weekAnchor = U.addDays(weekAnchor, -7); renderGrid(); }
+function nextWeek() { weekAnchor = U.addDays(weekAnchor,  7); renderGrid(); }
+function goToday()  { weekAnchor = U.today(); renderGrid(); }
+
+function computeWeekDates() {
+  // Show 7 days anchored to weekAnchor, clipped to allDates range
+  const week = U.getWeekDates(weekAnchor);
+  if (!allDates.length) return week;
+  const min = allDates[0], max = allDates[allDates.length - 1];
+  return week.filter(d => d >= min && d <= max);
+}
+
+/* ── Main grid render ──────────────────────────────── */
+function renderGrid() {
+  weekDates = computeWeekDates();
+  if (!weekDates.length) {
+    document.getElementById('grid-container').innerHTML =
+      `<div style="padding:40px;text-align:center;color:var(--t3);">No schedule data for this week.</div>`;
+    updateWeekLabel();
+    return;
+  }
+  updateWeekLabel();
+
+  // Filter agents
+  let agents = allAgents;
+  if (teamFilter !== 'All') agents = agents.filter(a => a.t === teamFilter);
+  if (searchQuery)          agents = agents.filter(a => (a.n||a.name||'').toLowerCase().includes(searchQuery));
+
+  // Group by team
+  const teams = [...new Set(agents.map(a => a.t))];
+  const today = U.today();
+
+  // Build header
+  let thead = `<thead><tr>
+    <th class="th-name">Agent / Date</th>`;
+  weekDates.forEach(d => {
+    const isT = d === today;
+    const isW = U.isWeekend(d);
+    const cls = isT ? 'th-today' : isW ? 'th-wknd' : '';
+    const dn  = new Date(d + 'T00:00:00');
+    thead += `<th class="${cls}" data-date="${d}">
+      <div>${U.dayName(d)}</div>
+      <div style="font-size:11px;font-weight:900;color:${isT?'#fff':'rgba(255,255,255,.9)'};">${dn.getDate()}</div>
+    </th>`;
+  });
+  thead += `</tr></thead>`;
+
+  // Build body
+  let tbody = '<tbody>';
+  teams.forEach(team => {
+    const members = agents.filter(a => a.t === team);
+    if (!members.length) return;
+    const teamColor = CFG.TEAM_COLORS[team] || '#6B7280';
+    tbody += `<tr class="grp-row"><td colspan="${weekDates.length + 1}" style="color:${teamColor};">${team} (${members.length})</td></tr>`;
+
+    members.forEach(ag => {
+      const name = ag.n || ag.name;
+      const initials = U.initials(name);
+      const avColor  = U.avatarColor(name);
+      tbody += `<tr>
+        <td class="td-name" title="${name}">
+          <div style="display:flex;align-items:center;gap:7px;">
+            <div style="width:28px;height:28px;border-radius:7px;background:${avColor};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0;">${initials}</div>
+            <div>
+              <div class="ag-name">${name}</div>
+              <div class="ag-badge" style="background:${teamColor};">${team}</div>
+            </div>
+          </div>
+        </td>`;
+
+      weekDates.forEach(d => {
+        const idx = allDates.indexOf(d);
+        let shift = idx >= 0 && ag.sch ? ag.sch[idx] : '';
+        if (!shift) shift = 'OFF';
+        const code  = CFG.normalizeShiftCode(shift);
+        const pKey  = `${name}|${d}`;
+        const changed = !!pendingChanges[pKey];
+        const dispCode = changed ? pendingChanges[pKey].shift : code;
+        const def   = CFG.getShiftDisplay(dispCode);
+        const isT   = d === today;
+        const isW   = U.isWeekend(d);
+
+        // Render swap/leave badges from remote data
+        const hasLeave = (allData?.leaves||[]).some(l => {
+          const ls = U.normDate(l.startDate), le = U.normDate(l.endDate);
+          return l.agent === name && d >= ls && d <= le && l.status === 'approved';
+        });
+        const hasSwap = (allData?.swaps||[]).some(s =>
+          U.normDate(s.date) === d && (s.from===name||s.to===name) && s.status==='approved'
+        );
+
+        const chipStyle = def
+          ? `background:${def.bg};color:${def.color};`
+          : 'background:#F3F4F6;color:#6B7280;';
+        const chipLabel = def?.short || def?.code || dispCode;
+        const changedCls = changed ? 'changed' : '';
+        const extra = hasLeave ? '🏖' : hasSwap ? '🔄' : '';
+
+        tbody += `<td class="${isT?'td-today':''}" style="${isW?'background:rgba(240,245,251,.5)':''}">
+          <div class="sch-cell ${isT?'is-today':''} ${isW?'is-wknd':''}"
+               data-agent="${name}" data-date="${d}" data-shift="${dispCode}"
+               onclick="openPopup(event,'${escAttr(name)}','${d}','${dispCode}')">
+            <div class="cell-chip ${changedCls}" style="${chipStyle}">
+              ${chipLabel}${extra?`<span style="font-size:8px;">${extra}</span>`:''}
+            </div>
+          </div>
+        </td>`;
+      });
+
+      tbody += '</tr>';
+    });
+  });
+  tbody += '</tbody>';
+
+  document.getElementById('grid-container').innerHTML =
+    `<table class="sch-grid" id="sch-table">${thead}${tbody}</table>`;
+}
+
+function updateWeekLabel() {
+  if (!weekDates.length) { U.se('week-label', 'No data'); return; }
+  const f = weekDates[0], l = weekDates[weekDates.length-1];
+  const fd = new Date(f+'T00:00:00'), ld = new Date(l+'T00:00:00');
+  const m  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  U.se('week-label', `${fd.getDate()} ${m[fd.getMonth()]} – ${ld.getDate()} ${m[ld.getMonth()]}`);
+}
+
+function escAttr(s) { return s.replace(/'/g,"&apos;").replace(/"/g,'&quot;'); }
+
+/* ── Cell Popup ────────────────────────────────────── */
+function openPopup(evt, agentName, date, currentCode) {
+  evt.stopPropagation();
+  const popup = document.getElementById('cell-popup');
+  const backdrop = document.getElementById('popup-backdrop');
+
+  document.getElementById('popup-agent').textContent = agentName;
+  document.getElementById('popup-date').textContent  = U.fmtDisplay(date);
+
+  let optHtml = `<div class="popup-divider">Shifts</div>`;
+  CFG.SHIFTS.forEach(s => {
+    const isCur = s.code === currentCode;
+    optHtml += `
+      <div class="popup-option" onclick="applyShift('${escAttr(agentName)}','${date}','${s.code}')">
+        <div class="opt-chip" style="background:${s.bg};color:${s.color};">${s.short||s.code}</div>
+        <div>
+          <div class="opt-label" style="${isCur?'color:var(--navy);':''}">${s.label} ${isCur?'✓':''}</div>
+          <div class="opt-sub">${s.start} – ${s.end}</div>
+        </div>
+      </div>`;
+  });
+
+  optHtml += `<div class="popup-divider">Day Types</div>`;
+  CFG.DAY_TYPES.forEach(s => {
+    const isCur = s.code === currentCode;
+    optHtml += `
+      <div class="popup-option" onclick="applyShift('${escAttr(agentName)}','${date}','${s.code}')">
+        <div class="opt-chip" style="background:${s.bg};color:${s.color};">${s.short||s.code}</div>
+        <div>
+          <div class="opt-label" style="${isCur?'color:var(--navy);':''}">${s.label} ${isCur?'✓':''}</div>
+          <div class="opt-sub">&nbsp;</div>
+        </div>
+      </div>`;
+  });
+
+  document.getElementById('popup-options').innerHTML = optHtml;
+
+  // Show popup
+  popup.style.display = 'block';
+  backdrop.style.display = 'block';
+  // Show drag handle on mobile
+  const isMobile = window.innerWidth <= 600;
+  const handle = document.getElementById('popup-handle');
+  if (handle) handle.style.display = isMobile ? 'block' : 'none';
+
+  // Mobile: CSS handles bottom-sheet via media query
+  // Desktop: position near the clicked cell
+  if (window.innerWidth > 520) {
+    const rect = evt.currentTarget.getBoundingClientRect();
+    const pw = 220, ph = 380;
+    let top  = rect.bottom + 4;
+    let left = rect.left;
+    if (top + ph > window.innerHeight) top = Math.max(8, rect.top - ph - 4);
+    if (left + pw > window.innerWidth)  left = window.innerWidth - pw - 10;
+    if (left < 8) left = 8;
+    popup.style.top  = top  + 'px';
+    popup.style.left = left + 'px';
+    popup.style.maxHeight = Math.min(ph, window.innerHeight - top - 16) + 'px';
+    popup.style.overflowY = 'auto';
+  } else {
+    // Mobile: CSS handles positioning via media query (bottom sheet)
+    popup.style.top = ''; popup.style.left = '';
+    popup.style.maxHeight = '';
+  }
+}
+
+function closePopup() {
+  document.getElementById('cell-popup').style.display = 'none';
+  document.getElementById('popup-backdrop').style.display = 'none';
+}
+
+/* ── Apply a shift change ──────────────────────────── */
+function applyShift(agentName, date, newCode) {
+  closePopup();
+
+  // Find original shift
+  const ag  = allAgents.find(a => (a.n||a.name) === agentName);
+  const idx = allDates.indexOf(date);
+  const orig = ag && idx >= 0 && ag.sch ? (ag.sch[idx] || 'OFF') : 'OFF';
+  const origCode = CFG.normalizeShiftCode(orig);
+
+  const pKey = `${agentName}|${date}`;
+
+  if (newCode === origCode) {
+    // Revert to original — remove pending
+    delete pendingChanges[pKey];
+  } else {
+    const def = CFG.getShiftDisplay(newCode);
+    pendingChanges[pKey] = {
+      agent:      agentName,
+      date,
+      shift:      newCode,
+      shiftStart: def?.start || '',
+      shiftEnd:   def?.end   || '',
+      orig:       origCode,
+    };
+  }
+
+  updatePendingBar();
+  updateCell(agentName, date, newCode, pKey in pendingChanges);
+}
+
+function updateCell(agentName, date, newCode, isChanged) {
+  const cell = document.querySelector(`.sch-cell[data-agent="${CSS.escape(agentName)}"][data-date="${date}"]`);
+  if (!cell) return;
+  const def = CFG.getShiftDisplay(newCode);
+  const chip = cell.querySelector('.cell-chip');
+  if (chip) {
+    chip.style.background = def ? def.bg : '#F3F4F6';
+    chip.style.color       = def ? def.color : '#6B7280';
+    chip.textContent       = def?.short || def?.code || newCode;
+    chip.classList.toggle('changed', isChanged);
+  }
+  cell.dataset.shift = newCode;
+}
+
+/* ── Pending changes bar ───────────────────────────── */
+function updatePendingBar() {
+  const count = Object.keys(pendingChanges).length;
+  const bar   = document.getElementById('pending-bar');
+  const msg   = document.getElementById('pb-msg');
+  msg.textContent = `${count} unsaved change${count !== 1 ? 's' : ''}`;
+  bar.classList.toggle('show', count > 0);
+}
+
+function discardChanges() {
+  if (!Object.keys(pendingChanges).length) return;
+  if (!confirm('Discard all unsaved changes?')) return;
+  pendingChanges = {};
+  updatePendingBar();
+  renderGrid();
+}
+
+async function saveAllChanges() {
+  const changes = Object.values(pendingChanges);
+  if (!changes.length) return;
+
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  try {
+    const res = await API.bulkUpdateShifts(changes, user.name);
+    if (res?.ok !== false) {
+      // Update local agent.sch data so grid reflects saved state
+      changes.forEach(ch => {
+        const ag  = allAgents.find(a => (a.n||a.name) === ch.agent);
+        const idx = allDates.indexOf(ch.date);
+        if (ag && idx >= 0 && ag.sch) ag.sch[idx] = ch.shift;
+      });
+      pendingChanges = {};
+      updatePendingBar();
+      renderGrid(); // re-render with clean state
+      U.toast(`${changes.length} change${changes.length>1?'s':''} saved ✓`, 'ok');
+      API.clearCache();
+    } else {
+      U.toast('Save failed — ' + (res?.error || 'try again'), 'err');
+    }
+  } catch(e) {
+    U.toast('Network error while saving', 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = '✓ Save All';
+  }
+}
+
+/* ── Publish ───────────────────────────────────────── */
+function updatePublishBtn() {
+  const btn = document.getElementById('pub-btn');
+  if (isPublished) {
+    btn.textContent = '✓ Published';
+    btn.classList.add('published');
+  } else {
+    btn.textContent = '📢 Publish';
+    btn.classList.remove('published');
+  }
+}
+
+async function togglePublish() {
+  if (Object.keys(pendingChanges).length) {
+    U.toast('Save all changes before publishing', 'warn'); return;
+  }
+  const newState = !isPublished;
+  const confirmMsg = newState
+    ? 'Publish schedule? Agents will be able to see it.'
+    : 'Unpublish schedule? Agents will not see new changes.';
+  if (!confirm(confirmMsg)) return;
+
+  try {
+    const res = await API.publishSchedule({
+      startDate:   weekDates[0] || allDates[0],
+      endDate:     weekDates[weekDates.length-1] || allDates[allDates.length-1],
+      published:   newState,
+      publishedBy: user.name,
+    });
+    if (res?.ok !== false) {
+      isPublished = newState;
+      updatePublishBtn();
+      U.toast(newState ? 'Schedule published ✓' : 'Schedule unpublished', 'ok');
+    }
+  } catch(e) { U.toast('Failed to update publish status', 'err'); }
+}
+
+/* ── Refresh ───────────────────────────────────────── */
+async function refreshData() {
+  if (Object.keys(pendingChanges).length) {
+    if (!confirm('Refresh will discard unsaved changes. Continue?')) return;
+  }
+  pendingChanges = {};
+  API.clearCache();
+  document.getElementById('grid-container').innerHTML =
+    `<div style="padding:40px;text-align:center;"><div class="kib-spin" style="margin:0 auto 10px;"></div><div style="font-size:13px;color:var(--t2);">Refreshing…</div></div>`;
+  await init();
+}
+
+/* ── Close popup on Escape ─────────────────────────── */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closePopup();
+});
+// Close popup on any touch outside
+document.addEventListener('touchstart', e => {
+  const popup = document.getElementById('cell-popup');
+  if (popup && popup.style.display !== 'none') {
+    if (!popup.contains(e.target) && !e.target.closest('.sch-cell')) {
+      closePopup();
+    }
+  }
+}, { passive: true });
+
+/* ── Boot ──────────────────────────────────────────── */
+init();
+</script>
+</body>
+</html>

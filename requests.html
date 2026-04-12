@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0A4A8A">
+<title>KIB WFM — Requests</title>
+<link rel="stylesheet" href="css/kib.css">
+<style>
+.req-card { background:var(--white); border:1px solid var(--border); border-radius:var(--rl); margin-bottom:10px; overflow:hidden; box-shadow:var(--shadow); }
+.req-hdr  { padding:12px 14px; display:flex; align-items:flex-start; gap:10px; }
+.req-icon { width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0; }
+.req-body { padding:0 14px 12px; }
+.req-detail { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+.req-dt { background:var(--bg); border-radius:8px; padding:8px 10px; }
+.req-dt-label { font-size:9px; font-weight:700; color:var(--t3); text-transform:uppercase; letter-spacing:.5px; }
+.req-dt-val   { font-size:13px; font-weight:700; margin-top:2px; }
+.req-actions  { display:flex; gap:7px; }
+</style>
+</head>
+<body>
+<div id="kib-topbar"></div>
+<div id="kib-app">
+  <div id="user-strip-container"></div>
+  <div class="page-content">
+
+    <div class="tab-bar" style="margin-top:12px;">
+      <button class="tab-item active" id="tab-pending" onclick="switchTab('pending')">⏳ Pending</button>
+      <button class="tab-item" id="tab-leaves" onclick="switchTab('leaves')">🏖 Leaves</button>
+      <button class="tab-item" id="tab-swaps" onclick="switchTab('swaps')">🔄 Swaps</button>
+      <button class="tab-item" id="tab-schreq" onclick="switchTab('schreq')">📅 Schedule</button>
+    </div>
+
+    <div id="pane-pending"></div>
+    <div id="pane-leaves"  style="display:none;"></div>
+    <div id="pane-swaps"   style="display:none;"></div>
+    <div id="pane-schreq"  style="display:none;"></div>
+
+  </div>
+</div>
+<div id="kib-bottomnav"></div>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/nav.js"></script>
+<script>
+if (!Auth.guard()) throw 0;
+
+const user   = Auth.user();
+let allData  = null;
+const isMgmt = Auth.isManagement();
+
+Nav.init('requests');
+document.getElementById('user-strip-container').innerHTML = Nav.renderUserStrip();
+
+async function init() {
+  try {
+    allData = await API.getAll();
+    renderPending();
+    renderLeaves();
+    renderSwaps();
+    renderSchReqs();
+  } catch(e) { U.toast('Failed to load requests','err'); }
+}
+
+function switchTab(tab) {
+  ['pending','leaves','swaps','schreq'].forEach(t => {
+    document.getElementById('pane-'+t).style.display = t===tab?'':'none';
+  });
+  document.querySelectorAll('.tab-item').forEach((b,i) => {
+    b.classList.toggle('active', ['pending','leaves','swaps','schreq'][i] === tab);
+  });
+}
+
+/* ── PENDING ─────────────────────────────────────────── */
+function renderPending() {
+  const leaves = (allData?.leaves||[]).filter(l => l.status==='pending' && (isMgmt || l.agent===user.name));
+  const swaps  = (allData?.swaps||[]).filter(s => {
+    if (s.status==='pending_peer')  return s.to === user.name || (isMgmt && s.status==='pending_mgmt');
+    if (s.status==='pending_mgmt') return isMgmt;
+    return false;
+  });
+  const schreqs = (allData?.scheduleRequests||[]).filter(r => r.status==='pending' && (isMgmt || r.agent===user.name));
+  const all = [...leaves.map(l=>({...l,_k:'leave'})), ...swaps.map(s=>({...s,_k:'swap'})), ...schreqs.map(r=>({...r,_k:'schreq'}))];
+
+  if (!all.length) {
+    document.getElementById('pane-pending').innerHTML = emptyState('✅','No pending requests','All clear!');
+    return;
+  }
+
+  document.getElementById('pane-pending').innerHTML = all.map(r => reqCard(r, true)).join('');
+}
+
+/* ── LEAVES ──────────────────────────────────────────── */
+function renderLeaves() {
+  const leaves = isMgmt
+    ? (allData?.leaves||[]).sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0))
+    : (allData?.leaves||[]).filter(l=>l.agent===user.name).sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0));
+  document.getElementById('pane-leaves').innerHTML = leaves.length
+    ? leaves.map(l=>reqCard(l,l.status==='pending'&&isMgmt)).join('')
+    : emptyState('🏖','No leave requests','—');
+}
+
+/* ── SWAPS ───────────────────────────────────────────── */
+function renderSwaps() {
+  const swaps = isMgmt
+    ? (allData?.swaps||[]).sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0))
+    : (allData?.swaps||[]).filter(s=>s.from===user.name||s.to===user.name).sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0));
+  document.getElementById('pane-swaps').innerHTML = swaps.length
+    ? swaps.map(s=>reqCard(s, (s.status==='pending_peer'&&s.to===user.name)||(s.status==='pending_mgmt'&&isMgmt))).join('')
+    : emptyState('🔄','No swap requests','—');
+}
+
+/* ── SCHEDULE REQUESTS ───────────────────────────────── */
+function renderSchReqs() {
+  const reqs = isMgmt
+    ? (allData?.scheduleRequests||[]).sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0))
+    : (allData?.scheduleRequests||[]).filter(r=>r.agent===user.name);
+  document.getElementById('pane-schreq').innerHTML = reqs.length
+    ? reqs.map(r=>reqCard(r, r.status==='pending'&&isMgmt)).join('')
+    : emptyState('📅','No schedule requests','Submit from My Schedule page');
+}
+
+/* ── Card builder ────────────────────────────────────── */
+function reqCard(r, canAct) {
+  const isLeave  = !!r.startDate && !r.date;
+  const isSwap   = !!r.from;
+  const isSchReq = !isLeave && !isSwap;
+
+  const icon  = isLeave?'🏖':isSwap?'🔄':'📅';
+  const iconBg= isLeave?'var(--amber-bg)':isSwap?'var(--teal-bg)':'rgba(13,92,166,.08)';
+  const title = isLeave ? `Leave Request — ${r.type||'AL'}`
+              : isSwap  ? `Swap: ${r.from} ↔ ${r.to}`
+              : `Shift Change Request`;
+  const sub   = isLeave ? `${r.agent} · ${U.normDate(r.startDate)} → ${U.normDate(r.endDate)}`
+              : isSwap  ? `${U.normDate(r.date)}`
+              : `${r.agent} · ${U.normDate(r.date)} · ${r.requestedShift||'—'}`;
+
+  const statusPill = r.status==='approved'?'pill-green':r.status==='rejected'?'pill-red':'pill-amber';
+  const statusLbl  = r.status||'pending';
+
+  const id = r.id || r._id || '';
+  const actions = canAct ? `
+    <div class="req-actions">
+      <button class="btn btn-sm btn-green flex-1" onclick="approveReq('${id}','${isLeave?'leave':isSwap?'swap':'schreq'}','approve')">✓ Approve</button>
+      <button class="btn btn-sm btn-red  flex-1" onclick="approveReq('${id}','${isLeave?'leave':isSwap?'swap':'schreq'}','reject')">✕ Reject</button>
+    </div>` : '';
+
+  return `<div class="req-card">
+    <div class="req-hdr">
+      <div class="req-icon" style="background:${iconBg}">${icon}</div>
+      <div class="flex-1">
+        <div style="font-size:13px;font-weight:700;">${title}</div>
+        <div style="font-size:11px;color:var(--t2);margin-top:2px;">${sub}</div>
+      </div>
+      <span class="pill ${statusPill}">${statusLbl}</span>
+    </div>
+    ${r.reason ? `<div class="req-body"><div style="font-size:12px;color:var(--t2);background:var(--bg);border-radius:8px;padding:8px 10px;">"${r.reason}"</div></div>` : ''}
+    ${actions ? `<div class="req-body">${actions}</div>` : ''}
+    <div style="padding:6px 14px 10px;font-size:10px;color:var(--t3);">${U.timeAgo(r.ts||r.created_at||'')}</div>
+  </div>`;
+}
+
+async function approveReq(id, kind, action) {
+  if (!id) return;
+  try {
+    let res;
+    if (kind==='leave') {
+      res = await API.approveLeave({ leaveId:id, action, approvedBy:user.name });
+    } else if (kind==='swap') {
+      res = await API.respondSwap({ swapId:id, action, respondedBy:user.name });
+    } else {
+      // Schedule request — direct update
+      res = await API.submitScheduleRequest({ ...allData.scheduleRequests?.find(r=>r.id===id), status:action==='approve'?'approved':'rejected' });
+    }
+    if (res?.ok !== false) {
+      U.toast(`Request ${action==='approve'?'approved':'rejected'} ✓`, 'ok');
+      API.clearCache();
+      allData = await API.getAll(true);
+      renderPending(); renderLeaves(); renderSwaps(); renderSchReqs();
+    } else {
+      U.toast('Failed — try again','err');
+    }
+  } catch(e) { U.toast('Network error','err'); }
+}
+
+function emptyState(icon, msg, sub) {
+  return `<div class="empty-state"><div class="empty-icon">${icon}</div><div class="empty-msg">${msg}</div><div class="empty-sub">${sub}</div></div>`;
+}
+
+init();
+</script>
+</body>
+</html>

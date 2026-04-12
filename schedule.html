@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0A4A8A">
+<title>KIB WFM — My Schedule</title>
+<link rel="stylesheet" href="css/kib.css">
+<style>
+.sch-week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:12px;}
+.sch-day-cell{border-radius:10px;padding:8px 4px;text-align:center;border:1.5px solid var(--border);background:var(--white);cursor:pointer;transition:.15s;}
+.sch-day-cell:active{transform:scale(.96);}
+.sch-day-cell.is-today{background:var(--navy);border-color:var(--navy);}
+.sch-day-cell.is-off{background:#F3F4F6;border-color:var(--border2);}
+.sch-day-cell.is-wknd{opacity:.7;}
+.sch-day-cell .dc-day{font-size:9px;font-weight:700;line-height:1;}
+.sch-day-cell .dc-num{font-size:14px;font-weight:900;margin:2px 0;}
+.sch-day-cell .dc-shift{font-size:9px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sch-day-cell.is-today .dc-day,.sch-day-cell.is-today .dc-num,.sch-day-cell.is-today .dc-shift{color:#fff;}
+.sch-day-cell.is-off .dc-shift{color:#9CA3AF;}
+
+.shift-row{display:flex;align-items:center;gap:12px;padding:11px 13px;border-bottom:1px solid var(--border2);}
+.shift-row:last-child{border-bottom:none;}
+.shift-row.is-today{background:rgba(13,92,166,.03);}
+.sr-date{width:44px;height:44px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);border:1px solid var(--border);flex-shrink:0;}
+.sr-date.today-box{background:var(--navy);border-color:var(--navy);}
+.sr-date .sr-d{font-size:9px;font-weight:700;color:var(--t3);}
+.sr-date .sr-n{font-size:15px;font-weight:900;color:var(--t1);}
+.sr-date.today-box .sr-d,.sr-date.today-box .sr-n{color:#fff;}
+.sr-info{flex:1;min-width:0;}
+.sr-label{font-size:13px;font-weight:700;}
+.sr-times{font-size:11px;color:var(--t2);margin-top:2px;}
+.sr-right{display:flex;align-items:center;gap:6px;}
+</style>
+</head>
+<body>
+
+<div id="kib-topbar"></div>
+<div id="kib-app">
+  <div id="user-strip-container"></div>
+
+  <div class="page-content">
+
+    <!-- Tab bar -->
+    <div class="tab-bar" style="margin-top:12px;">
+      <button class="tab-item active" id="tab-sched" onclick="switchTab('sched')">📅 My Schedule</button>
+      <button class="tab-item" id="tab-request" onclick="switchTab('request')">📝 Submit Request</button>
+      <button class="tab-item" id="tab-history" onclick="switchTab('history')">🕓 History</button>
+    </div>
+
+    <!-- ══ MY SCHEDULE TAB ══ -->
+    <div id="pane-sched">
+      <!-- Week nav -->
+      <div class="card" style="margin-bottom:12px;">
+        <div class="card-header">
+          <div class="week-nav">
+            <button onclick="prevWeek()">‹</button>
+            <div class="wn-label" id="week-label">Loading…</div>
+            <button onclick="nextWeek()">›</button>
+          </div>
+          <button class="btn btn-xs btn-outline" onclick="goToday()">Today</button>
+        </div>
+        <div class="card-body" style="padding:10px;">
+          <div class="sch-week-grid" id="week-cells">
+            <!-- 7 day cells -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Shift list -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Schedule Details</div>
+          <span id="sched-range" class="text-sm text-muted"></span>
+        </div>
+        <div id="shift-list">
+          <div class="card-body">
+            <div class="skel" style="height:52px;margin-bottom:8px;border-radius:8px;"></div>
+            <div class="skel" style="height:52px;margin-bottom:8px;border-radius:8px;"></div>
+            <div class="skel" style="height:52px;border-radius:8px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ REQUEST TAB ══ -->
+    <div id="pane-request" style="display:none;">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Submit Schedule Request</div></div>
+        <div class="card-body">
+          <div class="info-box navy">Submit a change request and your team leader will review it.</div>
+
+          <div class="form-group">
+            <label class="fld-label">Request Type</label>
+            <select class="fld" id="req-type" onchange="onReqTypeChange()">
+              <option value="">— Select —</option>
+              <option value="leave">Leave Request</option>
+              <option value="swap">Shift Swap</option>
+              <option value="change">Shift Change Request</option>
+            </select>
+          </div>
+
+          <!-- Leave fields -->
+          <div id="leave-fields" style="display:none;">
+            <div class="form-group">
+              <label class="fld-label">Leave Type</label>
+              <select class="fld" id="leave-type">
+                <option value="AL">Annual Leave (AL)</option>
+                <option value="SL">Sick Leave (SL)</option>
+                <option value="UL">Unpaid Leave (UL)</option>
+                <option value="PL">Partial Leave (PL)</option>
+              </select>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div class="form-group">
+                <label class="fld-label">From Date</label>
+                <input type="date" class="fld" id="leave-start">
+              </div>
+              <div class="form-group">
+                <label class="fld-label">To Date</label>
+                <input type="date" class="fld" id="leave-end">
+              </div>
+            </div>
+          </div>
+
+          <!-- Swap fields -->
+          <div id="swap-fields" style="display:none;">
+            <div class="form-group">
+              <label class="fld-label">Swap Date</label>
+              <input type="date" class="fld" id="swap-date">
+            </div>
+            <div class="form-group">
+              <label class="fld-label">Swap With (Colleague)</label>
+              <select class="fld" id="swap-with">
+                <option value="">— Select colleague —</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="fld-label">Their Shift on That Day</label>
+              <input type="text" class="fld" id="swap-theirshift" placeholder="Will be fetched automatically" readonly>
+            </div>
+          </div>
+
+          <!-- Shift change fields -->
+          <div id="change-fields" style="display:none;">
+            <div class="form-group">
+              <label class="fld-label">Date</label>
+              <input type="date" class="fld" id="change-date">
+            </div>
+            <div class="form-group">
+              <label class="fld-label">Requested Shift</label>
+              <select class="fld" id="change-shift">
+                <option value="">— Select shift —</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Reason (all types) -->
+          <div class="form-group" id="reason-group" style="display:none;">
+            <label class="fld-label">Reason / Notes</label>
+            <textarea class="fld" id="req-reason" rows="3" placeholder="Briefly explain your request…" style="resize:none;"></textarea>
+          </div>
+
+          <button class="btn btn-navy btn-block" id="submit-btn" onclick="submitRequest()" style="display:none;">
+            Submit Request
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ HISTORY TAB ══ -->
+    <div id="pane-history" style="display:none;">
+      <div class="card">
+        <div class="card-header"><div class="card-title">My Request History</div></div>
+        <div id="history-list">
+          <div class="card-body">
+            <div class="skel" style="height:52px;margin-bottom:8px;border-radius:8px;"></div>
+            <div class="skel" style="height:52px;border-radius:8px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="kib-bottomnav"></div>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/nav.js"></script>
+<script>
+if (!Auth.guard()) throw 0;
+
+const user   = Auth.user();
+const today  = U.today();
+let allData  = null;
+let myAgent  = null;
+let allDates = [];
+let weekStart= today; // anchor date for week display
+
+Nav.init('schedule');
+document.getElementById('user-strip-container').innerHTML = Nav.renderUserStrip();
+
+/* ── Load ─────────────────────────────────────────────── */
+async function init() {
+  try {
+    allData  = await API.getAll();
+    allDates = (allData.dates || []).map(d => U.normDate(d));
+    myAgent  = (allData.agents || []).find(a => a.n === user.name || a.name === user.name);
+    renderWeekView();
+    populateSwapWith();
+    populateChangeShifts();
+    setDefaultDates();
+  } catch(e) {
+    U.toast('Failed to load schedule', 'err');
+  }
+}
+
+/* ── Tabs ─────────────────────────────────────────────── */
+function switchTab(tab) {
+  ['sched','request','history'].forEach(t => {
+    document.getElementById('pane-' + t).style.display = t === tab ? '' : 'none';
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'history') renderHistory();
+}
+
+/* ── Week view ────────────────────────────────────────── */
+function prevWeek() { weekStart = U.addDays(weekStart, -7); renderWeekView(); }
+function nextWeek() { weekStart = U.addDays(weekStart,  7); renderWeekView(); }
+function goToday()  { weekStart = today; renderWeekView(); }
+
+function renderWeekView() {
+  const week = U.getWeekDates(weekStart);
+  const firstDate = week[0], lastDate = week[6];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const fd = new Date(firstDate + 'T00:00:00'), ld = new Date(lastDate + 'T00:00:00');
+  document.getElementById('week-label').textContent =
+    `${fd.getDate()} ${months[fd.getMonth()]} – ${ld.getDate()} ${months[ld.getMonth()]}`;
+  document.getElementById('sched-range').textContent =
+    `${U.fmtShort(firstDate)} – ${U.fmtShort(lastDate)}`;
+
+  // Day cells
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  document.getElementById('week-cells').innerHTML = week.map((date, i) => {
+    const d = new Date(date + 'T00:00:00');
+    const idx = allDates.indexOf(date);
+    const rawShift = myAgent && idx >= 0 ? (myAgent.sch ? myAgent.sch[idx] : 'OFF') : '';
+    const code  = CFG.normalizeShiftCode(rawShift);
+    const def   = CFG.getShiftDisplay(rawShift);
+    const isT   = date === today;
+    const isOff = CFG.isOff(rawShift) || !rawShift;
+    const isW   = U.isWeekend(date);
+    const shiftLabel = def ? def.short || def.code : code || '?';
+    const shiftColor = def && !isOff ? def.color : '#9CA3AF';
+
+    return `<div class="sch-day-cell ${isT?'is-today':''} ${isOff?'is-off':''} ${isW?'is-wknd':''}" onclick="scrollToDate('${date}')">
+      <div class="dc-day" style="${!isT?'color:var(--t3)':''}">${days[i]}</div>
+      <div class="dc-num" style="${!isT?'color:var(--t1)':''}">${d.getDate()}</div>
+      <div class="dc-shift" style="color:${isT?'rgba(255,255,255,.8)':shiftColor}">${shiftLabel}</div>
+    </div>`;
+  }).join('');
+
+  // Shift list
+  renderShiftList(week);
+}
+
+function renderShiftList(week) {
+  const html = week.map(date => {
+    const idx = allDates.indexOf(date);
+    const rawShift = myAgent && idx >= 0 ? (myAgent.sch ? myAgent.sch[idx] : 'OFF') : '';
+    const code   = CFG.normalizeShiftCode(rawShift || 'OFF');
+    const def    = CFG.getShiftDisplay(rawShift);
+    const isT    = date === today;
+    const isOff  = CFG.isOff(rawShift);
+    const label  = def ? def.label : rawShift || 'Not Scheduled';
+    const times  = (def && !isOff && def.start) ? `${U.fmt12(def.start)} – ${U.fmt12(def.end)}` : '';
+    const chipCls= `sc-${code.toLowerCase()}`;
+    const d = new Date(date + 'T00:00:00');
+
+    // Check for swaps/leave for this date
+    const mySwap  = (allData?.swaps  || []).find(s => U.normDate(s.date) === date && (s.from === user.name || s.to === user.name) && s.status === 'approved');
+    const myLeave = (allData?.leaves || []).find(l => {
+      const ls = U.normDate(l.startDate), le = U.normDate(l.endDate);
+      return l.agent === user.name && date >= ls && date <= le && l.status === 'approved';
+    });
+
+    const badge = mySwap  ? `<span class="pill pill-teal" style="font-size:9px;">🔄 Swapped</span>` :
+                  myLeave ? `<span class="pill pill-amber" style="font-size:9px;">${myLeave.type} Approved</span>` : '';
+
+    return `<div class="shift-row ${isT?'is-today':''}" id="date-${date}">
+      <div class="sr-date ${isT?'today-box':''}">
+        <div class="sr-d">${U.dayName(date)}</div>
+        <div class="sr-n">${d.getDate()}</div>
+      </div>
+      <div class="sr-info">
+        <div class="sr-label">${label} ${isT?'<span style="font-size:9px;background:var(--navy);color:#fff;border-radius:4px;padding:1px 5px;margin-left:4px;">TODAY</span>':''}</div>
+        <div class="sr-times">${times || (isOff ? 'Day off' : '')}</div>
+        ${badge ? `<div style="margin-top:4px;">${badge}</div>` : ''}
+      </div>
+      <div class="sr-right">
+        <span class="sc ${chipCls}">${def?.short || code}</span>
+        ${!isOff ? `<button class="btn btn-xs btn-outline" onclick="quickRequest('${date}','${code}')">Request</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('shift-list').innerHTML = `<div>${html}</div>`;
+}
+
+function scrollToDate(date) {
+  const el = document.getElementById('date-' + date);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function quickRequest(date, currentShift) {
+  switchTab('request');
+  document.getElementById('req-type').value = 'change';
+  onReqTypeChange();
+  const ci = document.getElementById('change-date');
+  if (ci) ci.value = date;
+}
+
+/* ── Request form ─────────────────────────────────────── */
+function onReqTypeChange() {
+  const t = document.getElementById('req-type').value;
+  U.hide('leave-fields'); U.hide('swap-fields'); U.hide('change-fields'); U.hide('reason-group'); U.hide('submit-btn');
+  if (t === 'leave')  { U.show('leave-fields');  U.show('reason-group'); U.show('submit-btn'); }
+  if (t === 'swap')   { U.show('swap-fields');   U.show('reason-group'); U.show('submit-btn'); }
+  if (t === 'change') { U.show('change-fields'); U.show('reason-group'); U.show('submit-btn'); }
+}
+
+function setDefaultDates() {
+  const t = today;
+  const ci = document.getElementById('leave-start'); if (ci) ci.value = t;
+  const ce = document.getElementById('leave-end');   if (ce) ce.value = t;
+  const sd = document.getElementById('swap-date');   if (sd) sd.value = t;
+  const cd = document.getElementById('change-date'); if (cd) cd.value = t;
+}
+
+function populateSwapWith() {
+  const sel = document.getElementById('swap-with');
+  (allData?.agents || [])
+    .filter(a => (a.n || a.name) !== user.name)
+    .sort((a, b) => (a.n || a.name).localeCompare(b.n || b.name))
+    .forEach(a => {
+      const o = document.createElement('option');
+      o.value = a.n || a.name;
+      o.textContent = `${a.n || a.name} (${a.t || a.team})`;
+      sel.appendChild(o);
+    });
+}
+
+function populateChangeShifts() {
+  const sel = document.getElementById('change-shift');
+  CFG.SHIFT_OPTIONS.forEach(s => {
+    const o = document.createElement('option');
+    o.value = s; o.textContent = s;
+    sel.appendChild(o);
+  });
+}
+
+async function submitRequest() {
+  const type = document.getElementById('req-type').value;
+  const reason = document.getElementById('req-reason').value.trim();
+  if (!type) return U.toast('Select request type', 'warn');
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+
+  try {
+    let result;
+    if (type === 'leave') {
+      result = await API.submitLeave({
+        agent: user.name, team: user.dept,
+        startDate: document.getElementById('leave-start').value,
+        endDate:   document.getElementById('leave-end').value,
+        type:      document.getElementById('leave-type').value,
+        reason, submittedBy: user.name,
+      });
+    } else if (type === 'swap') {
+      const swDate = document.getElementById('swap-date').value;
+      const swWith = document.getElementById('swap-with').value;
+      if (!swWith) { U.toast('Select a colleague to swap with', 'warn'); return; }
+      const myIdx = allDates.indexOf(swDate);
+      const myShift = myAgent && myIdx >= 0 ? (myAgent.sch?.[myIdx] || '') : '';
+      result = await API.submitSwap({
+        from: user.name, to: swWith, date: swDate,
+        shiftFrom: myShift,
+        shiftTo:   document.getElementById('swap-theirshift').value || '',
+        reason,
+      });
+    } else {
+      result = await API.submitScheduleRequest({
+        agent: user.name, team: user.dept,
+        date:          document.getElementById('change-date').value,
+        currentShift:  '',
+        requestedShift:document.getElementById('change-shift').value,
+        reason,
+      });
+    }
+
+    if (result?.ok !== false) {
+      U.toast('Request submitted successfully ✓', 'ok');
+      document.getElementById('req-type').value = '';
+      document.getElementById('req-reason').value = '';
+      onReqTypeChange();
+      API.clearCache();
+      switchTab('history');
+      allData = await API.getAll(true);
+      renderHistory();
+    } else {
+      U.toast('Submission failed — try again', 'err');
+    }
+  } catch(e) { U.toast('Network error', 'err'); }
+  finally { btn.disabled = false; btn.textContent = 'Submit Request'; }
+}
+
+/* ── History ──────────────────────────────────────────── */
+function renderHistory() {
+  const leaves = (allData?.leaves || []).filter(l => l.agent === user.name).reverse();
+  const schReqs = (allData?.scheduleRequests || allData?.schRequests || []).filter(r => r.agent === user.name).reverse();
+  const swaps   = (allData?.swaps || []).filter(s => s.from === user.name || s.to === user.name).reverse();
+  const all     = [
+    ...leaves.map(l => ({ ...l, _kind: 'Leave', _icon: '🏖️' })),
+    ...schReqs.map(r => ({ ...r, _kind: 'Shift Change', _icon: '🔄' })),
+    ...swaps.map(s => ({ ...s, _kind: 'Swap', _icon: '↔️' })),
+  ].sort((a, b) => new Date(b.ts || b.created_at || 0) - new Date(a.ts || a.created_at || 0));
+
+  if (!all.length) {
+    document.getElementById('history-list').innerHTML = `<div class="card-body"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-msg">No requests yet</div></div></div>`;
+    return;
+  }
+
+  const statusPill = s => s === 'approved' ? 'pill-green' : s === 'rejected' ? 'pill-red' : 'pill-amber';
+
+  document.getElementById('history-list').innerHTML = all.map(r => `
+    <div class="row-item" style="padding:11px 13px;">
+      <div class="row-icon" style="background:var(--bg);font-size:18px;">${r._icon}</div>
+      <div class="row-info">
+        <div class="row-title">${r._kind} · ${U.normDate(r.startDate || r.date || '')}</div>
+        <div class="row-meta">${r.type || r.reason || '—'} · ${U.timeAgo(r.ts || r.created_at || '')}</div>
+      </div>
+      <span class="pill ${statusPill(r.status)}">${r.status || 'pending'}</span>
+    </div>`).join('');
+}
+
+init();
+</script>
+</body>
+</html>

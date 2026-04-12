@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0A4A8A">
+<title>KIB WFM — Sign In</title>
+<link rel="stylesheet" href="css/kib.css">
+</head>
+<body>
+
+<div id="login-page">
+  <div class="login-box">
+
+    <!-- Header -->
+    <div class="login-hdr">
+      <div class="login-emblem">KIB</div>
+      <div class="login-brand">WFM</div>
+      <div class="login-tagline">Workforce Management Portal</div>
+    </div>
+
+    <!-- Body -->
+    <div class="login-body">
+      <h3>Welcome back</h3>
+      <p>Enter your staff password to sign in</p>
+
+      <div class="form-group">
+        <label class="fld-label" for="pw-input">Staff Password</label>
+        <input
+          id="pw-input"
+          type="password"
+          class="fld"
+          placeholder="Your unique password"
+          autocomplete="current-password"
+          maxlength="30"
+        >
+      </div>
+
+      <button class="btn btn-navy btn-block" id="login-btn" onclick="doLogin()">
+        Sign In
+      </button>
+
+      <div class="err-msg" id="err-msg">
+        ❌ Incorrect password. Please try again.
+      </div>
+
+      <div id="login-spinner" style="display:none;text-align:center;margin-top:14px;">
+        <div class="kib-spin" style="margin:0 auto;width:26px;height:26px;border-width:2px;"></div>
+        <div style="font-size:11px;color:var(--t2);margin-top:6px;">Checking credentials…</div>
+      </div>
+    </div>
+
+    <div class="login-footer">
+      Kuwait International Bank · Contact Center<br>
+      WFM Portal v2 · Secure Login
+    </div>
+
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  // If already logged in, redirect immediately
+  (function() {
+    const u = Auth.user();
+    if (u) { window.location.href = 'home.html'; }
+  })();
+
+  const pwInput  = document.getElementById('pw-input');
+  const loginBtn = document.getElementById('login-btn');
+  const errMsg   = document.getElementById('err-msg');
+  const spinner  = document.getElementById('login-spinner');
+
+  // Allow Enter key
+  pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+  // Auto-focus password field
+  window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => pwInput.focus(), 300);
+  });
+
+  async function doLogin() {
+    const pw = pwInput.value.trim();
+    if (!pw) {
+      pwInput.focus();
+      shake(pwInput);
+      return;
+    }
+
+    errMsg.classList.remove('show');
+    loginBtn.disabled = true;
+    spinner.style.display = 'block';
+    loginBtn.textContent = 'Signing in…';
+
+    try {
+      const result = await Auth.login(pw);
+
+      if (result.ok) {
+        loginBtn.textContent = '✓ Welcome back!';
+        loginBtn.style.background = 'var(--green)';
+        setTimeout(() => {
+          window.location.href = 'home.html';
+        }, 400);
+      } else {
+        showError(result.error || 'Incorrect password. Please try again.');
+      }
+    } catch (e) {
+      showError('Connection error. Please check your network and try again.');
+    } finally {
+      spinner.style.display = 'none';
+      if (!loginBtn.textContent.includes('✓')) {
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Sign In';
+      }
+    }
+  }
+
+  function showError(msg) {
+    errMsg.textContent = '❌ ' + msg;
+    errMsg.classList.add('show');
+    shake(pwInput);
+    pwInput.value = '';
+    setTimeout(() => pwInput.focus(), 100);
+  }
+
+  function shake(el) {
+    el.style.animation = 'none';
+    el.offsetHeight; // reflow
+    el.style.animation = 'shake .35s';
+    el.addEventListener('animationend', () => el.style.animation = '', { once: true });
+  }
+</script>
+
+<style>
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%      { transform: translateX(-6px); }
+  40%      { transform: translateX(6px); }
+  60%      { transform: translateX(-4px); }
+  80%      { transform: translateX(4px); }
+}
+</style>
+
+</body>
+</html>
