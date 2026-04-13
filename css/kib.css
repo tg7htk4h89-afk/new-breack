@@ -35,7 +35,7 @@
   --rxl:     18px;
   --shadow:  0 2px 12px rgba(13,92,166,.1);
   --shadow-lg:0 8px 32px rgba(13,92,166,.15);
-  --topbar-h:52px;
+  --topbar-h: 56px;
   --nav-h:   64px;
 }
 
@@ -87,152 +87,191 @@ h3 { font-size: 15px; font-weight: 700; }
   padding: 14px;
 }
 
-/* ── Topbar ──────────────────────────────────────────── */
+/* ── Topbar ─────────────────────────────────────────────── */
 #kib-topbar {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: var(--topbar-h);
-  background: linear-gradient(90deg, var(--navy2) 0%, var(--navy) 70%, #0A7FAE 100%);
-  display: flex;
-  align-items: center;
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--topbar-h); z-index: 300;
+  background: linear-gradient(100deg,
+    #061E3A 0%, #0A4A8A 50%, #0E6FAA 100%);
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  box-shadow: 0 2px 20px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.06) inset;
+  display: flex; align-items: center;
   justify-content: space-between;
   padding: 0 14px;
-  z-index: 200;
-  box-shadow: 0 2px 16px rgba(13,92,166,.3);
-}
-.tb-left {
-  display: flex;
-  align-items: center;
   gap: 10px;
 }
+
+/* KIB Logo chip */
 .tb-logo {
-  width: 32px; height: 32px;
-  background: rgba(255,255,255,.12);
-  border: 1px solid rgba(255,255,255,.18);
-  border-radius: 9px;
+  width: 36px; height: 36px; flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(0,190,174,.18), rgba(0,190,174,.08));
+  border: 1.5px solid rgba(0,190,174,.4);
+  border-radius: 11px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 10px; font-weight: 900;
-  color: var(--teal2);
-  letter-spacing: 1px;
-  flex-shrink: 0;
+  font-size: 10px; font-weight: 900; color: #00BEAE;
+  letter-spacing: 1.5px;
+  box-shadow: 0 0 14px rgba(0,190,174,.15);
+}
+
+.tb-left {
+  display: flex; align-items: center; gap: 10px;
+  flex: 1; min-width: 0;
 }
 .tb-title {
-  font-size: 13px;
-  font-weight: 800;
-  color: #fff;
-  line-height: 1;
+  font-size: 15px; font-weight: 900; color: #fff;
+  letter-spacing: .1px; line-height: 1;
 }
 .tb-sub {
-  font-size: 9px;
-  color: rgba(255,255,255,.4);
-  margin-top: 2px;
+  font-size: 10px; color: rgba(255,255,255,.38);
+  margin-top: 2px; letter-spacing: .2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+
 .tb-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: flex; align-items: center; gap: 7px; flex-shrink: 0;
 }
+
+/* Live Kuwait clock */
 .tb-clock {
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.12);
-  border-radius: 7px;
-  padding: 4px 9px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--teal2);
-  font-family: 'DM Mono', monospace;
-  letter-spacing: 1px;
-}
-.tb-avatar {
-  width: 30px; height: 30px;
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 10px; font-weight: 800;
-  color: #fff;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 9px;
+  padding: 5px 9px;
+  font-size: 13px; font-weight: 800;
+  color: #00BEAE;
+  font-family: 'DM Mono', 'Courier New', monospace;
+  letter-spacing: 1.5px;
+  min-width: 52px; text-align: center; line-height: 1;
   flex-shrink: 0;
 }
-.tb-logout {
-  width: 30px; height: 30px;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.14);
-  border-radius: 7px;
-  color: rgba(255,255,255,.6);
-  font-size: 15px;
-  display: flex; align-items: center; justify-content: center;
-  transition: .15s;
-}
-.tb-logout:hover { background: rgba(255,255,255,.15); color: #fff; }
 
-/* ── Bottom Nav ──────────────────────────────────────── */
+/* Sync indicator dot */
+.tb-sync-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: rgba(255,255,255,.18); flex-shrink: 0;
+  transition: background .4s, box-shadow .4s;
+}
+.tb-sync-dot.ok  {
+  background: #00BEAE;
+  box-shadow: 0 0 7px rgba(0,190,174,.6);
+  animation: sync-pulse 3s infinite;
+}
+.tb-sync-dot.err { background: #EF4444; box-shadow: 0 0 7px rgba(239,68,68,.5); }
+@keyframes sync-pulse {
+  0%,100%{ opacity:1; } 50%{ opacity:.45; }
+}
+
+/* Avatar */
+.tb-avatar {
+  width: 32px; height: 32px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 900; color: #fff;
+  border: 1.5px solid rgba(255,255,255,.2);
+  cursor: pointer; transition: .15s; flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.tb-avatar:hover { border-color: rgba(255,255,255,.45); transform: scale(1.06); }
+.tb-avatar:active { transform: scale(.94); }
+
+/* Logout button */
+.tb-logout {
+  width: 32px; height: 32px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 9px;
+  color: rgba(255,255,255,.5);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: .15s; flex-shrink: 0;
+}
+.tb-logout:hover  { background: rgba(220,38,38,.2); border-color: rgba(220,38,38,.35); color: #FCA5A5; }
+.tb-logout:active { transform: scale(.92); }
+
+/* ── Bottom Nav ──────────────────────────────────────────── */
 #kib-bottomnav {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
+  position: fixed; bottom: 0; left: 0; right: 0;
   height: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  background: var(--white);
-  border-top: 1px solid var(--border);
-  display: flex;
-  z-index: 200;
-  box-shadow: 0 -2px 10px rgba(0,0,0,.06);
-}
-.nb {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 4px 10px;
-  position: relative;
-  transition: .15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.nb-icon { font-size: 20px; margin-bottom: 3px; line-height: 1; }
-.nb-label {
-  font-size: 9px;
-  font-weight: 600;
-  color: var(--t3);
-  transition: .15s;
-}
-.nb.active .nb-label { color: var(--navy); font-weight: 800; }
-.nb.active::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 15%; right: 15%;
-  height: 2.5px;
-  background: var(--navy);
-  border-radius: 0 0 3px 3px;
-}
-.nb-badge {
-  position: absolute;
-  top: 4px; right: calc(50% - 16px);
-  background: #E84040;
-  color: #fff;
-  border-radius: 10px;
-  padding: 1px 5px;
-  font-size: 9px;
-  font-weight: 800;
-  border: 1.5px solid var(--white);
+  z-index: 300;
+  background: rgba(255,255,255,.97);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(10,74,138,.1);
+  box-shadow: 0 -4px 24px rgba(10,74,138,.1), 0 -1px 0 rgba(255,255,255,.9) inset;
+  display: flex; align-items: stretch;
 }
 
-/* ── User Strip ──────────────────────────────────────── */
+.nb {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 7px 2px 8px;
+  text-decoration: none; cursor: pointer;
+  position: relative; overflow: visible;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none; user-select: none;
+  transition: opacity .12s;
+  min-height: var(--nav-h);
+}
+.nb:active { opacity: .65; }
+
+/* Top accent line for active */
+.nb.active::before {
+  content: '';
+  position: absolute; top: 0;
+  left: 18%; right: 18%; height: 3px;
+  background: linear-gradient(90deg, var(--navy), #0A7FAE);
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 2px 10px rgba(10,74,138,.45);
+}
+
+/* Icon wrapper — bounces on activate */
+.nb-icon-wrap {
+  width: 38px; height: 34px;
+  border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 21px; line-height: 1;
+  margin-bottom: 2px;
+  transition: background .2s, transform .22s cubic-bezier(.34,1.56,.64,1);
+}
+.nb.active .nb-icon-wrap {
+  background: rgba(10,74,138,.09);
+  transform: scale(1.08) translateY(-2px);
+}
+
+.nb-label {
+  font-size: 9px; font-weight: 600;
+  color: #A0AEC0; letter-spacing: .1px;
+  transition: color .15s, font-weight .15s;
+  white-space: nowrap; line-height: 1;
+}
+.nb.active .nb-label { color: var(--navy); font-weight: 800; }
+
+/* Badge */
+.nb-badge {
+  position: absolute; top: 4px; right: calc(50% - 20px);
+  background: #EF4444; color: #fff;
+  border-radius: 10px; padding: 2px 5px;
+  font-size: 9px; font-weight: 900;
+  border: 2px solid rgba(255,255,255,.95);
+  min-width: 17px; text-align: center; line-height: 1.3;
+  box-shadow: 0 2px 8px rgba(239,68,68,.45);
+}
+
+/* ── User Strip ──────────────────────────────────────────── */
 .user-strip {
   background: var(--white);
   border-bottom: 1px solid var(--border);
   padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
 }
 .us-av {
-  width: 38px; height: 38px;
-  border-radius: 10px;
+  width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 800;
-  color: #fff;
-  flex-shrink: 0;
+  font-size: 13px; font-weight: 900; color: #fff;
+  box-shadow: 0 3px 8px rgba(0,0,0,.15);
 }
-.us-name  { font-size: 13px; font-weight: 700; }
-.us-meta  { font-size: 11px; color: var(--t2); margin-top: 1px; }
+.us-name { font-size: 13px; font-weight: 700; color: var(--t1); line-height: 1; }
+.us-meta { font-size: 11px; color: var(--t2); margin-top: 2px; }
 
 /* ── Cards ───────────────────────────────────────────── */
 .card {
@@ -1008,7 +1047,7 @@ textarea {
 .slot, .sch-cell, .popup-option {
   min-height: 44px;
 }
-.nb { min-height: 52px; }
+/* nb min-height handled in main rule */
 
 /* ── Smooth momentum scroll everywhere ──────────────────── */
 .grid-outer,

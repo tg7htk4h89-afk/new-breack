@@ -1,103 +1,210 @@
 'use strict';
 /* ═══════════════════════════════════════════════════════
-   KIB WFM Portal v2 — Nav
-   Renders topbar + bottom nav — call Nav.init(pageId)
+   KIB WFM Portal v2 — Nav v2
+   Top bar: logo · page subtitle · Kuwait clock · sync dot · avatar menu · logout
+   Bottom nav: role-aware, badges, active pill, iOS safe area
    ═══════════════════════════════════════════════════════ */
 
-const Nav = {
+const Nav = (() => {
 
-  _badges: {},
+  /* ── Internal state ─────────────────────────────────── */
+  let _badges   = {};
+  let _clockInt = null;
 
-  init(currentPageId) {
-    const user = Auth.user();
-    if (!user) return;
-    this._renderTopbar(user);
-    this._renderBottomNav(user, currentPageId);
-    Auth.startKeepAlive();
-  },
+  /* ── Page titles per ID ─────────────────────────────── */
+  const PAGE_TITLE = {
+    'home':          'Home',
+    'schedule':      'My Schedule',
+    'schedule-edit': 'Schedule Editor',
+    'breaks':        'Breaks',
+    'attendance':    'Attendance',
+    'requests':      'Requests',
+    'kpi':           'KPI Tracker',
+    'notifications': 'Notifications',
+    'admin':         'Admin Panel',
+    'settings':      'Settings',
+  };
 
-  _renderTopbar(user) {
+  /* ── Topbar ─────────────────────────────────────────── */
+  function buildTopbar(user, pageId) {
     const bar = document.getElementById('kib-topbar');
     if (!bar) return;
-    const color = U.avatarColor(user.name);
+
     const initials = U.initials(user.name);
-    const role = (CFG.ACCESS[user.access] || {}).label || user.access;
+    const color    = U.avatarColor(user.name);
+    const title    = PAGE_TITLE[pageId] || 'WFM Portal';
+    const roleLbl  = (CFG.ACCESS[user.access] || {}).label || user.access || '';
+
     bar.innerHTML = `
       <div class="tb-left">
         <div class="tb-logo">KIB</div>
-        <div>
+        <div style="min-width:0;">
           <div class="tb-title">WFM Portal</div>
-          <div class="tb-sub">Workforce Management</div>
+          <div class="tb-sub">${title}</div>
         </div>
       </div>
       <div class="tb-right">
         <div class="tb-clock" id="tb-clock">--:--</div>
-        <div class="tb-avatar" style="background:${color}" title="${user.name} · ${role}">${initials}</div>
-        <button class="tb-logout" onclick="Auth.logout()" title="Sign Out">⏏</button>
+        <div class="tb-sync-dot" id="tb-sync" title="Sync"></div>
+        <div class="tb-avatar"
+             style="background:${color}"
+             title="${user.name}"
+             onclick="Nav.showUserMenu()">${initials}</div>
+        <button class="tb-logout"
+                onclick="Nav.confirmLogout()"
+                title="Sign out"
+                aria-label="Sign out">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </button>
       </div>`;
-    this._startClock();
-  },
+  }
 
-  _startClock() {
+  /* ── Clock ──────────────────────────────────────────── */
+  function startClock() {
+    if (_clockInt) clearInterval(_clockInt);
     const tick = () => {
       const el = document.getElementById('tb-clock');
-      if (el) el.textContent = U.nowHHMM();
+      if (!el) return;
+      try {
+        const d = U.kuwaitNow();
+        el.textContent = U.pad(d.getHours()) + ':' + U.pad(d.getMinutes());
+      } catch(e) {}
     };
     tick();
-    setInterval(tick, 1000);
-  },
+    _clockInt = setInterval(tick, 1000);
+  }
 
-  _renderBottomNav(user, currentPageId) {
+  /* ── Bottom nav ─────────────────────────────────────── */
+  function buildBottomNav(user, pageId) {
     const bar = document.getElementById('kib-bottomnav');
     if (!bar) return;
-    const access = user.access;
-    // WFM and admin share same nav; management has its own
-    const navKey = ['wfm','admin'].includes(access) ? access : (access === 'management' ? 'management' : 'agent');
-    const items  = CFG.NAV[navKey] || CFG.NAV.agent;
+
+    const acc  = (user.access || '').toLowerCase();
+    const key  = ['wfm','admin'].includes(acc) ? acc
+               : acc === 'management' ? 'management' : 'agent';
+    const items = (CFG.NAV && CFG.NAV[key]) || CFG.NAV.agent || [];
 
     bar.innerHTML = items.map(item => {
-      const isActive = item.id === currentPageId;
-      const badge    = this._badges[item.id] ? `<span class="nb-badge">${this._badges[item.id]}</span>` : '';
-      return `
-        <a href="${item.page}" class="nb ${isActive ? 'active' : ''}" id="nav-${item.id}">
-          <span class="nb-icon">${item.icon}</span>
-          <span class="nb-label">${item.label}</span>
-          ${badge}
-        </a>`;
-    }).join('');
-  },
-
-  /** Set a badge count on a nav item */
-  setBadge(pageId, count) {
-    this._badges[pageId] = count > 0 ? count : 0;
-    const el = document.querySelector(`#nav-${pageId} .nb-badge`);
-    if (el) { el.textContent = count; el.style.display = count > 0 ? '' : 'none'; }
-    else if (count > 0) {
-      const link = document.getElementById(`nav-${pageId}`);
-      if (link) {
-        const b = document.createElement('span');
-        b.className = 'nb-badge';
-        b.textContent = count;
-        link.appendChild(b);
-      }
-    }
-  },
-
-  /** User strip shown below topbar on most pages */
-  renderUserStrip(extraHtml = '') {
-    const user = Auth.user();
-    if (!user) return '';
-    const color = U.avatarColor(user.name);
-    const initials = U.initials(user.name);
-    const role = (CFG.ACCESS[user.access] || {}).label || user.access;
-    return `
-      <div class="user-strip">
-        <div class="us-av" style="background:${color}">${initials}</div>
-        <div class="us-info">
-          <div class="us-name">${user.name}</div>
-          <div class="us-meta">${user.dept} · ${role}</div>
+      const isActive = item.id === pageId;
+      const cnt      = _badges[item.id];
+      const badge    = cnt ? `<span class="nb-badge">${cnt > 99 ? '99+' : cnt}</span>` : '';
+      return `<a href="${item.page}"
+                 class="nb${isActive ? ' active' : ''}"
+                 id="nav-${item.id}"
+                 aria-label="${item.label}">
+        <div class="nb-icon-wrap">
+          <span aria-hidden="true">${item.icon}</span>
         </div>
-        ${extraHtml}
-      </div>`;
-  },
-};
+        <span class="nb-label">${item.label}</span>
+        ${badge}
+      </a>`;
+    }).join('');
+  }
+
+  /* ── Public API ─────────────────────────────────────── */
+  return {
+
+    /* Call once per page */
+    init(pageId) {
+      try {
+        const user = Auth.user();
+        if (!user) { window.location.href = 'index.html'; return; }
+        buildTopbar(user, pageId);
+        buildBottomNav(user, pageId);
+        startClock();
+        Auth.startKeepAlive();
+      } catch(e) {
+        console.error('Nav.init error:', e);
+      }
+    },
+
+    /* Sync dot — call after every API response */
+    setSyncStatus(ok) {
+      const dot = document.getElementById('tb-sync');
+      if (!dot) return;
+      dot.className = 'tb-sync-dot ' + (ok ? 'ok' : 'err');
+      dot.title     = ok ? 'Connected ✓' : 'Connection issue';
+    },
+
+    /* Update badge on a nav item */
+    setBadge(pageId, count) {
+      _badges[pageId] = Math.max(0, count || 0);
+      const link = document.getElementById('nav-' + pageId);
+      if (!link) return;
+      let b = link.querySelector('.nb-badge');
+      if (count > 0) {
+        if (!b) { b = document.createElement('span'); b.className = 'nb-badge'; link.appendChild(b); }
+        b.textContent = count > 99 ? '99+' : count;
+        b.style.display = '';
+      } else if (b) {
+        b.style.display = 'none';
+      }
+    },
+
+    /* User menu modal */
+    showUserMenu() {
+      const user = Auth.user();
+      if (!user) return;
+      const color    = U.avatarColor(user.name);
+      const initials = U.initials(user.name);
+      const roleLbl  = (CFG.ACCESS[user.access] || {}).label || user.access || '';
+      U.modal('My Account',
+        `<div style="text-align:center;padding:6px 0 16px;">
+          <div style="width:60px;height:60px;border-radius:18px;
+                      background:${color};margin:0 auto 12px;
+                      display:flex;align-items:center;justify-content:center;
+                      font-size:20px;font-weight:900;color:#fff;
+                      box-shadow:0 4px 16px rgba(0,0,0,.2);">${initials}</div>
+          <div style="font-size:17px;font-weight:800;color:var(--t1);">${user.name}</div>
+          <div style="font-size:12px;color:var(--t2);margin-top:3px;">${user.dept || ''}</div>
+          <span style="display:inline-block;margin-top:8px;
+                       background:rgba(10,74,138,.08);border-radius:20px;
+                       padding:4px 14px;font-size:11px;font-weight:700;
+                       color:var(--navy);">${roleLbl}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;
+                    border-top:1px solid var(--border);padding-top:14px;">
+          <a href="settings.html"
+             class="btn btn-outline"
+             style="justify-content:center;text-decoration:none;min-height:44px;"
+             onclick="U.closeModal()">⚙️ Settings</a>
+          <button class="btn"
+                  style="background:var(--red);color:#fff;border-color:var(--red);min-height:44px;"
+                  onclick="Auth.logout()">Sign Out</button>
+        </div>`,
+        ''
+      );
+    },
+
+    /* Logout with confirm */
+    confirmLogout() {
+      if (confirm('Sign out of KIB WFM Portal?')) Auth.logout();
+    },
+
+    /* User strip (shown below topbar on inner pages) */
+    renderUserStrip(extraHtml) {
+      try {
+        const user = Auth.user();
+        if (!user) return '';
+        const color    = U.avatarColor(user.name);
+        const initials = U.initials(user.name);
+        const roleLbl  = (CFG.ACCESS[user.access] || {}).label || user.access || '';
+        return `<div class="user-strip">
+          <div class="us-av" style="background:${color}">${initials}</div>
+          <div class="us-info">
+            <div class="us-name">${user.name}</div>
+            <div class="us-meta">${user.dept || ''} · ${roleLbl}</div>
+          </div>
+          ${extraHtml || ''}
+        </div>`;
+      } catch(e) { return ''; }
+    },
+  };
+
+})();
