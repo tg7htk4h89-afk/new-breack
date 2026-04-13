@@ -268,8 +268,14 @@ async function init() {
   try {
     data     = await API.getAll();
     Nav.setSyncStatus(true);
-    allDates = (data.dates||[]);
-    myAgent  = (data.agents||[]).find(a => a.n===user.name||a.name===user.name);
+    allDates = (data.dates||[]).map(d => U.normDate(d));
+    // Robust name matching: exact → trimmed → case-insensitive → partial
+const _agents = data.agents || [];
+const _uname  = (user.name||'').trim().toLowerCase();
+myAgent = _agents.find(a => a.n === user.name || a.name === user.name)
+       || _agents.find(a => (a.n||'').trim() === user.name.trim())
+       || _agents.find(a => (a.n||'').trim().toLowerCase() === _uname)
+       || _agents.find(a => (a.n||'').trim().toLowerCase().includes(_uname) || _uname.includes((a.n||'').trim().toLowerCase()));
     renderWeek();
     fillColleagues();
     setDefaultDates();
@@ -299,7 +305,7 @@ function renderWeek() {
   U.se('sch-range', `${U.fmtShort(week[0])} – ${U.fmtShort(week[6])}`);
 
   document.getElementById('week-cells').innerHTML = week.map((date,i) => {
-    const idx  = allDates.indexOf(date);
+    const idx  = allDates.indexOf(U.normDate(date));
     const raw  = myAgent && idx>=0 && myAgent.sch ? myAgent.sch[idx] : '';
     const d    = new Date(date+'T00:00:00');
     const isT  = date===today;
@@ -331,7 +337,7 @@ function getShortLabel(raw) {
 
 function renderSchList(week) {
   const html = week.map(date => {
-    const idx  = allDates.indexOf(date);
+    const idx  = allDates.indexOf(U.normDate(date));
     const raw  = myAgent && idx>=0 && myAgent.sch ? myAgent.sch[idx] : 'OFF';
     const d    = new Date(date+'T00:00:00');
     const isT  = date===today;
@@ -665,6 +671,17 @@ function exportScheduleCSV() {
   const rows=[['Agent','Team',...dates]];
   agents.forEach(ag=>rows.push([ag.n||ag.name,ag.t||'',...(ag.sch||[])]));
   U.downloadCSV(rows,`KIB_Schedule_${today}.csv`);
+}
+
+/* ── Format ISO date for schedule display ─────────────── */
+function fmtDateHeader(iso) {
+  if (!iso) return iso;
+  // Already formatted? Return as-is
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
+  const d = new Date(iso + 'T00:00:00');
+  const days  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months= ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()];
 }
 
 init();
