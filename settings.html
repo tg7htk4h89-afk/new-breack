@@ -12,7 +12,7 @@
 <body>
 <div id="kib-topbar"></div>
 <div id="kib-app">
-  <div id="user-strip-container"></div>
+  <div id="user-strip-wrap"></div>
 
   <div class="page-content">
 
@@ -116,7 +116,7 @@ const today = U.today();
 let allData = null;
 
 Nav.init('settings');
-document.getElementById('user-strip-container').innerHTML = Nav.renderUserStrip();
+document.getElementById('user-strip-wrap').innerHTML = Nav.renderUserStrip();
 
 // Render profile hero
 const color = U.avatarColor(user.name);
@@ -130,7 +130,8 @@ async function init() {
   try {
     allData = await API.getAll();
     renderTodayStats();
-  } catch(e) {}
+  } catch(e) {
+    Nav.setSyncStatus(false);}
 }
 
 function renderTodayStats() {
@@ -145,9 +146,10 @@ function renderTodayStats() {
   const myAgent = (allData?.agents||[]).find(a => (a.n||a.name) === user.name);
   const todayIdx = (allData?.dates||[]).indexOf(today);
   const shift    = myAgent && todayIdx >= 0 && myAgent.sch ? myAgent.sch[todayIdx] : '—';
-  const code     = CFG.normalizeShiftCode(shift || '');
-  const def      = CFG.getShift(code);
-  document.getElementById('shift-today').textContent = def?.short || code || '—';
+  // Display shift in friendly format
+  const tm = (shift||'').match(/^(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/);
+  const shiftLabel = tm ? `${U.fmt12(tm[1])} – ${U.fmt12(tm[2])}` : (shift||'Day Off');
+  document.getElementById('shift-today').textContent = shiftLabel;
 }
 
 async function changePw() {
@@ -185,6 +187,7 @@ async function changePw() {
       showMsg(data.error || 'Failed — check your current password', 'red');
     }
   } catch(e) {
+    Nav.setSyncStatus(false);
     showMsg('Network error — try again', 'red');
   }
 }

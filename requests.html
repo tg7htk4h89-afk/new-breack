@@ -75,12 +75,14 @@ document.getElementById('user-strip-wrap').innerHTML = Nav.renderUserStrip();
 async function init() {
   try {
     data = await API.getAll();
+    Nav.setSyncStatus(true);
     if (isMgmt) {
       document.getElementById('filter-row').style.display = '';
       buildTeamFilters();
     }
     renderAll();
-  } catch(e) { U.toast('Failed to load requests','err'); }
+  } catch(e) {
+    Nav.setSyncStatus(false); U.toast('Failed to load requests','err'); }
 }
 
 function switchTab(t) {
@@ -127,14 +129,14 @@ function filterByRole(items, agentField='agent') {
 
 /* ── PENDING ──────────────────────────────────────── */
 function renderPending() {
-  const leaves  = filterByRole(data?.leaves||[]).filter(l => (l.status||l.Status||'').toLowerCase() === 'pending');
+  const leaves  = filterByRole(data?.leaves||[]).filter(l => (l.status||'').toLowerCase() === 'pending');
   const swaps   = (data?.swaps||[]).filter(s => {
-    const st = (s.status||s.Status||'').toLowerCase();
+    const st = (s.status||'').toLowerCase();
     if (st === 'pending_peer') return (s.to||s.To) === user.name || isMgmt;
     if (st === 'pending_mgmt') return isMgmt;
     return false;
   });
-  const prefs   = filterByRole(data?.scheduleRequests||[], 'agent').filter(r => (r.status||r.Status||'').toLowerCase() === 'pending');
+  const prefs   = filterByRole(data?.scheduleRequests||[], 'agent').filter(r => (r.status||'').toLowerCase() === 'pending');
   const all     = [
     ...leaves.map(l => ({...l,_k:'leave'})),
     ...swaps.map(s  => ({...s,_k:'swap'})),
@@ -162,7 +164,7 @@ function renderLeaves() {
   const leaves = filterByRole(data?.leaves||[])
     .sort((a,b) => new Date(b.ts||b.Timestamp||0)-new Date(a.ts||a.Timestamp||0));
   document.getElementById('pane-leaves').innerHTML = leaves.length
-    ? leaves.map(l => buildCard({...l,_k:'leave'}, isMgmt && (l.status||l.Status||'').toLowerCase()==='pending')).join('')
+    ? leaves.map(l => buildCard({...l,_k:'leave'}, isMgmt && (l.status||'').toLowerCase()==='pending')).join('')
     : empty('🏖','No leave requests');
 }
 
@@ -175,7 +177,7 @@ function renderSwaps() {
 
   document.getElementById('pane-swaps').innerHTML = swaps.length
     ? swaps.map(s => {
-        const st  = (s.status||s.Status||'').toLowerCase();
+        const st  = (s.status||'').toLowerCase();
         const canAct = (st==='pending_peer' && (s.to||s.To)===user.name) ||
                        (st==='pending_mgmt' && isMgmt);
         return buildCard({...s,_k:'swap'}, canAct);
@@ -188,7 +190,7 @@ function renderPrefs() {
   const prefs = filterByRole(data?.scheduleRequests||[], 'agent')
     .sort((a,b) => new Date(b.ts||b.Timestamp||0)-new Date(a.ts||a.Timestamp||0));
   document.getElementById('pane-prefs').innerHTML = prefs.length
-    ? prefs.map(r => buildCard({...r,_k:'pref'}, isMgmt && (r.status||r.Status||'').toLowerCase()==='pending')).join('')
+    ? prefs.map(r => buildCard({...r,_k:'pref'}, isMgmt && (r.status||'').toLowerCase()==='pending')).join('')
     : empty('📋','No schedule requests');
 }
 
@@ -277,8 +279,10 @@ async function actOnRequest(id, kind, action, note='') {
     U.toast(`${action==='approve'?'Approved':'Rejected'} ✓`, 'ok');
     API.clearCache();
     data = await API.getAll(true);
+    Nav.setSyncStatus(true);
     renderAll();
-  } catch(e) { U.toast('Failed — try again','err'); }
+  } catch(e) {
+    Nav.setSyncStatus(false); U.toast('Failed — try again','err'); }
 }
 
 function empty(icon, msg, sub='') {

@@ -267,12 +267,14 @@ document.getElementById('user-strip-wrap').innerHTML = Nav.renderUserStrip();
 async function init() {
   try {
     data     = await API.getAll();
+    Nav.setSyncStatus(true);
     allDates = (data.dates||[]);
     myAgent  = (data.agents||[]).find(a => a.n===user.name||a.name===user.name);
     renderWeek();
     fillColleagues();
     setDefaultDates();
-  } catch(e) { U.toast('Failed to load schedule','err'); }
+  } catch(e) {
+    Nav.setSyncStatus(false); U.toast('Failed to load schedule','err'); }
 }
 
 function switchTab(t) {
@@ -463,8 +465,10 @@ async function submitLeave() {
     U.toast('Leave request submitted ✓','ok');
     switchTab('hist');
     data = await API.getAll(true);
+    Nav.setSyncStatus(true);
     renderHist();
-  } catch(e) { U.toast('Failed to submit','err'); }
+  } catch(e) {
+    Nav.setSyncStatus(false); U.toast('Failed to submit','err'); }
 }
 
 /* ── Submit Swap ──────────────────────────────────── */
@@ -481,8 +485,10 @@ async function submitSwap() {
     U.toast('Swap request submitted ✓','ok');
     switchTab('hist');
     data = await API.getAll(true);
+    Nav.setSyncStatus(true);
     renderHist();
-  } catch(e) { U.toast('Failed to submit','err'); }
+  } catch(e) {
+    Nav.setSyncStatus(false); U.toast('Failed to submit','err'); }
 }
 
 /* ── Submit Schedule Preference ───────────────────── */
@@ -507,8 +513,10 @@ async function submitPref() {
     U.toast('Preference submitted ✓','ok');
     switchTab('hist');
     data = await API.getAll(true);
+    Nav.setSyncStatus(true);
     renderHist();
-  } catch(e) { U.toast('Failed to submit','err'); }
+  } catch(e) {
+    Nav.setSyncStatus(false); U.toast('Failed to submit','err'); }
 }
 
 /* ── History ──────────────────────────────────────── */

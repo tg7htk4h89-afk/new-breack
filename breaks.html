@@ -156,6 +156,7 @@ document.getElementById('date-lbl').textContent=U.fmtDisplay(today);
 async function init(){
   try{
     data=await API.getAll();
+    Nav.setSyncStatus(true);
     const s=data?.settings||{};
     DAILY_MIN=parseInt(s.dailyMin||s.daily_min||60);
     MAX_CON=parseInt(s.maxCon||s.max_con||3);
@@ -279,7 +280,8 @@ async function bookBreak(){
   try{
     await API.saveBreaks({action:'saveBreak',break:bk});
     activeBreak=bk;startLiveBanner(bk);
-    data=await API.getAll(true);renderBalance();buildSlotGrid();
+    data=await API.getAll(true);
+    Nav.setSyncStatus(true);renderBalance();buildSlotGrid();
     U.toast('Break booked ✓','ok');
   }catch(e){U.toast('Failed to book break','err');btn.disabled=false;btn.textContent='Book Break';}
 }
@@ -294,7 +296,8 @@ async function endBreak(){
     document.getElementById('swap-sec').style.display='none';
     document.getElementById('book-btn').disabled=false;
     document.getElementById('book-btn').textContent='Book Break';
-    data=await API.getAll(true);renderBalance();buildSlotGrid();
+    data=await API.getAll(true);
+    Nav.setSyncStatus(true);renderBalance();buildSlotGrid();
     U.toast('Break ended ✓','ok');
   }catch(e){U.toast('Failed to end break','err');}
 }
@@ -382,7 +385,8 @@ function renderTeam(){
 
 async function mgmtEnd(id,name){
   if(!confirm(`End ${name}'s break?`))return;
-  try{await API.saveBreaks({action:'endBreak',id,agent:name});data=await API.getAll(true);renderTeam();U.toast(`${name}'s break ended ✓`,'ok');}
+  try{await API.saveBreaks({action:'endBreak',id,agent:name});data=await API.getAll(true);
+    Nav.setSyncStatus(true);renderTeam();U.toast(`${name}'s break ended ✓`,'ok');}
   catch(e){U.toast('Failed','err');}
 }
 

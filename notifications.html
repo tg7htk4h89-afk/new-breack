@@ -8,23 +8,71 @@
 <meta name="theme-color" content="#0A4A8A">
 <title>KIB WFM — Notifications</title>
 <link rel="stylesheet" href="css/kib.css">
+<style>
+.notif-item {
+  display:flex;align-items:flex-start;gap:12px;
+  padding:14px;border-bottom:1px solid var(--border2);
+  transition:.12s;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.notif-item:last-child{border-bottom:none;}
+.notif-item.unread{background:rgba(13,92,166,.03);}
+.notif-item:active{background:var(--bg);}
+.notif-icon{
+  width:42px;height:42px;border-radius:13px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+}
+.notif-body{flex:1;min-width:0;}
+.notif-msg{font-size:13px;font-weight:600;color:var(--t1);line-height:1.4;}
+.notif-item.unread .notif-msg{font-weight:800;}
+.notif-meta{font-size:11px;color:var(--t2);margin-top:3px;}
+.notif-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--navy);flex-shrink:0;
+  margin-top:5px;
+}
+.unread-count{
+  background:linear-gradient(135deg,var(--navy),#0A7FAE);
+  color:#fff;border-radius:20px;
+  padding:4px 12px;font-size:11px;font-weight:800;
+  display:inline-block;margin-bottom:10px;
+}
+</style>
 </head>
 <body>
 <div id="kib-topbar"></div>
 <div id="kib-app">
-  <div id="user-strip-container"></div>
+  <div id="user-strip-wrap"></div>
   <div class="page-content">
-    <div class="card" style="margin-top:12px;">
-      <div class="card-header">
-        <div class="card-title">🔔 Notifications</div>
-        <button class="btn btn-xs btn-outline" onclick="markAllRead()">Mark all read</button>
+
+    <!-- Header + actions -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div>
+        <div style="font-size:18px;font-weight:900;color:var(--t1);">Notifications</div>
+        <div id="unread-label" style="font-size:12px;color:var(--t2);margin-top:2px;"></div>
       </div>
-      <div id="notif-list" class="card-body">
-        <div class="skel" style="height:52px;margin-bottom:8px;border-radius:8px;"></div>
-        <div class="skel" style="height:52px;margin-bottom:8px;border-radius:8px;"></div>
-        <div class="skel" style="height:52px;border-radius:8px;"></div>
+      <button class="btn btn-sm btn-outline" onclick="markAllRead()">✓ Mark all read</button>
+    </div>
+
+    <!-- Filter tabs -->
+    <div class="tab-bar" style="margin-bottom:12px;">
+      <button class="tab-item active" id="tab-all"      onclick="filter('all')">All</button>
+      <button class="tab-item" id="tab-swap"            onclick="filter('swap')">🔄 Swaps</button>
+      <button class="tab-item" id="tab-leave"           onclick="filter('leave')">🏖 Leave</button>
+      <button class="tab-item" id="tab-schedule"        onclick="filter('schedule')">📅 Schedule</button>
+      <button class="tab-item" id="tab-system"          onclick="filter('system')">⚙️ System</button>
+    </div>
+
+    <!-- List -->
+    <div class="card" style="padding:0;">
+      <div id="notif-list">
+        <div class="notif-item"><div class="skel" style="width:42px;height:42px;border-radius:13px;flex-shrink:0;"></div><div style="flex:1;"><div class="skel" style="height:14px;margin-bottom:8px;border-radius:4px;"></div><div class="skel" style="height:11px;width:60%;border-radius:4px;"></div></div></div>
+        <div class="notif-item"><div class="skel" style="width:42px;height:42px;border-radius:13px;flex-shrink:0;"></div><div style="flex:1;"><div class="skel" style="height:14px;margin-bottom:8px;border-radius:4px;"></div><div class="skel" style="height:11px;width:50%;border-radius:4px;"></div></div></div>
+        <div class="notif-item"><div class="skel" style="width:42px;height:42px;border-radius:13px;flex-shrink:0;"></div><div style="flex:1;"><div class="skel" style="height:14px;margin-bottom:8px;border-radius:4px;"></div><div class="skel" style="height:11px;width:70%;border-radius:4px;"></div></div></div>
       </div>
     </div>
+
   </div>
 </div>
 <div id="kib-bottomnav"></div>
@@ -39,35 +87,120 @@ if (!Auth.guard()) throw 0;
 
 const user = Auth.user();
 Nav.init('notifications');
-document.getElementById('user-strip-container').innerHTML = Nav.renderUserStrip();
+document.getElementById('user-strip-wrap').innerHTML = Nav.renderUserStrip();
+
+let allNotifs   = [];
+let activeFilter= 'all';
+
+const TYPE_META = {
+  swap:     { icon:'🔄', bg:'#CCFBF1', label:'Swap'      },
+  leave:    { icon:'🏖️', bg:'#FEF3CD', label:'Leave'     },
+  schedule: { icon:'📅', bg:'#DBEAFE', label:'Schedule'  },
+  system:   { icon:'⚙️', bg:'#F3F4F6', label:'System'    },
+  info:     { icon:'ℹ️', bg:'#EFF6FF', label:'Info'      },
+  default:  { icon:'🔔', bg:'var(--bg)', label:'General' },
+};
 
 async function init() {
   try {
     const data = await API.getNotifications(user.name);
-    const notifs = data?.notifications || [];
-    if (!notifs.length) {
+    Nav.setSyncStatus(true);
+
+    // Also pull from getAll notifications
+    let notifs = data?.notifications || [];
+
+    // Sort newest first
+    notifs = notifs.sort((a,b) => new Date(b.ts||b.Timestamp||0) - new Date(a.ts||a.Timestamp||0));
+    allNotifs = notifs;
+
+    const unread = notifs.filter(n => !n.read && String(n.read).toLowerCase() !== 'true').length;
+    document.getElementById('unread-label').textContent =
+      unread > 0 ? `${unread} unread notification${unread>1?'s':''}` : 'All caught up ✓';
+    Nav.setBadge('notifications', unread);
+
+    render();
+  } catch(e) {
+    Nav.setSyncStatus(false);
+    // Fallback: try getAll
+    try {
+      const d = await API.getAll();
+      Nav.setSyncStatus(true);
+      allNotifs = (d?.notifications || []).sort((a,b) => new Date(b.ts||0) - new Date(a.ts||0));
+      render();
+    } catch(e2) {
       document.getElementById('notif-list').innerHTML =
-        `<div class="empty-state"><div class="empty-icon">🔔</div><div class="empty-msg">No notifications</div><div class="empty-sub">You're all caught up!</div></div>`;
-      return;
+        `<div class="empty-state" style="padding:32px 0;">
+          <div class="empty-icon">⚠️</div>
+          <div class="empty-msg">Could not load notifications</div>
+          <div class="empty-sub"><button class="btn btn-sm btn-outline" onclick="init()">Retry</button></div>
+        </div>`;
     }
-    const typeIcon = { swap:'🔄', leave:'🏖', schedule:'📅', system:'⚙️', info:'ℹ️' };
-    document.getElementById('notif-list').innerHTML = notifs.map(n => `
-      <div class="row-item" style="${n.read?'':'background:rgba(13,92,166,.03);'}">
-        <div class="row-icon" style="background:${n.read?'var(--bg)':'rgba(13,92,166,.08)'};">${typeIcon[n.type]||'🔔'}</div>
-        <div class="row-info">
-          <div class="row-title" style="${n.read?'':'font-weight:800;'}">${n.message||n.title||'Notification'}</div>
-          <div class="row-meta">From: ${n.from||'System'} · ${U.timeAgo(n.ts||n.created_at||'')}</div>
-        </div>
-        ${!n.read?`<div style="width:8px;height:8px;border-radius:50%;background:var(--navy);flex-shrink:0;"></div>`:''}
-      </div>`).join('');
-  } catch(e) { U.toast('Failed to load notifications','err'); }
+  }
+}
+
+function filter(type) {
+  activeFilter = type;
+  ['all','swap','leave','schedule','system'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('active', t===type);
+  });
+  render();
+}
+
+function render() {
+  const list = activeFilter === 'all'
+    ? allNotifs
+    : allNotifs.filter(n => (n.type||n.Type||'').toLowerCase() === activeFilter);
+
+  if (!list.length) {
+    document.getElementById('notif-list').innerHTML =
+      `<div class="empty-state" style="padding:32px 0;">
+        <div class="empty-icon">🔔</div>
+        <div class="empty-msg">No notifications${activeFilter!=='all'?' in this category':''}</div>
+        <div class="empty-sub">You're all caught up!</div>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('notif-list').innerHTML = list.map((n, idx) => {
+    const type   = (n.type||n.Type||'info').toLowerCase();
+    const meta   = TYPE_META[type] || TYPE_META.default;
+    const isRead = n.read === true || String(n.read).toLowerCase() === 'true';
+    const msg    = n.message || n.Message || n.title || 'Notification';
+    const from   = n.from   || n.From   || 'System';
+    const ts     = n.ts     || n.Timestamp || '';
+
+    return `<div class="notif-item ${isRead?'':'unread'}" onclick="markOne(${idx})">
+      <div class="notif-icon" style="background:${meta.bg}">${meta.icon}</div>
+      <div class="notif-body">
+        <div class="notif-msg">${msg}</div>
+        <div class="notif-meta">From: ${from} · ${U.timeAgo(ts)}</div>
+      </div>
+      ${!isRead ? '<div class="notif-dot"></div>' : ''}
+    </div>`;
+  }).join('');
+}
+
+function markOne(idx) {
+  if (allNotifs[idx]) {
+    allNotifs[idx].read = true;
+    render();
+    // Update unread count
+    const unread = allNotifs.filter(n => !n.read || String(n.read).toLowerCase() !== 'true').length;
+    document.getElementById('unread-label').textContent =
+      unread > 0 ? `${unread} unread notification${unread>1?'s':''}` : 'All caught up ✓';
+    Nav.setBadge('notifications', unread);
+  }
 }
 
 async function markAllRead() {
+  allNotifs.forEach(n => n.read = true);
+  render();
+  document.getElementById('unread-label').textContent = 'All caught up ✓';
+  Nav.setBadge('notifications', 0);
   try {
     await API.markNotificationsRead(user.name);
-    init();
-  } catch(e) { U.toast('Failed','err'); }
+    U.toast('All marked as read ✓', 'ok');
+  } catch(e) { /* silent - UI already updated */ }
 }
 
 init();

@@ -28,7 +28,7 @@
 <body>
 <div id="kib-topbar"></div>
 <div id="kib-app">
-  <div id="user-strip-container"></div>
+  <div id="user-strip-wrap"></div>
   <div class="page-content">
 
     <!-- Date selector -->
@@ -107,7 +107,7 @@ let selDate  = U.today();
 let teamFilt = 'All';
 
 Nav.init('attendance');
-document.getElementById('user-strip-container').innerHTML = Nav.renderUserStrip();
+document.getElementById('user-strip-wrap').innerHTML = Nav.renderUserStrip();
 document.getElementById('att-date').value = selDate;
 document.getElementById('att-date').max   = U.today();
 
@@ -125,7 +125,8 @@ async function init() {
       document.getElementById('agent-checkin').style.display = '';
       renderAgentStatus();
     }
-  } catch(e) { U.toast('Failed to load attendance','err'); }
+  } catch(e) {
+    Nav.setSyncStatus(false); U.toast('Failed to load attendance','err'); }
 }
 
 function onDateChange() {
@@ -156,7 +157,8 @@ async function logAttendance(status) {
     allData = await API.getAll(true);
     renderAgentStatus();
     U.toast(`Logged as ${status} ✓`, 'ok');
-  } catch(e) { U.toast('Failed to log attendance','err'); }
+  } catch(e) {
+    Nav.setSyncStatus(false); U.toast('Failed to log attendance','err'); }
 }
 
 /* ── Management view ───────────────────────────────── */
@@ -257,7 +259,8 @@ async function saveEditStatus(agentName) {
     allData = await API.getAll(true);
     renderMgmtView();
     U.toast(`${agentName} → ${status} ✓`, 'ok');
-  } catch(e) { U.toast('Failed to update','err'); }
+  } catch(e) {
+    Nav.setSyncStatus(false); U.toast('Failed to update','err'); }
 }
 
 function exportAtt() {

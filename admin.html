@@ -12,7 +12,7 @@
 <body>
 <div id="kib-topbar"></div>
 <div id="kib-app">
-  <div id="user-strip-container"></div>
+  <div id="user-strip-wrap"></div>
   <div class="page-content">
 
     <div class="tab-bar" style="margin-top:12px;">
@@ -123,16 +123,18 @@ let allData  = null;
 let allUsers = [];
 
 Nav.init('admin');
-document.getElementById('user-strip-container').innerHTML = Nav.renderUserStrip();
+document.getElementById('user-strip-wrap').innerHTML = Nav.renderUserStrip();
 
 async function init() {
   try {
     allData  = await API.getAll();
-    allUsers = allData?.users || allData?.agents || [];
+    // userLogins from UserLogins sheet: {id, name, role, dept, access, active}
+    allUsers = allData?.userLogins || allData?.agents || [];
     renderUsers(allUsers);
     renderProfile();
     checkN8n();
-  } catch(e) { U.toast('Failed to load admin data','err'); }
+  } catch(e) {
+    Nav.setSyncStatus(false); U.toast('Failed to load admin data','err'); }
 }
 
 function switchTab(tab) {
@@ -145,29 +147,39 @@ function switchTab(tab) {
 
 /* ── Users ─────────────────────────────────────────────── */
 function filterUsers(q) {
-  const filtered = allUsers.filter(u => (u.n||u.name||'').toLowerCase().includes(q.toLowerCase()) || (u.t||u.dept||'').toLowerCase().includes(q.toLowerCase()));
+  const filtered = allUsers.filter(u => (u.name||u.n||'').toLowerCase().includes(q.toLowerCase()) || (u.dept||u.t||u.role||'').toLowerCase().includes(q.toLowerCase()) || (u.access||'').toLowerCase().includes(q.toLowerCase()));
   renderUsers(filtered);
 }
 
 function renderUsers(list) {
   U.se('user-count', list.length);
   if (!list.length) {
-    document.getElementById('user-list').innerHTML = `<div class="card-body"><div class="empty-state"><div class="empty-icon">👥</div><div class="empty-msg">No users found</div></div></div>`;
+    document.getElementById('user-list').innerHTML =
+      `<div class="card-body"><div class="empty-state"><div class="empty-icon">👥</div>
+       <div class="empty-msg">No users found</div></div></div>`;
     return;
   }
+  const accessColor = { agent:'#1D4ED8,#DBEAFE', management:'#166534,#DCFCE7',
+                        wfm:'#0F766E,#CCFBF1', admin:'#DC2626,#FEE2E2' };
   document.getElementById('user-list').innerHTML = list.map(u => {
-    const name   = u.n||u.name||'—';
-    const dept   = u.t||u.dept||'—';
-    const access = u.access||u.loginRole||'agent';
+    const name   = u.name||u.n||'—';
+    const dept   = u.dept||u.t||'—';
+    const role   = u.role||u.r||'—';
+    const access = (u.access||u.loginRole||'agent').toLowerCase();
+    const active = u.active !== false;
     const color  = U.avatarColor(name);
-    const accessMap = { agent:'pill-gray', management:'pill-navy', wfm:'pill-teal', admin:'pill-amber' };
-    return `<div class="mgmt-row" style="padding:10px 13px;">
-      <div style="width:34px;height:34px;border-radius:9px;background:${color};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0;">${U.initials(name)}</div>
-      <div class="flex-1">
-        <div class="row-title">${name}</div>
-        <div class="row-meta">${dept} · ${u.role||access}</div>
+    const [fg, bg] = (accessColor[access]||'#6B7280,#F3F4F6').split(',');
+    return `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border2);">
+      <div style="width:38px;height:38px;border-radius:11px;background:${color};display:flex;
+                  align-items:center;justify-content:center;font-size:12px;font-weight:900;
+                  color:#fff;flex-shrink:0;opacity:${active?1:.5};">${U.initials(name)}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:700;color:${active?'var(--t1)':'var(--t3)'};">${name}</div>
+        <div style="font-size:11px;color:var(--t2);margin-top:1px;">${dept} · ${role}</div>
       </div>
-      <span class="pill ${accessMap[access]||'pill-gray'}">${access}</span>
+      <span style="background:${bg};color:${fg};border-radius:8px;padding:3px 9px;
+                   font-size:10px;font-weight:800;flex-shrink:0;">${access}</span>
+      ${!active?`<span style="background:#FEE2E2;color:#DC2626;border-radius:8px;padding:3px 8px;font-size:9px;font-weight:800;">OFF</span>`:''}
     </div>`;
   }).join('');
 }

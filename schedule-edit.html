@@ -423,6 +423,7 @@ async function init() {
     buildLegend();
     renderGrid();
   } catch(e) {
+    Nav.setSyncStatus(false);
     console.error(e);
     document.getElementById('grid-container').innerHTML =
       `<div style="padding:40px;text-align:center;color:var(--red);">⚠ Failed to load from n8n.<br><button class="btn btn-sm btn-outline" onclick="init()" style="margin-top:10px;">Retry</button></div>`;
@@ -750,6 +751,7 @@ async function saveAllChanges() {
       U.toast('Save failed — ' + (res?.error || 'try again'), 'err');
     }
   } catch(e) {
+    Nav.setSyncStatus(false);
     U.toast('Network error while saving', 'err');
   } finally {
     btn.disabled = false; btn.textContent = '✓ Save All';
@@ -790,7 +792,8 @@ async function togglePublish() {
       updatePublishBtn();
       U.toast(newState ? 'Schedule published ✓' : 'Schedule unpublished', 'ok');
     }
-  } catch(e) { U.toast('Failed to update publish status', 'err'); }
+  } catch(e) {
+    Nav.setSyncStatus(false); U.toast('Failed to update publish status', 'err'); }
 }
 
 /* ── Refresh ───────────────────────────────────────── */

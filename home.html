@@ -347,6 +347,7 @@ async function init() {
 
   try {
     data = await API.getAll();
+    Nav.setSyncStatus(true);
     renderHero();
     renderAnn();
     if (isMgmt) {
@@ -362,6 +363,7 @@ async function init() {
       renderMyRequests();
     }
   } catch(e) {
+    Nav.setSyncStatus(false);
     console.error('Home init error:', e);
     document.getElementById('hero-shift').textContent = 'Connection error';
     U.toast('Tap to retry','err');

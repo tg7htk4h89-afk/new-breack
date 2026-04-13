@@ -189,8 +189,10 @@ function autoFillShift(agentName) {
 async function init() {
   try {
     data = await API.getAll();
+    Nav.setSyncStatus(true);
     fillAllSelects();
-  } catch(e) { U.toast('Failed to load','err'); }
+  } catch(e) {
+    Nav.setSyncStatus(false); U.toast('Failed to load','err'); }
 }
 
 function switchTab(t) {
@@ -281,7 +283,9 @@ async function logKPI(type) {
     U.toast(`${type} logged ✓`, 'ok');
     API.clearCache();
     data = await API.getAll(true);
-  } catch(e) { U.toast('Failed to log','err'); }
+    Nav.setSyncStatus(true);
+  } catch(e) {
+    Nav.setSyncStatus(false); U.toast('Failed to log','err'); }
 }
 
 /* ── Dashboard ───────────────────────────────────── */
