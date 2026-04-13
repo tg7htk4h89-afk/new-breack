@@ -9,373 +9,303 @@
 <meta name="theme-color" content="#0A4A8A">
 <title>KIB WFM — Home</title>
 <link rel="stylesheet" href="css/kib.css">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-/* ── Hero shift card ─────────────────────────────────────── */
+/* ── HERO ─────────────────────────────────────────────── */
 .hero {
-  background: linear-gradient(135deg, #082C52 0%, #0A4A8A 50%, #0A7FAE 100%);
-  border-radius: 20px;
-  padding: 20px;
-  margin-bottom: 14px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(10,74,138,.35);
-}
-.hero::before {
-  content:'';
-  position:absolute;top:-60px;right:-60px;
-  width:200px;height:200px;border-radius:50%;
-  background:rgba(255,255,255,.04);
-}
-.hero::after {
-  content:'';
-  position:absolute;bottom:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,transparent,#00BEAE,#7DD4CE,#00BEAE,transparent);
-}
-.hero-label {
-  font-size:10px;font-weight:700;letter-spacing:1.2px;
-  color:rgba(255,255,255,.45);text-transform:uppercase;
-  margin-bottom:6px;
-}
-.hero-shift {
-  font-size:32px;font-weight:900;color:#fff;line-height:1.1;
-  margin-bottom:4px;letter-spacing:-.5px;
-}
-.hero-date { font-size:13px;color:rgba(255,255,255,.5);margin-bottom:16px; }
-.hero-row { display:flex;align-items:center;gap:10px;flex-wrap:wrap; }
-.hero-badge {
-  display:inline-flex;align-items:center;gap:6px;
-  padding:6px 14px;border-radius:20px;
-  font-size:12px;font-weight:700;
-}
-.hb-on   { background:rgba(0,190,174,.2); color:#00BEAE; border:1px solid rgba(0,190,174,.3); }
-.hb-off  { background:rgba(255,255,255,.1); color:rgba(255,255,255,.6); border:1px solid rgba(255,255,255,.15); }
-.hb-late { background:rgba(217,119,6,.25); color:#FCD34D; border:1px solid rgba(217,119,6,.3); }
-.hero-times { font-size:13px;color:rgba(255,255,255,.5); }
-.hero-dot { width:7px;height:7px;border-radius:50%;animation:pulse-dot 2s infinite; }
-.hd-on   { background:#00BEAE; }
-.hd-off  { background:rgba(255,255,255,.4);animation:none; }
-@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
-
-/* ── Week strip ──────────────────────────────────────────── */
-.week-strip {
-  display:grid;grid-template-columns:repeat(7,1fr);gap:6px;
-  margin-bottom:14px;
-}
-.wday {
-  border-radius:12px;padding:8px 4px;text-align:center;
-  border:1.5px solid var(--border);background:var(--white);
-  transition:.15s;
-}
-.wday.today {
-  background:var(--navy);border-color:var(--navy);
-  box-shadow:0 4px 14px rgba(13,92,166,.35);
-}
-.wday.off { background:#F3F4F6;border-color:#E5E7EB; }
-.wday .wd-name { font-size:9px;font-weight:700;color:var(--t3);line-height:1; }
-.wday .wd-num  { font-size:15px;font-weight:900;color:var(--t1);margin:3px 0; }
-.wday .wd-shift{ font-size:9px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
-.wday.today .wd-name,.wday.today .wd-num,.wday.today .wd-shift { color:#fff; }
-.wday.today .wd-name { color:rgba(255,255,255,.6); }
-.wday.off .wd-num,.wday.off .wd-shift { color:#9CA3AF; }
-
-/* ── Section header ──────────────────────────────────────── */
-.sec {
-  font-size:11px;font-weight:800;text-transform:uppercase;
-  letter-spacing:.9px;color:var(--t3);
-  margin:18px 0 10px;
-  display:flex;align-items:center;gap:7px;
-}
-.sec::before {
-  content:'';width:3px;height:13px;
-  background:var(--navy);border-radius:2px;flex-shrink:0;
-}
-
-/* ── Stat cards ──────────────────────────────────────────── */
-.stats-row { display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:6px; }
-@media(min-width:440px){ .stats-row { grid-template-columns:repeat(4,1fr); } }
-.scard {
-  border-radius:16px;padding:14px 12px;
+  background: linear-gradient(135deg,#082C52 0%,#0A4A8A 55%,#0A7FAE 100%);
+  border-radius:20px;padding:20px;margin-bottom:12px;
   position:relative;overflow:hidden;
-  box-shadow:0 2px 12px rgba(0,0,0,.08);
+  box-shadow:0 8px 32px rgba(10,74,138,.3);
 }
-.scard-icon { font-size:22px;margin-bottom:6px; }
-.scard-num  { font-size:28px;font-weight:900;line-height:1;margin-bottom:3px; }
-.scard-lbl  { font-size:11px;font-weight:600;opacity:.7; }
-.scard-bar  { position:absolute;bottom:0;left:0;right:0;height:3px; }
-.sc-navy  { background:linear-gradient(135deg,#E8F0FC,#DBEAFE); color:#1D4ED8; }
-.sc-navy .scard-bar  { background:linear-gradient(90deg,#1D4ED8,#3B82F6); }
-.sc-teal  { background:linear-gradient(135deg,#E0F7F5,#CCFBF1); color:#0F766E; }
-.sc-teal .scard-bar  { background:linear-gradient(90deg,#0F766E,#14B8A6); }
-.sc-amber { background:linear-gradient(135deg,#FEF9EE,#FEF3CD); color:#D97706; }
-.sc-amber .scard-bar { background:linear-gradient(90deg,#D97706,#F59E0B); }
-.sc-red   { background:linear-gradient(135deg,#FFF0EF,#FEE2E2); color:#DC2626; }
-.sc-red .scard-bar   { background:linear-gradient(90deg,#DC2626,#EF4444); }
-.sc-purple{ background:linear-gradient(135deg,#F5F0FF,#F3E8FF); color:#7C3AED; }
-.sc-purple .scard-bar{ background:linear-gradient(90deg,#7C3AED,#A855F7); }
-.sc-green { background:linear-gradient(135deg,#EDFFF5,#DCFCE7); color:#16A34A; }
-.sc-green .scard-bar { background:linear-gradient(90deg,#16A34A,#22C55E); }
+.hero::before{content:'';position:absolute;top:-50px;right:-50px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.04);}
+.hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#00BEAE,#7DD4CE,#00BEAE,transparent);}
+.hero-label{font-size:10px;font-weight:700;letter-spacing:1.2px;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:5px;}
+.hero-shift{font-size:30px;font-weight:900;color:#fff;line-height:1.1;margin-bottom:4px;letter-spacing:-.3px;}
+.hero-date{font-size:12px;color:rgba(255,255,255,.45);margin-bottom:14px;}
+.hero-pills{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.hpill{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;}
+.hp-on{background:rgba(0,190,174,.2);color:#00BEAE;border:1px solid rgba(0,190,174,.3);}
+.hp-off{background:rgba(255,255,255,.1);color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.12);}
+.hp-late{background:rgba(252,211,77,.15);color:#FCD34D;border:1px solid rgba(252,211,77,.2);}
+.hp-dot{width:6px;height:6px;border-radius:50%;}
+.hpd-on{background:#00BEAE;animation:pulse 2s infinite;}
+.hpd-off{background:rgba(255,255,255,.4);}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
 
-/* ── Quick actions ───────────────────────────────────────── */
-.qa-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
-.qa-btn {
+/* ── BREAK CARD (hero-style) ─────────────────────────── */
+.break-card{
+  background:linear-gradient(135deg,#0F766E 0%,#0D9488 60%,#14B8A6 100%);
+  border-radius:18px;padding:16px;margin-bottom:12px;
+  position:relative;overflow:hidden;
+  box-shadow:0 6px 24px rgba(15,118,110,.3);
+}
+.break-card::before{content:'';position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.05);}
+.bc-label{font-size:10px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.45);text-transform:uppercase;margin-bottom:5px;}
+.bc-num{font-size:38px;font-weight:900;color:#fff;line-height:1;}
+.bc-unit{font-size:12px;color:rgba(255,255,255,.5);padding-bottom:5px;}
+.bc-prog{background:rgba(255,255,255,.15);border-radius:4px;height:5px;overflow:hidden;margin:10px 0 6px;}
+.bc-fill{height:100%;border-radius:4px;background:rgba(255,255,255,.7);transition:width .4s;}
+.bc-row{display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.45);}
+
+/* Active break inside break card */
+.bc-active{
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+  border-radius:12px;padding:10px 14px;margin-top:10px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.bc-timer{font-size:24px;font-weight:900;color:#fff;font-family:'DM Mono',monospace;letter-spacing:2px;}
+
+/* Next break slot */
+.next-break{
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
+  border-radius:12px;padding:9px 14px;margin-top:10px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.nb-label{font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.7px;}
+.nb-time{font-size:14px;font-weight:800;color:#fff;}
+
+/* ── ALERT CARDS ─────────────────────────────────────── */
+.alert-card{
+  border-radius:16px;padding:14px;margin-bottom:10px;
+  display:flex;align-items:center;gap:12px;
+  position:relative;overflow:hidden;
+}
+.alert-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px;}
+.ac-swap{background:linear-gradient(135deg,#EEF9F8,#CCFBF1);border:1px solid rgba(15,118,110,.15);}
+.ac-swap::before{background:#0F766E;}
+.ac-leave{background:linear-gradient(135deg,#FFFBEB,#FEF3CD);border:1px solid rgba(217,119,6,.15);}
+.ac-leave::before{background:#D97706;}
+.ac-info{background:linear-gradient(135deg,#EFF6FF,#DBEAFE);border:1px solid rgba(29,78,216,.15);}
+.ac-info::before{background:#1D4ED8;}
+.ac-urgent{background:linear-gradient(135deg,#FFF1F2,#FEE2E2);border:1px solid rgba(220,38,38,.15);}
+.ac-urgent::before{background:#DC2626;}
+.ac-icon{font-size:22px;flex-shrink:0;}
+.ac-body{flex:1;min-width:0;}
+.ac-title{font-size:13px;font-weight:700;color:var(--t1);}
+.ac-sub{font-size:11px;color:var(--t2);margin-top:2px;}
+.ac-btn{flex-shrink:0;}
+
+/* ── WEEK STRIP ──────────────────────────────────────── */
+.week-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:12px;}
+.wday{border-radius:12px;padding:8px 3px;text-align:center;border:1.5px solid var(--border);background:var(--white);cursor:default;}
+.wday.today{background:var(--navy);border-color:var(--navy);box-shadow:0 4px 14px rgba(13,92,166,.3);}
+.wday.woff{background:#F3F4F6;border-color:#E5E7EB;}
+.wd-name{font-size:9px;font-weight:700;color:var(--t3);}
+.wd-num{font-size:14px;font-weight:900;color:var(--t1);margin:2px 0;}
+.wd-shift{font-size:9px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.wday.today .wd-name{color:rgba(255,255,255,.55);}
+.wday.today .wd-num{color:#fff;}
+.wday.today .wd-shift{color:rgba(255,255,255,.8);}
+.wday.woff .wd-num,.wday.woff .wd-shift{color:#9CA3AF;}
+
+/* ── QUICK ACTIONS ───────────────────────────────────── */
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.qa-btn{
   background:var(--white);border:1.5px solid var(--border);
-  border-radius:16px;padding:16px 14px;
-  display:flex;align-items:center;gap:12px;
-  text-decoration:none;
+  border-radius:16px;padding:15px 13px;
+  display:flex;align-items:center;gap:11px;text-decoration:none;
   box-shadow:0 2px 8px rgba(0,0,0,.05);
-  transition:.15s;
-  -webkit-tap-highlight-color:transparent;
-  position:relative;overflow:hidden;
-  min-height:72px;
+  transition:.15s;-webkit-tap-highlight-color:transparent;
+  position:relative;overflow:hidden;min-height:68px;
 }
-.qa-btn:active { transform:scale(.97); }
-.qa-btn::before {
-  content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
-  border-radius:4px 0 0 4px;
-}
-.qa-icon {
-  width:42px;height:42px;border-radius:12px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:20px;flex-shrink:0;
-}
-.qa-label { font-size:13px;font-weight:700;color:var(--t1);line-height:1.2; }
-.qa-sub   { font-size:10px;color:var(--t2);margin-top:2px; }
+.qa-btn:active{transform:scale(.97);}
+.qa-btn::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px;}
+.qa-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.qa-label{font-size:13px;font-weight:700;color:var(--t1);}
+.qa-sub{font-size:10px;color:var(--t2);margin-top:1px;}
+.qa-navy::before{background:#0A4A8A;} .qa-navy .qa-icon{background:rgba(10,74,138,.1);}
+.qa-teal::before{background:#0F766E;} .qa-teal .qa-icon{background:rgba(15,118,110,.1);}
+.qa-amber::before{background:#D97706;}.qa-amber .qa-icon{background:rgba(217,119,6,.1);}
+.qa-purple::before{background:#7C3AED;}.qa-purple .qa-icon{background:rgba(124,58,237,.1);}
+.qa-green::before{background:#16A34A;}.qa-green .qa-icon{background:rgba(22,163,74,.1);}
+.qa-red::before{background:#DC2626;}.qa-red .qa-icon{background:rgba(220,38,38,.1);}
 
-/* colour variants */
-.qa-navy::before  { background:var(--navy); }
-.qa-navy .qa-icon { background:rgba(13,92,166,.1); }
-.qa-teal::before  { background:var(--teal); }
-.qa-teal .qa-icon { background:rgba(0,168,154,.1); }
-.qa-amber::before { background:#D97706; }
-.qa-amber .qa-icon{ background:rgba(217,119,6,.1); }
-.qa-green::before { background:#16A34A; }
-.qa-green .qa-icon{ background:rgba(22,163,74,.1); }
-.qa-purple::before{ background:#7C3AED; }
-.qa-purple .qa-icon{ background:rgba(124,58,237,.1); }
-.qa-red::before   { background:#DC2626; }
-.qa-red .qa-icon  { background:rgba(220,38,38,.1); }
+/* ── STAT CARDS ──────────────────────────────────────── */
+.stats-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+@media(min-width:440px){.stats-row{grid-template-columns:repeat(4,1fr);}}
+.scard{border-radius:16px;padding:14px 12px;position:relative;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.07);}
+.scard-icon{font-size:20px;margin-bottom:6px;}
+.scard-num{font-size:28px;font-weight:900;line-height:1;margin-bottom:3px;}
+.scard-lbl{font-size:11px;font-weight:600;opacity:.7;}
+.scard-bar{position:absolute;bottom:0;left:0;right:0;height:3px;}
+.sc-navy{background:linear-gradient(135deg,#EFF6FF,#DBEAFE);color:#1D4ED8;} .sc-navy .scard-bar{background:linear-gradient(90deg,#1D4ED8,#3B82F6);}
+.sc-teal{background:linear-gradient(135deg,#F0FDFA,#CCFBF1);color:#0F766E;} .sc-teal .scard-bar{background:linear-gradient(90deg,#0F766E,#14B8A6);}
+.sc-amber{background:linear-gradient(135deg,#FFFBEB,#FEF3CD);color:#D97706;}.sc-amber .scard-bar{background:linear-gradient(90deg,#D97706,#F59E0B);}
+.sc-red{background:linear-gradient(135deg,#FFF1F2,#FEE2E2);color:#DC2626;}  .sc-red .scard-bar{background:linear-gradient(90deg,#DC2626,#EF4444);}
+.sc-green{background:linear-gradient(135deg,#F0FDF4,#DCFCE7);color:#16A34A;}.sc-green .scard-bar{background:linear-gradient(90deg,#16A34A,#22C55E);}
+.sc-purple{background:linear-gradient(135deg,#FAF5FF,#F3E8FF);color:#7C3AED;}.sc-purple .scard-bar{background:linear-gradient(90deg,#7C3AED,#A855F7);}
 
-/* ── Approval/request cards ──────────────────────────────── */
-.req-item {
-  display:flex;align-items:center;gap:12px;
-  padding:12px 0;border-bottom:1px solid var(--border2);
-}
-.req-item:last-child { border:none; }
-.req-dot {
-  width:40px;height:40px;border-radius:12px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:18px;flex-shrink:0;
-}
-.req-info { flex:1;min-width:0; }
-.req-name { font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
-.req-meta { font-size:11px;color:var(--t2);margin-top:2px; }
+/* ── SEC HEADER ──────────────────────────────────────── */
+.sec{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.9px;color:var(--t3);margin:16px 0 9px;display:flex;align-items:center;gap:7px;}
+.sec::before{content:'';width:3px;height:13px;background:var(--navy);border-radius:2px;flex-shrink:0;}
+.sec-badge{margin-left:auto;background:var(--amber-bg);color:var(--amber);border-radius:10px;padding:2px 8px;font-size:9px;font-weight:800;}
+.sec-badge.red{background:var(--red-bg);color:var(--red);}
 
-/* ── Break balance mini ───────────────────────────────────── */
-.bal-mini {
-  background:linear-gradient(135deg,var(--navy2),var(--navy));
-  border-radius:16px;padding:14px 16px;
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:14px;
-  box-shadow:0 4px 16px rgba(13,92,166,.2);
-}
-.bal-left .bal-num  { font-size:28px;font-weight:900;color:#fff;line-height:1; }
-.bal-left .bal-unit { font-size:11px;color:rgba(255,255,255,.45);margin-top:2px; }
-.bal-right { text-align:right; }
-.bal-right .bal-lbl { font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.6px; }
-.bal-prog-wrap { width:100px;height:5px;background:rgba(255,255,255,.15);border-radius:3px;margin-top:5px; }
-.bal-prog { height:100%;border-radius:3px;background:linear-gradient(90deg,var(--teal),#00BEAE);transition:width .4s; }
-
-/* ── Greeting chip ───────────────────────────────────────── */
-.greet-chip {
-  background:linear-gradient(90deg,rgba(13,92,166,.08),rgba(0,168,154,.06));
-  border:1px solid rgba(13,92,166,.12);
-  border-radius:12px;
-  padding:10px 14px;
-  margin-bottom:14px;
-  display:flex;align-items:center;gap:10px;
-}
-.greet-chip .gc-icon { font-size:22px; }
-.greet-chip .gc-text { font-size:13px;font-weight:600;color:var(--t1); }
-.greet-chip .gc-sub  { font-size:11px;color:var(--t2);margin-top:1px; }
-
-/* ── Announcement ────────────────────────────────────────── */
-.ann-strip {
-  background:linear-gradient(90deg,#D97706,#B45309);
-  border-radius:12px;padding:10px 14px;
-  display:flex;align-items:center;gap:10px;
-  margin-bottom:14px;
-  box-shadow:0 3px 12px rgba(217,119,6,.25);
-}
-.ann-strip .as-icon { font-size:18px;flex-shrink:0; }
-.ann-strip .as-text { font-size:12px;font-weight:600;color:#fff;flex:1; }
-
-/* ── On break indicator ──────────────────────────────────── */
-.onbreak-banner {
-  background:linear-gradient(135deg,#0A4A8A,#0D5CA6);
-  border-radius:16px;padding:14px 16px;
-  margin-bottom:14px;
-  display:flex;align-items:center;justify-content:space-between;
-  display:none;
-}
-.onbreak-banner.show { display:flex; }
-.ob-timer { font-size:26px;font-weight:900;color:#00BEAE;font-family:'DM Mono',monospace;letter-spacing:2px; }
+/* ── ANN STRIP ───────────────────────────────────────── */
+.ann-strip{background:linear-gradient(90deg,#D97706,#B45309);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px;box-shadow:0 3px 12px rgba(217,119,6,.2);}
+.ann-strip span{font-size:12px;font-weight:600;color:#fff;flex:1;}
 </style>
 </head>
 <body>
 <div id="kib-topbar"></div>
 <div id="kib-app">
+<div class="page-content" style="padding-top:14px;">
 
-  <div class="page-content" style="padding-top:14px;">
+  <!-- Announcement -->
+  <div id="ann-strip" class="ann-strip" style="display:none;">
+    <span style="font-size:18px;flex-shrink:0;">📢</span>
+    <span id="ann-text"></span>
+  </div>
 
-    <!-- Announcement bar (if any) -->
-    <div id="ann-strip" class="ann-strip" style="display:none;">
-      <span class="as-icon">📢</span>
-      <span class="as-text" id="ann-text"></span>
-    </div>
-
-    <!-- Active break banner -->
-    <div class="onbreak-banner" id="onbreak-banner">
-      <div>
-        <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px;">Break In Progress</div>
-        <div class="ob-timer" id="ob-timer">00:00</div>
-      </div>
-      <a href="breaks.html" class="btn btn-sm" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;">Manage →</a>
-    </div>
-
-    <!-- Greeting -->
-    <div class="greet-chip" id="greet-chip">
-      <span class="gc-icon" id="greet-icon">👋</span>
-      <div>
-        <div class="gc-text" id="greet-text">Good morning</div>
-        <div class="gc-sub" id="greet-sub">Loading your schedule…</div>
-      </div>
-    </div>
-
-    <!-- HERO shift card -->
-    <div class="hero" id="hero">
-      <div class="hero-label">Today's Shift</div>
+  <!-- HERO: Today's Shift -->
+  <div class="hero" id="hero">
+    <div style="position:relative;z-index:1;">
+      <div class="hero-label">Today's Shift · <span id="hero-dept">—</span></div>
       <div class="hero-shift" id="hero-shift">Loading…</div>
       <div class="hero-date"  id="hero-date"></div>
-      <div class="hero-row">
-        <div class="hero-badge hb-off" id="hero-status">
-          <span class="hero-dot hd-off" id="hero-dot"></span>
-          <span id="hero-status-text">—</span>
+      <div class="hero-pills">
+        <div class="hpill hp-off" id="hero-status">
+          <span class="hp-dot hpd-off" id="hero-dot"></span>
+          <span id="hero-stxt">—</span>
         </div>
-        <span class="hero-times" id="hero-times"></span>
+        <span id="hero-times" style="font-size:12px;color:rgba(255,255,255,.4);"></span>
+        <span id="hero-endin" style="font-size:11px;color:rgba(255,255,255,.35);"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ AGENT SECTION ══════════════════════════════════ -->
+  <div id="agent-section">
+
+    <!-- BREAK CARD: Balance + Next Slot + Active Timer -->
+    <div class="break-card" id="break-card">
+      <div style="position:relative;z-index:1;">
+        <div class="bc-label">Break Balance Today</div>
+        <div style="display:flex;align-items:flex-end;gap:8px;">
+          <div class="bc-num" id="bc-rem">60</div>
+          <div class="bc-unit">min remaining</div>
+          <div style="margin-left:auto;font-size:10px;color:rgba(255,255,255,.45);" id="bc-used">0 of 60 used</div>
+        </div>
+        <div class="bc-prog"><div class="bc-fill" id="bc-fill" style="width:0%"></div></div>
+        <div class="bc-row">
+          <span id="bc-breaks-today">0 breaks taken today</span>
+          <span id="bc-max">Max: 60 min/day</span>
+        </div>
+
+        <!-- Next available break -->
+        <div class="next-break" id="next-break" style="display:none;">
+          <div>
+            <div class="nb-label">Next Available Slot</div>
+            <div class="nb-time" id="next-break-time">—</div>
+          </div>
+          <a href="breaks.html" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:7px 14px;border-radius:10px;font-size:12px;font-weight:700;text-decoration:none;">Book →</a>
+        </div>
+
+        <!-- Active break timer -->
+        <div class="bc-active" id="bc-active" style="display:none;">
+          <div>
+            <div style="font-size:10px;color:rgba(255,255,255,.45);margin-bottom:2px;">● Break In Progress</div>
+            <div class="bc-timer" id="bc-timer">00:00</div>
+          </div>
+          <a href="breaks.html" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:7px 12px;border-radius:10px;font-size:12px;font-weight:700;text-decoration:none;">Manage →</a>
+        </div>
       </div>
     </div>
 
-    <!-- Break balance (agent) -->
-    <div class="bal-mini" id="bal-mini" style="display:none;">
-      <div class="bal-left">
-        <div class="bal-num" id="bal-num">60</div>
-        <div class="bal-unit">minutes remaining today</div>
-      </div>
-      <div class="bal-right">
-        <div class="bal-lbl">Break Balance</div>
-        <div class="bal-prog-wrap">
-          <div class="bal-prog" id="bal-prog" style="width:0%"></div>
-        </div>
-      </div>
+    <!-- ALERTS: swap pending, leave approved, urgent items -->
+    <div id="alerts-section" style="display:none;">
+      <div class="sec">Action Required <span class="sec-badge red" id="alerts-count">0</span></div>
+      <div id="alerts-list"></div>
+    </div>
+
+    <!-- INFO CARDS: Notifications / upcoming items -->
+    <div id="info-section" style="display:none;">
+      <div class="sec">For You</div>
+      <div id="info-list"></div>
     </div>
 
     <!-- Week strip -->
+    <div class="sec">This Week</div>
     <div class="week-strip" id="week-strip">
-      <!-- 7 day cells injected by JS -->
+      <!-- skeleton -->
+      <div class="wday woff"><div class="wd-name">—</div><div class="wd-num" style="color:transparent;">00</div><div class="wd-shift" style="color:transparent;">—</div></div>
+      <div class="wday woff"><div class="wd-name">—</div><div class="wd-num" style="color:transparent;">00</div><div class="wd-shift" style="color:transparent;">—</div></div>
+      <div class="wday woff"><div class="wd-name">—</div><div class="wd-num" style="color:transparent;">00</div><div class="wd-shift" style="color:transparent;">—</div></div>
+      <div class="wday woff"><div class="wd-name">—</div><div class="wd-num" style="color:transparent;">00</div><div class="wd-shift" style="color:transparent;">—</div></div>
+      <div class="wday woff"><div class="wd-name">—</div><div class="wd-num" style="color:transparent;">00</div><div class="wd-shift" style="color:transparent;">—</div></div>
+      <div class="wday woff"><div class="wd-name">—</div><div class="wd-num" style="color:transparent;">00</div><div class="wd-shift" style="color:transparent;">—</div></div>
+      <div class="wday woff"><div class="wd-name">—</div><div class="wd-num" style="color:transparent;">00</div><div class="wd-shift" style="color:transparent;">—</div></div>
     </div>
 
-    <!-- Stats row — management only -->
-    <div id="stats-section" style="display:none;">
-      <div class="sec">Live Today</div>
-      <div class="stats-row">
-        <div class="scard sc-green">
-          <div class="scard-icon">✅</div>
-          <div class="scard-num" id="st-ontime">—</div>
-          <div class="scard-lbl">On Time</div>
-          <div class="scard-bar"></div>
-        </div>
-        <div class="scard sc-amber">
-          <div class="scard-icon">⏰</div>
-          <div class="scard-num" id="st-late">—</div>
-          <div class="scard-lbl">Late</div>
-          <div class="scard-bar"></div>
-        </div>
-        <div class="scard sc-teal">
-          <div class="scard-icon">☕</div>
-          <div class="scard-num" id="st-break">—</div>
-          <div class="scard-lbl">On Break</div>
-          <div class="scard-bar"></div>
-        </div>
-        <div class="scard sc-red">
-          <div class="scard-icon">🤒</div>
-          <div class="scard-num" id="st-absent">—</div>
-          <div class="scard-lbl">Sick/Away</div>
-          <div class="scard-bar"></div>
-        </div>
-      </div>
-      <!-- Extra stats row -->
-      <div class="stats-row" style="margin-top:0;">
-        <div class="scard sc-navy">
-          <div class="scard-icon">👥</div>
-          <div class="scard-num" id="st-agents">—</div>
-          <div class="scard-lbl">Scheduled</div>
-          <div class="scard-bar"></div>
-        </div>
-        <div class="scard sc-purple">
-          <div class="scard-icon">📋</div>
-          <div class="scard-num" id="st-pending">—</div>
-          <div class="scard-lbl">Pending</div>
-          <div class="scard-bar"></div>
-        </div>
-        <div class="scard sc-teal">
-          <div class="scard-icon">📅</div>
-          <div class="scard-num" id="st-dates">—</div>
-          <div class="scard-lbl">Sched Days</div>
-          <div class="scard-bar"></div>
-        </div>
-        <div class="scard sc-green">
-          <div class="scard-icon">🔄</div>
-          <div class="scard-num" id="st-swaps">—</div>
-          <div class="scard-lbl">Swaps</div>
-          <div class="scard-bar"></div>
-        </div>
+    <!-- Upcoming schedule (next 5 working days) -->
+    <div class="sec">Upcoming Shifts</div>
+    <div class="card" style="margin-bottom:12px;">
+      <div id="upcoming-list" style="padding:0 13px;">
+        <div class="skel" style="height:46px;border-radius:8px;margin:10px 0;"></div>
+        <div class="skel" style="height:46px;border-radius:8px;margin:10px 0;"></div>
+        <div class="skel" style="height:46px;border-radius:8px;margin:10px 0;"></div>
       </div>
     </div>
 
     <!-- Quick actions -->
     <div class="sec">Quick Actions</div>
-    <div class="qa-grid" id="qa-grid">
-      <!-- Injected by JS based on role -->
+    <div class="qa-grid" id="qa-grid-agent">
+      <a href="breaks.html"  class="qa-btn qa-teal"><div class="qa-icon">☕</div><div><div class="qa-label">Book Break</div><div class="qa-sub">View slots & balance</div></div></a>
+      <a href="schedule.html" class="qa-btn qa-navy"><div class="qa-icon">📅</div><div><div class="qa-label">My Schedule</div><div class="qa-sub">Full schedule & requests</div></div></a>
+      <a href="requests.html" class="qa-btn qa-purple"><div class="qa-icon">📋</div><div><div class="qa-label">Requests</div><div class="qa-sub">Leave, swaps & changes</div></div></a>
+      <a href="notifications.html" class="qa-btn qa-amber"><div class="qa-icon">🔔</div><div><div class="qa-label">Notifications</div><div class="qa-sub">Alerts & approvals</div></div></a>
     </div>
 
-    <!-- Pending approvals — management -->
-    <div id="pending-section" style="display:none;">
-      <div class="sec">
-        Pending Approvals
-        <span id="pending-badge" class="pill pill-amber" style="margin-left:auto;font-size:10px;"></span>
+    <!-- My recent requests -->
+    <div class="sec">My Requests</div>
+    <div class="card">
+      <div id="my-requests" style="padding:0 13px;">
+        <div class="skel" style="height:46px;border-radius:8px;margin:10px 0;"></div>
       </div>
+    </div>
+
+  </div><!-- /agent-section -->
+
+  <!-- ══ MANAGEMENT SECTION ═══════════════════════════ -->
+  <div id="mgmt-section" style="display:none;">
+
+    <!-- Stats: 8 cards -->
+    <div class="sec">Live Today</div>
+    <div class="stats-row" style="margin-bottom:10px;">
+      <div class="scard sc-green"><div class="scard-icon">✅</div><div class="scard-num" id="st-ontime">—</div><div class="scard-lbl">On Time</div><div class="scard-bar"></div></div>
+      <div class="scard sc-amber"><div class="scard-icon">⏰</div><div class="scard-num" id="st-late">—</div><div class="scard-lbl">Late</div><div class="scard-bar"></div></div>
+      <div class="scard sc-teal"><div class="scard-icon">☕</div><div class="scard-num" id="st-break">—</div><div class="scard-lbl">On Break</div><div class="scard-bar"></div></div>
+      <div class="scard sc-red"><div class="scard-icon">🤒</div><div class="scard-num" id="st-absent">—</div><div class="scard-lbl">Sick</div><div class="scard-bar"></div></div>
+    </div>
+    <div class="stats-row" style="margin-bottom:14px;">
+      <div class="scard sc-navy"><div class="scard-icon">👥</div><div class="scard-num" id="st-sched">—</div><div class="scard-lbl">Scheduled</div><div class="scard-bar"></div></div>
+      <div class="scard sc-purple"><div class="scard-icon">📋</div><div class="scard-num" id="st-pend">—</div><div class="scard-lbl">Pending</div><div class="scard-bar"></div></div>
+      <div class="scard sc-green"><div class="scard-icon">🔄</div><div class="scard-num" id="st-swaps">—</div><div class="scard-lbl">Swaps</div><div class="scard-bar"></div></div>
+      <div class="scard sc-amber"><div class="scard-icon">📅</div><div class="scard-num" id="st-days">—</div><div class="scard-lbl">Sched Days</div><div class="scard-bar"></div></div>
+    </div>
+
+    <!-- Quick actions (management/wfm) -->
+    <div class="sec">Quick Actions</div>
+    <div class="qa-grid" id="qa-grid-mgmt"></div>
+
+    <!-- Pending approvals -->
+    <div id="pending-section">
+      <div class="sec">Pending Approvals <span class="sec-badge red" id="pending-count" style="display:none;"></span></div>
       <div class="card">
-        <div id="pending-list" class="card-body" style="padding:0 13px;">
-          <div class="skel" style="height:52px;border-radius:8px;margin:10px 0;"></div>
+        <div id="pending-list" style="padding:0 13px;">
+          <div class="skel" style="height:48px;border-radius:8px;margin:10px 0;"></div>
         </div>
       </div>
     </div>
 
-    <!-- Recent activity — agent -->
-    <div id="recent-section">
-      <div class="sec">Recent Requests</div>
-      <div class="card">
-        <div id="recent-list" class="card-body" style="padding:0 13px;">
-          <div class="skel" style="height:48px;border-radius:8px;margin:10px 0;"></div>
-          <div class="skel" style="height:48px;border-radius:8px;margin:10px 0;"></div>
-        </div>
-      </div>
-    </div>
+    <!-- Week strip (management sees their own too) -->
+    <div class="sec">This Week</div>
+    <div class="week-strip" id="week-strip-mgmt"></div>
 
-  </div>
+  </div><!-- /mgmt-section -->
+
 </div>
-
+</div>
 <div id="kib-bottomnav"></div>
 
 <script src="js/config.js"></script>
@@ -391,45 +321,54 @@ const today  = U.today();
 const isMgmt = Auth.isManagement();
 const isWFM  = Auth.isWFM();
 let   data   = null;
-let   obInt  = null;
+let   timerInt = null;
 
 Nav.init('home');
 
-/* ── Boot ──────────────────────────────────────────────── */
+/* ── Topbar user strip ─────────────────────────────────── */
+// Show greeting in topbar sub text via DOM override
+document.addEventListener('DOMContentLoaded', () => {
+  const sub = document.querySelector('.tb-sub');
+  if (sub) {
+    const h = U.nowHH();
+    const g = h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+    sub.textContent = `${g}, ${(user.name||'').split(' ')[0]}`;
+  }
+});
+
+/* ── BOOT ──────────────────────────────────────────────── */
 async function init() {
-  renderGreet();
-  renderWeekSkeleton();
-  renderQA();
+  // Show role-specific section immediately
+  if (isMgmt) {
+    document.getElementById('agent-section').style.display = 'none';
+    document.getElementById('mgmt-section').style.display  = '';
+    renderMgmtQA();
+  }
 
   try {
     data = await API.getAll();
     renderHero();
-    renderWeek();
-    renderBalance();
-    renderAnnouncement();
-    checkOnBreak();
-    if (isMgmt) { renderStats(); renderPending(); }
-    renderRecent();
+    renderAnn();
+    if (isMgmt) {
+      renderMgmtStats();
+      renderPending();
+      renderWeek('week-strip-mgmt');
+    } else {
+      renderBreakCard();
+      renderAlerts();
+      renderInfoCards();
+      renderWeek('week-strip');
+      renderUpcoming();
+      renderMyRequests();
+    }
   } catch(e) {
-    console.error(e);
-    U.toast('Could not load data — tap to retry','err');
-    document.getElementById('hero-shift').textContent = 'No data';
-    document.getElementById('greet-sub').textContent  = 'Connection issue';
+    console.error('Home init error:', e);
+    document.getElementById('hero-shift').textContent = 'Connection error';
+    U.toast('Tap to retry','err');
   }
 }
 
-/* ── Greeting ──────────────────────────────────────────── */
-function renderGreet() {
-  const h    = U.nowHH();
-  const icon = h < 6 ? '🌙' : h < 12 ? '☀️' : h < 17 ? '🌤' : h < 20 ? '🌆' : '🌙';
-  const greet= h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
-  const name = (user.name || '').split(' ')[0];
-  document.getElementById('greet-icon').textContent = icon;
-  document.getElementById('greet-text').textContent = `${greet}, ${name}`;
-  document.getElementById('greet-sub').textContent  = U.fmtFull(today);
-}
-
-/* ── Hero ──────────────────────────────────────────────── */
+/* ── HERO ──────────────────────────────────────────────── */
 function renderHero() {
   const agents = data?.agents || [];
   const dates  = (data?.dates || []).map(d => U.normDate(d));
@@ -437,97 +376,39 @@ function renderHero() {
   const me     = agents.find(a => (a.n||a.name) === user.name);
   const raw    = (me && idx >= 0 && me.sch) ? me.sch[idx] : '';
 
-  // Parse shift
-  const tm = raw.match(/^(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/);
-  let label = 'Not Scheduled', start = '', end = '';
-  if (tm)           { start = tm[1]; end = tm[2]; label = `${U.fmt12(start)} – ${U.fmt12(end)}`; }
-  else if (raw === 'OFF' || !raw) { label = 'Day Off'; }
-  else if (raw === 'AL') label = 'Annual Leave';
-  else if (raw === 'SL') label = 'Sick Leave';
-  else                   label = raw;
+  const tm   = raw.match(/^(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/);
+  let label  = 'Not Scheduled', start = '', end = '';
+  if (tm)              { start = tm[1]; end = tm[2]; label = `${U.fmt12(start)} – ${U.fmt12(end)}`; }
+  else if (!raw||raw==='OFF') label = 'Day Off';
+  else if (raw==='AL') label = 'Annual Leave';
+  else if (raw==='SL') label = 'Sick Leave';
+  else                 label = raw;
 
   const isOff = !tm;
-  if (isOff) {
-    document.getElementById('hero').style.background =
-      'linear-gradient(135deg,#1E293B 0%,#334155 100%)';
-  }
+  if (isOff) document.getElementById('hero').style.background = 'linear-gradient(135deg,#1E293B 0%,#334155 100%)';
 
-  document.getElementById('hero-shift').textContent     = label;
-  document.getElementById('hero-date').textContent      = U.fmtFull(today);
-  document.getElementById('hero-times').textContent     = (start && end) ? `${start} – ${end}` : '';
-  document.getElementById('hero-status-text').textContent = isOff ? (raw||'Day Off') : 'Working today';
-  document.getElementById('hero-status').className        = `hero-badge ${isOff?'hb-off':'hb-on'}`;
-  document.getElementById('hero-dot').className           = `hero-dot ${isOff?'hd-off':'hd-on'}`;
-  document.getElementById('greet-sub').textContent        = isOff ? 'Enjoy your day off' : `Shift: ${label}`;
-}
+  document.getElementById('hero-shift').textContent = label;
+  document.getElementById('hero-date').textContent  = U.fmtFull(today);
+  document.getElementById('hero-dept').textContent  = user.dept || user.role || '';
+  document.getElementById('hero-stxt').textContent  = isOff ? (raw||'Day Off') : 'Working today';
+  document.getElementById('hero-status').className  = `hpill ${isOff?'hp-off':'hp-on'}`;
+  document.getElementById('hero-dot').className     = `hp-dot ${isOff?'hpd-off':'hpd-on'}`;
 
-/* ── Week strip ────────────────────────────────────────── */
-function renderWeekSkeleton() {
-  document.getElementById('week-strip').innerHTML = Array(7).fill(0).map(() =>
-    `<div class="wday off"><div class="wd-name">—</div><div class="wd-num skel" style="width:24px;height:18px;margin:3px auto;border-radius:4px;"></div><div class="wd-shift" style="color:transparent;">—</div></div>`
-  ).join('');
-}
-
-function renderWeek() {
-  const agents = data?.agents || [];
-  const dates  = (data?.dates || []).map(d => U.normDate(d));
-  const me     = agents.find(a => (a.n||a.name) === user.name);
-  const week   = U.getWeekDates(today);
-  const DAYS   = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-
-  document.getElementById('week-strip').innerHTML = week.map((date, i) => {
-    const idx   = dates.indexOf(date);
-    const raw   = (me && idx >= 0 && me.sch) ? me.sch[idx] : '';
-    const d     = new Date(date + 'T00:00:00');
-    const isT   = date === today;
-    const isOff = !raw || raw === 'OFF' || ['AL','SL','PH','UL','PL'].includes(raw);
-    const isW   = U.isWeekend(date);
-    const tm    = raw.match(/^(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})$/);
-    const short = tm ? `${tm[1]}-${tm[3]}` : (raw || 'OFF');
-    // Pick colour for shift chip
-    let shiftColor = '#9CA3AF';
-    if (!isOff && tm) {
-      const h = parseInt(tm[1]);
-      shiftColor = h<9?'#1D4ED8':h<12?'#0369A1':h<15?'#0F766E':h<18?'#D97706':h<22?'#7C3AED':'#475569';
+  if (start && end) {
+    document.getElementById('hero-times').textContent = `${start} – ${end}`;
+    // Time remaining in shift
+    const nowMin  = U.toMin(U.nowHHMM());
+    const endMin  = U.toMin(end) + (U.toMin(end) < U.toMin(start) ? 1440 : 0);
+    const remMin  = endMin - nowMin;
+    if (remMin > 0 && remMin < 600) {
+      const h = Math.floor(remMin/60), m = remMin%60;
+      document.getElementById('hero-endin').textContent = `${h?h+'h ':''}${m}min remaining`;
     }
-    const cls = isT ? 'today' : isOff ? 'off' : '';
-    return `<div class="wday ${cls}" onclick="if('${date}'!=='${today}'){}">
-      <div class="wd-name">${DAYS[i]}</div>
-      <div class="wd-num">${d.getDate()}</div>
-      <div class="wd-shift" style="color:${isT?'rgba(255,255,255,.8)':shiftColor}">${isW&&isOff?'—':short}</div>
-    </div>`;
-  }).join('');
+  }
 }
 
-/* ── Break balance ─────────────────────────────────────── */
-function renderBalance() {
-  const bl   = (data?.breakLog || data?.breaks || []).filter(b =>
-    (b.agent === user.name) && U.normDate(b.date) === today && b.status !== 'cancelled'
-  );
-  const used = bl.reduce((s, b) => s + (parseInt(b.duration)||0), 0);
-  const rem  = Math.max(0, 60 - used);
-  const pct  = Math.min(100, (used/60)*100);
-
-  document.getElementById('bal-mini').style.display = '';
-  document.getElementById('bal-num').textContent = rem;
-  document.getElementById('bal-prog').style.width = pct + '%';
-}
-
-/* ── Active break check ────────────────────────────────── */
-function checkOnBreak() {
-  const bl = (data?.breakLog || data?.breaks || []);
-  const active = bl.find(b => b.agent === user.name && U.normDate(b.date) === today && b.status === 'active');
-  if (!active) return;
-  document.getElementById('onbreak-banner').classList.add('show');
-  const startTs = active.startedAt ? new Date(active.startedAt).getTime() : Date.now();
-  if (obInt) clearInterval(obInt);
-  obInt = setInterval(() => {
-    document.getElementById('ob-timer').textContent = U.elapsedStr(startTs);
-  }, 1000);
-}
-
-/* ── Announcement ──────────────────────────────────────── */
-function renderAnnouncement() {
+/* ── ANNOUNCEMENT ──────────────────────────────────────── */
+function renderAnn() {
   const ann = data?.settings?.announce || data?.announcement || '';
   if (ann) {
     document.getElementById('ann-text').textContent = ann;
@@ -535,130 +416,391 @@ function renderAnnouncement() {
   }
 }
 
-/* ── Stats (management) ────────────────────────────────── */
-function renderStats() {
-  document.getElementById('stats-section').style.display = '';
-  const att    = (data?.attendance || []).filter(a => U.normDate(a.date) === today);
-  const bl     = (data?.breakLog || data?.breaks || []).filter(b => U.normDate(b.date) === today && b.status === 'active');
-  const agents = (data?.agents || []).filter(a => a.t !== 'Management');
-  const dates  = (data?.dates || []).map(d => U.normDate(d));
-  const idx    = dates.indexOf(today);
-  const scheduled = agents.filter(a => {
-    const s = idx >= 0 && a.sch ? a.sch[idx] : '';
-    return s && s !== 'OFF' && !['AL','SL','PH','UL','PL'].includes(s);
-  }).length;
+/* ══════════════════════════════════════════════════════════
+   AGENT SECTIONS
+══════════════════════════════════════════════════════════ */
 
-  U.se('st-ontime',  att.filter(a => a.status === 'on_time').length);
-  U.se('st-late',    att.filter(a => a.status === 'late').length);
-  U.se('st-break',   bl.length);
-  U.se('st-absent',  att.filter(a => ['sick','noshow'].includes(a.status)).length);
-  U.se('st-agents',  scheduled);
-  U.se('st-pending', (data?.leaves||[]).filter(l=>l.status==='pending').length + (data?.swaps||[]).filter(s=>s.status==='pending_mgmt').length);
-  U.se('st-dates',   (data?.dates||[]).length);
-  U.se('st-swaps',   (data?.swaps||[]).filter(s=>s.status==='approved').length);
+/* ── BREAK CARD ────────────────────────────────────────── */
+function renderBreakCard() {
+  const bl   = (data?.breakLog || data?.breaks || [])
+    .filter(b => b.agent === user.name && U.normDate(b.date) === today && b.status !== 'cancelled');
+  const done = bl.filter(b => b.status === 'done' || b.status === 'active');
+  const used = bl.reduce((s,b) => s+(parseInt(b.duration)||0), 0);
+  const DAILY= data?.settings?.dailyMin || 60;
+  const rem  = Math.max(0, DAILY - used);
+  const pct  = Math.min(100, (used/DAILY)*100);
+
+  document.getElementById('bc-rem').textContent         = rem;
+  document.getElementById('bc-used').textContent        = `${used} of ${DAILY} used`;
+  document.getElementById('bc-fill').style.width        = pct + '%';
+  document.getElementById('bc-breaks-today').textContent= `${done.length} break${done.length!==1?'s':''} taken today`;
+  document.getElementById('bc-max').textContent         = `Max: ${DAILY} min/day`;
+
+  // Change card color if low balance
+  if (rem <= 15 && rem > 0) {
+    document.getElementById('break-card').style.background = 'linear-gradient(135deg,#92400E,#B45309)';
+  } else if (rem === 0) {
+    document.getElementById('break-card').style.background = 'linear-gradient(135deg,#7F1D1D,#DC2626)';
+  }
+
+  // Active break
+  const active = bl.find(b => b.status === 'active');
+  if (active) {
+    document.getElementById('bc-active').style.display = 'flex';
+    const startTs = active.startedAt ? new Date(active.startedAt).getTime() : Date.now();
+    if (timerInt) clearInterval(timerInt);
+    timerInt = setInterval(() => {
+      document.getElementById('bc-timer').textContent = U.elapsedStr(startTs);
+    }, 1000);
+  } else {
+    // Show next available slot
+    renderNextBreak();
+  }
 }
 
-/* ── Quick Actions ─────────────────────────────────────── */
-function renderQA() {
-  const actions = isWFM ? [
-    { icon:'📅', label:'Schedule Editor', sub:'Edit & publish shifts', page:'schedule-edit.html', cls:'qa-navy' },
-    { icon:'✅', label:'Attendance',      sub:'Mark team today',       page:'attendance.html',    cls:'qa-green' },
-    { icon:'📊', label:'KPI Tracker',    sub:'Log events',             page:'kpi.html',           cls:'qa-amber' },
-    { icon:'📋', label:'Requests',       sub:'Approve/reject',         page:'requests.html',      cls:'qa-purple' },
-    { icon:'☕', label:'Break Monitor',  sub:'Live team status',        page:'breaks.html',        cls:'qa-teal' },
-    { icon:'⚙️', label:'Admin',         sub:'Settings & users',        page:'admin.html',         cls:'qa-red' },
-  ] : isMgmt ? [
-    { icon:'📅', label:'Schedule',       sub:'View team schedule',     page:'schedule.html',      cls:'qa-navy' },
-    { icon:'☕', label:'Breaks',         sub:'Monitor & book',          page:'breaks.html',        cls:'qa-teal' },
-    { icon:'✅', label:'Attendance',     sub:'Mark team today',         page:'attendance.html',    cls:'qa-green' },
-    { icon:'📋', label:'Requests',       sub:'Pending approvals',      page:'requests.html',      cls:'qa-purple' },
-    { icon:'📊', label:'KPI Tracker',   sub:'Log events',              page:'kpi.html',           cls:'qa-amber' },
-    { icon:'🔔', label:'Notifications', sub:'Alerts & messages',       page:'notifications.html', cls:'qa-red' },
-  ] : [
-    { icon:'📅', label:'My Schedule',    sub:'View your shifts',       page:'schedule.html',      cls:'qa-navy' },
-    { icon:'☕', label:'Book Break',     sub:'Book or manage break',    page:'breaks.html',        cls:'qa-teal' },
-    { icon:'📋', label:'Requests',       sub:'Leave & swaps',          page:'requests.html',      cls:'qa-green' },
-    { icon:'🔔', label:'Notifications', sub:'Alerts & messages',       page:'notifications.html', cls:'qa-amber' },
-  ];
+function renderNextBreak() {
+  if (!data) return;
+  const agents  = data?.agents || [];
+  const dates   = (data?.dates || []).map(d => U.normDate(d));
+  const idx     = dates.indexOf(today);
+  const me      = agents.find(a => (a.n||a.name) === user.name);
+  const raw     = me && idx >= 0 && me.sch ? me.sch[idx] : '';
+  const tm      = raw.match(/^(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/);
+  if (!tm) return;
 
-  document.getElementById('qa-grid').innerHTML = actions.map(a =>
+  const startMin = U.toMin(tm[1]) + 90;
+  const endMin   = U.toMin(tm[2]) - 30;
+  const nowMin   = U.toMin(U.nowHHMM());
+  const maxCon   = data?.settings?.maxCon || 3;
+  const bl       = (data?.breakLog || data?.breaks || [])
+    .filter(b => U.normDate(b.date) === today && b.status !== 'cancelled');
+
+  for (let min = startMin; min <= endMin; min += 15) {
+    const t = U.fromMin(min);
+    if (min <= nowMin) continue; // skip past slots
+    const taken = bl.filter(b => b.breakStart === t).length;
+    if (taken < maxCon) {
+      document.getElementById('next-break').style.display = 'flex';
+      document.getElementById('next-break-time').textContent = U.fmt12(t);
+      break;
+    }
+  }
+}
+
+/* ── ALERTS (action required) ──────────────────────────── */
+function renderAlerts() {
+  const alerts = [];
+
+  // Swap pending my response
+  const pendingSwap = (data?.swaps || []).find(s =>
+    s.to === user.name && s.status === 'pending_peer'
+  );
+  if (pendingSwap) {
+    alerts.push({
+      cls:'ac-swap', icon:'🔄',
+      title:`Swap request from ${pendingSwap.from}`,
+      sub:`${pendingSwap.date||'—'} · ${pendingSwap.shiftFrom||'—'} ↔ ${pendingSwap.shiftTo||'—'}`,
+      btn:'Respond', href:'requests.html',
+    });
+  }
+
+  // Approved swap notification
+  const approvedSwap = (data?.swaps || []).find(s =>
+    (s.from === user.name || s.to === user.name) && s.status === 'approved' &&
+    s.date >= today
+  );
+  if (approvedSwap) {
+    alerts.push({
+      cls:'ac-info', icon:'✅',
+      title:`Swap approved · ${approvedSwap.date||'—'}`,
+      sub:`With ${approvedSwap.from === user.name ? approvedSwap.to : approvedSwap.from}`,
+      btn:'View', href:'requests.html',
+    });
+  }
+
+  // Leave approved
+  const approvedLeave = (data?.leaves || []).find(l =>
+    l.agent === user.name && l.status === 'approved' &&
+    l.endDate >= today
+  );
+  if (approvedLeave) {
+    alerts.push({
+      cls:'ac-leave', icon:'🏖️',
+      title:`Leave approved · ${approvedLeave.type||'Leave'}`,
+      sub:`${approvedLeave.startDate||'—'} – ${approvedLeave.endDate||'—'}`,
+      btn:'View', href:'requests.html',
+    });
+  }
+
+  // Leave rejected
+  const rejectedLeave = (data?.leaves || []).find(l =>
+    l.agent === user.name && l.status === 'rejected'
+  );
+  if (rejectedLeave) {
+    alerts.push({
+      cls:'ac-urgent', icon:'❌',
+      title:`Leave request rejected`,
+      sub:`${rejectedLeave.type||'Leave'} · ${rejectedLeave.startDate||'—'}`,
+      btn:'Resubmit', href:'schedule.html',
+    });
+  }
+
+  if (!alerts.length) return;
+
+  document.getElementById('alerts-section').style.display = '';
+  document.getElementById('alerts-count').textContent = alerts.length;
+  document.getElementById('alerts-list').innerHTML = alerts.map(a =>
+    `<div class="alert-card ${a.cls}">
+      <div class="ac-icon">${a.icon}</div>
+      <div class="ac-body">
+        <div class="ac-title">${a.title}</div>
+        <div class="ac-sub">${a.sub}</div>
+      </div>
+      <a href="${a.href}" class="btn btn-xs btn-outline ac-btn">${a.btn}</a>
+    </div>`
+  ).join('');
+}
+
+/* ── INFO CARDS (FYI, no action needed) ────────────────── */
+function renderInfoCards() {
+  const cards = [];
+
+  // Colleagues on break now
+  const onBreak = (data?.breakLog || data?.breaks || [])
+    .filter(b => U.normDate(b.date) === today && b.status === 'active' && b.agent !== user.name);
+  if (onBreak.length) {
+    cards.push({
+      cls:'ac-teal', icon:'☕',
+      title:`${onBreak.length} colleague${onBreak.length>1?'s':''} on break now`,
+      sub: onBreak.slice(0,3).map(b=>b.agent.split(' ')[0]).join(', ') + (onBreak.length>3?`…`:''),
+      btn:'Monitor', href:'breaks.html',
+    });
+  }
+
+  // Pending requests
+  const myPending = [
+    ...(data?.leaves||[]).filter(l=>l.agent===user.name&&l.status==='pending'),
+    ...(data?.swaps||[]).filter(s=>(s.from===user.name||s.to===user.name)&&['pending_peer','pending_mgmt'].includes(s.status)),
+    ...(data?.scheduleRequests||[]).filter(r=>r.agent===user.name&&r.status==='pending'),
+  ];
+  if (myPending.length) {
+    cards.push({
+      cls:'ac-info', icon:'⏳',
+      title:`${myPending.length} request${myPending.length>1?'s':''} pending approval`,
+      sub:'Your team leader will review shortly',
+      btn:'Track', href:'requests.html',
+    });
+  }
+
+  // Tomorrow's shift
+  const agents = data?.agents || [];
+  const dates  = (data?.dates || []).map(d => U.normDate(d));
+  const me     = agents.find(a => (a.n||a.name) === user.name);
+  const tmrw   = U.addDays(today, 1);
+  const tIdx   = dates.indexOf(tmrw);
+  if (me && tIdx >= 0 && me.sch) {
+    const ts = me.sch[tIdx] || 'OFF';
+    const tm = ts.match(/^(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/);
+    if (tm) {
+      cards.push({
+        cls:'ac-info', icon:'📅',
+        title:`Tomorrow: ${U.fmt12(tm[1])} – ${U.fmt12(tm[2])}`,
+        sub: U.fmtDisplay(tmrw),
+        btn:'Schedule', href:'schedule.html',
+      });
+    }
+  }
+
+  if (!cards.length) return;
+  document.getElementById('info-section').style.display = '';
+  document.getElementById('info-list').innerHTML = cards.map(a =>
+    `<div class="alert-card ${a.cls}">
+      <div class="ac-icon">${a.icon}</div>
+      <div class="ac-body">
+        <div class="ac-title">${a.title}</div>
+        <div class="ac-sub">${a.sub}</div>
+      </div>
+      <a href="${a.href}" class="btn btn-xs btn-outline ac-btn">${a.btn}</a>
+    </div>`
+  ).join('');
+}
+
+/* ── WEEK STRIP ─────────────────────────────────────────── */
+function renderWeek(elId) {
+  const agents = data?.agents || [];
+  const dates  = (data?.dates || []).map(d => U.normDate(d));
+  const me     = agents.find(a => (a.n||a.name) === user.name);
+  const week   = U.getWeekDates(today);
+  const DAYS   = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  document.getElementById(elId).innerHTML = week.map((date, i) => {
+    const idx  = dates.indexOf(date);
+    const raw  = (me && idx >= 0 && me.sch) ? me.sch[idx] : '';
+    const d    = new Date(date + 'T00:00:00');
+    const isT  = date === today;
+    const isOff= !raw || raw === 'OFF' || ['AL','SL','PH','UL','PL'].includes(raw);
+    const isW  = U.isWeekend(date);
+    const tm   = raw.match(/^(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})$/);
+    const short= tm ? `${tm[1]}-${tm[3]}` : (raw || 'OFF');
+    let clr = '#9CA3AF';
+    if (!isOff && tm) {
+      const h = parseInt(tm[1]);
+      clr = h<9?'#1D4ED8':h<12?'#0369A1':h<15?'#0F766E':h<18?'#D97706':h<22?'#7C3AED':'#475569';
+    }
+    const cls = isT ? 'today' : isOff ? 'woff' : '';
+    return `<div class="wday ${cls}">
+      <div class="wd-name">${DAYS[i]}</div>
+      <div class="wd-num">${d.getDate()}</div>
+      <div class="wd-shift" style="color:${isT?'rgba(255,255,255,.8)':clr}">${isW&&isOff?'—':short}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ── UPCOMING SHIFTS ────────────────────────────────────── */
+function renderUpcoming() {
+  const agents = data?.agents || [];
+  const dates  = (data?.dates || []).map(d => U.normDate(d));
+  const me     = agents.find(a => (a.n||a.name) === user.name);
+  if (!me || !dates.length) {
+    document.getElementById('upcoming-list').innerHTML = '<div class="empty-state" style="padding:16px 0;"><div class="empty-msg">No schedule data</div></div>';
+    return;
+  }
+
+  const todayIdx = dates.indexOf(today);
+  const upcoming = dates.slice(Math.max(0, todayIdx), Math.min(dates.length, todayIdx + 7));
+  const months   = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  document.getElementById('upcoming-list').innerHTML = upcoming.map((date, rel) => {
+    const i    = dates.indexOf(date);
+    const raw  = me.sch ? me.sch[i] : 'OFF';
+    const isT  = date === today;
+    const tm   = raw.match(/^(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/);
+    const isOff= !tm;
+    const label= tm ? `${U.fmt12(tm[1])} – ${U.fmt12(tm[2])}` : (raw||'Day Off');
+    const d    = new Date(date + 'T00:00:00');
+    const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+    const chip = tm ? (() => {
+      const h=parseInt(tm[1]);
+      const [bg,fg]=h<9?['#DBEAFE','#1D4ED8']:h<12?['#E0F2FE','#0369A1']:h<15?['#CCFBF1','#0F766E']:h<18?['#FEF3CD','#D97706']:h<22?['#F3E8FF','#7C3AED']:['#F1F5F9','#475569'];
+      return `<span style="background:${bg};color:${fg};padding:3px 8px;border-radius:6px;font-size:10px;font-weight:800;">${raw.replace(/^(\d+):00-(\d+):00$/,(_,a,b)=>`${a}-${b}`)}</span>`;
+    })() : `<span style="background:#F3F4F6;color:#9CA3AF;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:800;">${raw||'OFF'}</span>`;
+
+    return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border2)${isT?';background:rgba(13,92,166,.02)':''};margin:0 0;">
+      <div style="width:40px;height:40px;border-radius:10px;background:${isT?'var(--navy)':'var(--bg)'};border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
+        <div style="font-size:9px;font-weight:700;color:${isT?'rgba(255,255,255,.6)':'var(--t3)'};">${dayName}</div>
+        <div style="font-size:14px;font-weight:900;color:${isT?'#fff':'var(--navy)'};">${d.getDate()}</div>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:${isT?'800':'600'};color:var(--t1);">
+          ${label}${isT?' <span style="font-size:9px;background:var(--navy);color:#fff;border-radius:4px;padding:1px 5px;margin-left:4px;">TODAY</span>':''}
+        </div>
+        <div style="font-size:11px;color:var(--t2);margin-top:1px;">${d.getDate()} ${months[d.getMonth()]} · ${isOff?'Day off':'Working'}</div>
+      </div>
+      ${chip}
+    </div>`;
+  }).join('') + `<div style="padding:10px 0;text-align:center;"><a href="schedule.html" style="font-size:12px;color:var(--navy);font-weight:700;text-decoration:none;">View full schedule →</a></div>`;
+}
+
+/* ── MY REQUESTS ────────────────────────────────────────── */
+function renderMyRequests() {
+  const leaves = (data?.leaves||[]).filter(l=>l.agent===user.name).slice(-3).reverse();
+  const swaps  = (data?.swaps||[]).filter(s=>s.from===user.name||s.to===user.name).slice(-2).reverse();
+  const all    = [...leaves.map(l=>({...l,_k:'leave',_i:'🏖️',_bg:'#FEF3CD'})),
+                  ...swaps.map(s=>({...s,_k:'swap',_i:'🔄',_bg:'#CCFBF1'}))];
+  const pill   = s=>s==='approved'?'pill-green':s==='rejected'?'pill-red':'pill-amber';
+
+  document.getElementById('my-requests').innerHTML = all.length
+    ? all.map(r=>`
+      <div style="display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--border2);">
+        <div style="width:36px;height:36px;border-radius:10px;background:${r._bg};display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;">${r._i}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:700;">${r._k==='leave'?`${r.type||'Leave'} · ${r.startDate||'—'}`:`Swap · ${r.date||'—'}`}</div>
+          <div style="font-size:11px;color:var(--t2);">${U.timeAgo(r.ts||'')}</div>
+        </div>
+        <span class="pill ${pill(r.status)}">${r.status||'pending'}</span>
+      </div>`).join('')
+      + `<div style="padding:10px 0;text-align:center;"><a href="requests.html" style="font-size:12px;color:var(--navy);font-weight:700;text-decoration:none;">All requests →</a></div>`
+    : `<div class="empty-state" style="padding:18px 0;">
+        <div class="empty-icon">📋</div>
+        <div class="empty-msg">No requests yet</div>
+        <div class="empty-sub"><a href="schedule.html" style="color:var(--navy);">Submit leave or swap →</a></div>
+      </div>`;
+}
+
+/* ══════════════════════════════════════════════════════════
+   MANAGEMENT SECTIONS
+══════════════════════════════════════════════════════════ */
+function renderMgmtStats() {
+  const att    = (data?.attendance||[]).filter(a=>U.normDate(a.date)===today);
+  const bl     = (data?.breakLog||data?.breaks||[]).filter(b=>U.normDate(b.date)===today&&b.status==='active');
+  const agents = (data?.agents||[]).filter(a=>a.t!=='Management');
+  const dates  = (data?.dates||[]).map(d=>U.normDate(d));
+  const idx    = dates.indexOf(today);
+  const sched  = agents.filter(a=>{const s=idx>=0&&a.sch?a.sch[idx]:'';return s&&s!=='OFF'&&!['AL','SL','PH','UL','PL'].includes(s);}).length;
+  const pend   = (data?.leaves||[]).filter(l=>l.status==='pending').length + (data?.swaps||[]).filter(s=>s.status==='pending_mgmt').length + (data?.scheduleRequests||[]).filter(r=>r.status==='pending').length;
+
+  U.se('st-ontime', att.filter(a=>a.status==='on_time').length);
+  U.se('st-late',   att.filter(a=>a.status==='late').length);
+  U.se('st-break',  bl.length);
+  U.se('st-absent', att.filter(a=>['sick','noshow'].includes(a.status)).length);
+  U.se('st-sched',  sched);
+  U.se('st-pend',   pend);
+  U.se('st-swaps',  (data?.swaps||[]).filter(s=>s.status==='approved').length);
+  U.se('st-days',   (data?.dates||[]).length);
+}
+
+function renderMgmtQA() {
+  const actions = isWFM ? [
+    {icon:'📅',label:'Schedule Editor',sub:'Edit & publish shifts',  page:'schedule-edit.html',cls:'qa-navy'},
+    {icon:'✅',label:'Attendance',     sub:'Mark team today',        page:'attendance.html',   cls:'qa-green'},
+    {icon:'📊',label:'KPI Tracker',   sub:'Log events & issues',     page:'kpi.html',          cls:'qa-amber'},
+    {icon:'📋',label:'Requests',      sub:'Approve / reject',        page:'requests.html',     cls:'qa-purple'},
+    {icon:'☕',label:'Break Monitor', sub:'Live team status',         page:'breaks.html',       cls:'qa-teal'},
+    {icon:'⚙️',label:'Admin',        sub:'Settings & users',         page:'admin.html',        cls:'qa-red'},
+  ] : [
+    {icon:'📅',label:'Schedule',      sub:'View team schedule',      page:'schedule.html',     cls:'qa-navy'},
+    {icon:'☕',label:'Break Monitor', sub:'Monitor & book',           page:'breaks.html',       cls:'qa-teal'},
+    {icon:'✅',label:'Attendance',    sub:'Mark team today',          page:'attendance.html',   cls:'qa-green'},
+    {icon:'📋',label:'Requests',      sub:'Pending approvals',       page:'requests.html',     cls:'qa-purple'},
+    {icon:'📊',label:'KPI Tracker',  sub:'Log events',               page:'kpi.html',          cls:'qa-amber'},
+    {icon:'🔔',label:'Notifications',sub:'Alerts & messages',        page:'notifications.html',cls:'qa-red'},
+  ];
+  document.getElementById('qa-grid-mgmt').innerHTML = actions.map(a=>
     `<a href="${a.page}" class="qa-btn ${a.cls}">
       <div class="qa-icon">${a.icon}</div>
-      <div>
-        <div class="qa-label">${a.label}</div>
-        <div class="qa-sub">${a.sub}</div>
-      </div>
+      <div><div class="qa-label">${a.label}</div><div class="qa-sub">${a.sub}</div></div>
     </a>`
   ).join('');
 }
 
-/* ── Pending approvals (management) ───────────────────── */
 function renderPending() {
-  document.getElementById('pending-section').style.display = '';
-  const leaves = (data?.leaves  || []).filter(l => l.status === 'pending');
-  const swaps  = (data?.swaps   || []).filter(s => s.status === 'pending_mgmt');
-  const schReq = (data?.scheduleRequests || []).filter(r => r.status === 'pending');
-  const total  = leaves.length + swaps.length + schReq.length;
+  const leaves = (data?.leaves||[]).filter(l=>l.status==='pending');
+  const swaps  = (data?.swaps||[]).filter(s=>s.status==='pending_mgmt');
+  const schReq = (data?.scheduleRequests||[]).filter(r=>r.status==='pending');
+  const total  = leaves.length+swaps.length+schReq.length;
 
-  if (total > 0) {
-    document.getElementById('pending-badge').textContent = total + ' pending';
-    Nav.setBadge('requests', total);
+  if (total>0) {
+    const badge=document.getElementById('pending-count');
+    badge.style.display='';badge.textContent=total+' pending';
+    Nav.setBadge('requests',total);
   }
 
-  if (!total) {
-    document.getElementById('pending-list').innerHTML =
-      `<div class="empty-state" style="padding:20px 0;">
-        <div class="empty-icon">✅</div>
-        <div class="empty-msg">All clear — no pending approvals</div>
-      </div>`;
-    return;
-  }
+  const all = [
+    ...leaves.map(l=>({i:'🏖️',bg:'#FEF3CD',label:`${l.agent}`,meta:`${l.type||'Leave'} · ${l.startDate||'—'}`})),
+    ...swaps.map(s=>({i:'🔄',bg:'#CCFBF1',label:`${s.from} ↔ ${s.to}`,meta:`Swap · ${s.date||'—'}`})),
+    ...schReq.map(r=>({i:'📅',bg:'rgba(13,92,166,.1)',label:`${r.agent}`,meta:`Schedule · ${r.periodFrom||'—'}`})),
+  ].slice(0,5);
 
-  const items = [
-    ...leaves.map(l => ({ icon:'🏖️', bg:'#FEF3CD', label:`${l.agent}`, meta:`${l.type||'Leave'} · ${l.startDate||'—'}`, status:'Leave', href:'requests.html' })),
-    ...swaps.map(s  => ({ icon:'🔄', bg:'#CCFBF1', label:`${s.from} ↔ ${s.to}`, meta:`Swap · ${s.date||'—'}`, status:'Swap', href:'requests.html' })),
-    ...schReq.map(r => ({ icon:'📅', bg:'rgba(13,92,166,.1)', label:`${r.agent}`, meta:`Schedule request · ${r.periodFrom||'—'}`, status:'Schedule', href:'requests.html' })),
-  ].slice(0, 5);
-
-  document.getElementById('pending-list').innerHTML = items.map(item =>
-    `<div class="req-item">
-      <div class="req-dot" style="background:${item.bg}">${item.icon}</div>
-      <div class="req-info">
-        <div class="req-name">${item.label}</div>
-        <div class="req-meta">${item.meta}</div>
-      </div>
-      <a href="${item.href}" class="btn btn-xs btn-outline" style="flex-shrink:0;">Review</a>
-    </div>`
-  ).join('') + (total > 5 ? `<div style="padding:10px 0;font-size:12px;color:var(--t2);text-align:center;">+${total-5} more pending</div>` : '');
-}
-
-/* ── Recent requests (agent) ───────────────────────────── */
-function renderRecent() {
-  const myLeaves = (data?.leaves||[]).filter(l => l.agent === user.name).slice(-3).reverse();
-  const mySwaps  = (data?.swaps||[]).filter(s => s.from===user.name||s.to===user.name).slice(-2).reverse();
-  const all      = [
-    ...myLeaves.map(l => ({ icon:'🏖️', bg:'#FEF3CD', label:`${l.type||'Leave'} — ${l.startDate||'—'}`, meta: U.timeAgo(l.ts||''), status: l.status||'pending' })),
-    ...mySwaps.map(s  => ({ icon:'🔄', bg:'#CCFBF1', label:`Swap · ${s.date||'—'}`, meta: U.timeAgo(s.ts||''), status: s.status||'pending' })),
-  ];
-
-  const pill = s => s==='approved'?'pill-green':s==='rejected'?'pill-red':'pill-amber';
-
-  document.getElementById('recent-list').innerHTML = all.length
-    ? all.map(r =>
-        `<div class="req-item">
-          <div class="req-dot" style="background:${r.bg}">${r.icon}</div>
-          <div class="req-info">
-            <div class="req-name">${r.label}</div>
-            <div class="req-meta">${r.meta}</div>
-          </div>
-          <span class="pill ${pill(r.status)}">${r.status}</span>
-        </div>`
-      ).join('')
-    : `<div class="empty-state" style="padding:20px 0;">
-        <div class="empty-icon">📋</div>
-        <div class="empty-msg">No recent requests</div>
-        <div class="empty-sub"><a href="schedule.html" style="color:var(--navy);">Submit your first request →</a></div>
-      </div>`;
+  document.getElementById('pending-list').innerHTML = all.length
+    ? all.map(p=>`
+      <div style="display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--border2);">
+        <div style="width:36px;height:36px;border-radius:10px;background:${p.bg};display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;">${p.i}</div>
+        <div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;">${p.label}</div><div style="font-size:11px;color:var(--t2);">${p.meta}</div></div>
+        <a href="requests.html" class="btn btn-xs btn-outline">Review</a>
+      </div>`).join('')
+      + (total>5?`<div style="padding:10px 0;text-align:center;font-size:12px;color:var(--t2);">+${total-5} more</div>`:'')
+      + `<div style="padding:10px 0;text-align:center;"><a href="requests.html" style="font-size:12px;color:var(--navy);font-weight:700;text-decoration:none;">View all →</a></div>`
+    : `<div class="empty-state" style="padding:18px 0;"><div class="empty-icon">✅</div><div class="empty-msg">No pending approvals</div></div>`;
 }
 
 init();
