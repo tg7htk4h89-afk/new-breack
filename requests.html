@@ -9,34 +9,47 @@
 <title>KIB WFM — Requests</title>
 <link rel="stylesheet" href="css/kib.css">
 <style>
-.req-card { background:var(--white); border:1px solid var(--border); border-radius:var(--rl); margin-bottom:10px; overflow:hidden; box-shadow:var(--shadow); }
-.req-hdr  { padding:12px 14px; display:flex; align-items:flex-start; gap:10px; }
-.req-icon { width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0; }
-.req-body { padding:0 14px 12px; }
-.req-detail { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
-.req-dt { background:var(--bg); border-radius:8px; padding:8px 10px; }
-.req-dt-label { font-size:9px; font-weight:700; color:var(--t3); text-transform:uppercase; letter-spacing:.5px; }
-.req-dt-val   { font-size:13px; font-weight:700; margin-top:2px; }
-.req-actions  { display:flex; gap:7px; }
+.req-card{background:var(--white);border:1px solid var(--border);border-radius:var(--rl);margin-bottom:10px;overflow:hidden;box-shadow:var(--shadow);}
+.req-card.urgent{border-left:3px solid var(--amber);}
+.req-hdr{padding:12px 14px;display:flex;align-items:flex-start;gap:10px;}
+.req-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.req-detail{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 14px 12px;}
+.req-dt{background:var(--bg);border-radius:8px;padding:8px 10px;}
+.req-dt-lbl{font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;}
+.req-dt-val{font-size:13px;font-weight:700;margin-top:2px;}
+.req-actions{display:flex;gap:7px;padding:0 14px 12px;}
+.req-footer{padding:5px 14px 9px;font-size:10px;color:var(--t3);border-top:1px solid var(--border2);}
+.filter-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:12px;padding-bottom:2px;}
+.filter-row::-webkit-scrollbar{display:none;}
+.fchip{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);font-size:11px;font-weight:700;color:var(--t2);cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.fchip.active{background:var(--navy);border-color:var(--navy);color:#fff;}
 </style>
 </head>
 <body>
 <div id="kib-topbar"></div>
 <div id="kib-app">
-  <div id="user-strip-container"></div>
+  <div id="user-strip-wrap"></div>
   <div class="page-content">
 
+    <!-- Tab bar -->
     <div class="tab-bar" style="margin-top:12px;">
-      <button class="tab-item active" id="tab-pending" onclick="switchTab('pending')">⏳ Pending</button>
-      <button class="tab-item" id="tab-leaves" onclick="switchTab('leaves')">🏖 Leaves</button>
-      <button class="tab-item" id="tab-swaps" onclick="switchTab('swaps')">🔄 Swaps</button>
-      <button class="tab-item" id="tab-schreq" onclick="switchTab('schreq')">📅 Schedule</button>
+      <button class="tab-item active" id="tab-pending"  onclick="switchTab('pending')">⏳ Pending<span id="pend-badge" class="nb-badge" style="position:relative;top:auto;right:auto;margin-left:4px;display:none;"></span></button>
+      <button class="tab-item"        id="tab-leaves"   onclick="switchTab('leaves')">🏖 Leaves</button>
+      <button class="tab-item"        id="tab-swaps"    onclick="switchTab('swaps')">🔄 Swaps</button>
+      <button class="tab-item"        id="tab-prefs"    onclick="switchTab('prefs')">📋 Schedule</button>
+    </div>
+
+    <!-- Filters (management only) -->
+    <div id="filter-row" style="display:none;">
+      <div class="filter-row" id="team-filters">
+        <div class="fchip active" onclick="setTeamFilter('All',this)">All Teams</div>
+      </div>
     </div>
 
     <div id="pane-pending"></div>
     <div id="pane-leaves"  style="display:none;"></div>
     <div id="pane-swaps"   style="display:none;"></div>
-    <div id="pane-schreq"  style="display:none;"></div>
+    <div id="pane-prefs"   style="display:none;"></div>
 
   </div>
 </div>
@@ -50,146 +63,226 @@
 <script>
 if (!Auth.guard()) throw 0;
 
-const user   = Auth.user();
-let allData  = null;
-const isMgmt = Auth.isManagement();
+const user     = Auth.user();
+const isMgmt   = Auth.isManagement();
+const isWFM    = Auth.isWFM();
+let data       = null;
+let teamFilter = 'All';
 
 Nav.init('requests');
-document.getElementById('user-strip-container').innerHTML = Nav.renderUserStrip();
+document.getElementById('user-strip-wrap').innerHTML = Nav.renderUserStrip();
 
 async function init() {
   try {
-    allData = await API.getAll();
-    renderPending();
-    renderLeaves();
-    renderSwaps();
-    renderSchReqs();
+    data = await API.getAll();
+    if (isMgmt) {
+      document.getElementById('filter-row').style.display = '';
+      buildTeamFilters();
+    }
+    renderAll();
   } catch(e) { U.toast('Failed to load requests','err'); }
 }
 
-function switchTab(tab) {
-  ['pending','leaves','swaps','schreq'].forEach(t => {
-    document.getElementById('pane-'+t).style.display = t===tab?'':'none';
-  });
-  document.querySelectorAll('.tab-item').forEach((b,i) => {
-    b.classList.toggle('active', ['pending','leaves','swaps','schreq'][i] === tab);
+function switchTab(t) {
+  ['pending','leaves','swaps','prefs'].forEach(id => {
+    document.getElementById('pane-'+id).style.display = id===t?'':'none';
+    document.getElementById('tab-'+id).classList.toggle('active', id===t);
   });
 }
 
-/* ── PENDING ─────────────────────────────────────────── */
+function buildTeamFilters() {
+  const teams = ['All', ...CFG.TEAMS.filter(t => (data?.agents||[]).some(a => a.t===t))];
+  const row   = document.getElementById('team-filters');
+  row.innerHTML = teams.map(t =>
+    `<div class="fchip ${t==='All'?'active':''}" onclick="setTeamFilter('${t}',this)">${t}</div>`
+  ).join('');
+}
+
+function setTeamFilter(t, el) {
+  teamFilter = t;
+  document.querySelectorAll('#team-filters .fchip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderAll();
+}
+
+function renderAll() {
+  renderPending();
+  renderLeaves();
+  renderSwaps();
+  renderPrefs();
+}
+
+/* ── Filter helpers ───────────────────────────────── */
+function filterByRole(items, agentField='agent') {
+  return items.filter(r => {
+    const a = r[agentField] || r[agentField.charAt(0).toUpperCase()+agentField.slice(1)] || '';
+    if (!isMgmt && a !== user.name) return false;
+    if (isMgmt && teamFilter !== 'All') {
+      const ag = (data?.agents||[]).find(x => (x.n||x.name) === a);
+      if (!ag || ag.t !== teamFilter) return false;
+    }
+    return true;
+  });
+}
+
+/* ── PENDING ──────────────────────────────────────── */
 function renderPending() {
-  const leaves = (allData?.leaves||[]).filter(l => l.status==='pending' && (isMgmt || l.agent===user.name));
-  const swaps  = (allData?.swaps||[]).filter(s => {
-    if (s.status==='pending_peer')  return s.to === user.name || (isMgmt && s.status==='pending_mgmt');
-    if (s.status==='pending_mgmt') return isMgmt;
+  const leaves  = filterByRole(data?.leaves||[]).filter(l => (l.status||l.Status||'').toLowerCase() === 'pending');
+  const swaps   = (data?.swaps||[]).filter(s => {
+    const st = (s.status||s.Status||'').toLowerCase();
+    if (st === 'pending_peer') return (s.to||s.To) === user.name || isMgmt;
+    if (st === 'pending_mgmt') return isMgmt;
     return false;
   });
-  const schreqs = (allData?.scheduleRequests||[]).filter(r => r.status==='pending' && (isMgmt || r.agent===user.name));
-  const all = [...leaves.map(l=>({...l,_k:'leave'})), ...swaps.map(s=>({...s,_k:'swap'})), ...schreqs.map(r=>({...r,_k:'schreq'}))];
+  const prefs   = filterByRole(data?.scheduleRequests||[], 'agent').filter(r => (r.status||r.Status||'').toLowerCase() === 'pending');
+  const all     = [
+    ...leaves.map(l => ({...l,_k:'leave'})),
+    ...swaps.map(s  => ({...s,_k:'swap'})),
+    ...prefs.map(r  => ({...r,_k:'pref'})),
+  ];
 
-  if (!all.length) {
-    document.getElementById('pane-pending').innerHTML = emptyState('✅','No pending requests','All clear!');
-    return;
+  const badge = document.getElementById('pend-badge');
+  if (all.length > 0) {
+    badge.style.display=''; badge.textContent=all.length;
+    Nav.setBadge('requests', all.length);
+  } else {
+    badge.style.display='none';
   }
 
-  document.getElementById('pane-pending').innerHTML = all.map(r => reqCard(r, true)).join('');
+  if (!all.length) {
+    document.getElementById('pane-pending').innerHTML =
+      `<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-msg">No pending requests</div><div class="empty-sub">All clear!</div></div>`;
+    return;
+  }
+  document.getElementById('pane-pending').innerHTML = all.map(r => buildCard(r, true)).join('');
 }
 
-/* ── LEAVES ──────────────────────────────────────────── */
+/* ── LEAVES ───────────────────────────────────────── */
 function renderLeaves() {
-  const leaves = isMgmt
-    ? (allData?.leaves||[]).sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0))
-    : (allData?.leaves||[]).filter(l=>l.agent===user.name).sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0));
+  const leaves = filterByRole(data?.leaves||[])
+    .sort((a,b) => new Date(b.ts||b.Timestamp||0)-new Date(a.ts||a.Timestamp||0));
   document.getElementById('pane-leaves').innerHTML = leaves.length
-    ? leaves.map(l=>reqCard(l,l.status==='pending'&&isMgmt)).join('')
-    : emptyState('🏖','No leave requests','—');
+    ? leaves.map(l => buildCard({...l,_k:'leave'}, isMgmt && (l.status||l.Status||'').toLowerCase()==='pending')).join('')
+    : empty('🏖','No leave requests');
 }
 
-/* ── SWAPS ───────────────────────────────────────────── */
+/* ── SWAPS ────────────────────────────────────────── */
 function renderSwaps() {
   const swaps = isMgmt
-    ? (allData?.swaps||[]).sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0))
-    : (allData?.swaps||[]).filter(s=>s.from===user.name||s.to===user.name).sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0));
+    ? (data?.swaps||[]).sort((a,b) => new Date(b.ts||b.Timestamp||0)-new Date(a.ts||a.Timestamp||0))
+    : (data?.swaps||[]).filter(s => (s.from||s.From)===user.name||(s.to||s.To)===user.name)
+        .sort((a,b) => new Date(b.ts||b.Timestamp||0)-new Date(a.ts||a.Timestamp||0));
+
   document.getElementById('pane-swaps').innerHTML = swaps.length
-    ? swaps.map(s=>reqCard(s, (s.status==='pending_peer'&&s.to===user.name)||(s.status==='pending_mgmt'&&isMgmt))).join('')
-    : emptyState('🔄','No swap requests','—');
+    ? swaps.map(s => {
+        const st  = (s.status||s.Status||'').toLowerCase();
+        const canAct = (st==='pending_peer' && (s.to||s.To)===user.name) ||
+                       (st==='pending_mgmt' && isMgmt);
+        return buildCard({...s,_k:'swap'}, canAct);
+      }).join('')
+    : empty('🔄','No swap requests');
 }
 
-/* ── SCHEDULE REQUESTS ───────────────────────────────── */
-function renderSchReqs() {
-  const reqs = isMgmt
-    ? (allData?.scheduleRequests||[]).sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0))
-    : (allData?.scheduleRequests||[]).filter(r=>r.agent===user.name);
-  document.getElementById('pane-schreq').innerHTML = reqs.length
-    ? reqs.map(r=>reqCard(r, r.status==='pending'&&isMgmt)).join('')
-    : emptyState('📅','No schedule requests','Submit from My Schedule page');
+/* ── SCHEDULE PREFS ───────────────────────────────── */
+function renderPrefs() {
+  const prefs = filterByRole(data?.scheduleRequests||[], 'agent')
+    .sort((a,b) => new Date(b.ts||b.Timestamp||0)-new Date(a.ts||a.Timestamp||0));
+  document.getElementById('pane-prefs').innerHTML = prefs.length
+    ? prefs.map(r => buildCard({...r,_k:'pref'}, isMgmt && (r.status||r.Status||'').toLowerCase()==='pending')).join('')
+    : empty('📋','No schedule requests');
 }
 
-/* ── Card builder ────────────────────────────────────── */
-function reqCard(r, canAct) {
-  const isLeave  = !!r.startDate && !r.date;
-  const isSwap   = !!r.from;
-  const isSchReq = !isLeave && !isSwap;
+/* ── Card builder ─────────────────────────────────── */
+function buildCard(r, canAct) {
+  const isLeave = r._k === 'leave';
+  const isSwap  = r._k === 'swap';
+  const isPref  = r._k === 'pref';
 
-  const icon  = isLeave?'🏖':isSwap?'🔄':'📅';
+  const icon  = isLeave?'🏖':isSwap?'🔄':'📋';
   const iconBg= isLeave?'var(--amber-bg)':isSwap?'var(--teal-bg)':'rgba(13,92,166,.08)';
-  const title = isLeave ? `Leave Request — ${r.type||'AL'}`
-              : isSwap  ? `Swap: ${r.from} ↔ ${r.to}`
-              : `Shift Change Request`;
-  const sub   = isLeave ? `${r.agent} · ${U.normDate(r.startDate)} → ${U.normDate(r.endDate)}`
-              : isSwap  ? `${U.normDate(r.date)}`
-              : `${r.agent} · ${U.normDate(r.date)} · ${r.requestedShift||'—'}`;
+  const status= (r.status||r.Status||'pending').toLowerCase();
+  const sP    = status==='approved'?'pill-green':status==='rejected'?'pill-red':status.includes('peer')||status.includes('mgmt')?'pill-amber':'pill-amber';
+  const sLbl  = status==='pending_peer'?'⏳ Peer Review':status==='pending_mgmt'?'🔄 Mgmt Review':status;
 
-  const statusPill = r.status==='approved'?'pill-green':r.status==='rejected'?'pill-red':'pill-amber';
-  const statusLbl  = r.status||'pending';
+  const title = isLeave ? `${r.agent||r.Agent} — ${r.type||r.Type||'Leave'}`
+              : isSwap  ? `Swap: ${r.from||r.From} ↔ ${r.to||r.To}`
+              : `Schedule Preference — ${r.agent||r.Agent}`;
 
-  const id = r.id || r._id || '';
-  const actions = canAct ? `
+  const sub   = isLeave ? `${U.normDate(r.startDate||r.From||'')} → ${U.normDate(r.endDate||r.To||'')} (${r.days||r.Days||'?'} day${r.days>1?'s':''})`
+              : isSwap  ? `${U.normDate(r.date||r.Date||'')} · ${r.shiftFrom||r.FromShift||'—'} ↔ ${r.shiftTo||r.ToShift||'—'}`
+              : `${U.normDate(r.periodFrom||'')} → ${U.normDate(r.periodTo||'')}`;
+
+  const id    = r.id||r.Ref||r.ID||'';
+  const reason= r.reason||r.Reason||r.notes||r.Notes||r.specialRequest||r.SpecialRequest||'';
+
+  // Extra details for prefs
+  let extraDetails = '';
+  if (isPref) {
+    const parts = [];
+    if (r.morningWeek||r['Morning/Week'])   parts.push(`Morning: ${r.morningWeek||r['Morning/Week']}/wk`);
+    if (r.afternoonWeek||r['Afternoon/Week'])parts.push(`Afternoon: ${r.afternoonWeek||r['Afternoon/Week']}/wk`);
+    if (r.nightWeek||r['Night/Week'])       parts.push(`Night: ${r.nightWeek||r['Night/Week']}/wk`);
+    if (r.preferred||r.PreferredShifts)     parts.push(`Preferred: ${r.preferred||r.PreferredShifts}`);
+    if (r.offDayType||r.OffDayType)         parts.push(`Days off: ${r.offDayType||r.OffDayType}`);
+    if (parts.length) extraDetails = `<div style="margin:8px 14px;background:var(--bg);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--t2);">${parts.join(' · ')}</div>`;
+  }
+
+  const actBtns = canAct ? `
     <div class="req-actions">
-      <button class="btn btn-sm btn-green flex-1" onclick="approveReq('${id}','${isLeave?'leave':isSwap?'swap':'schreq'}','approve')">✓ Approve</button>
-      <button class="btn btn-sm btn-red  flex-1" onclick="approveReq('${id}','${isLeave?'leave':isSwap?'swap':'schreq'}','reject')">✕ Reject</button>
+      <button class="btn btn-sm btn-green flex-1" onclick="approve('${id}','${r._k}')">✓ Approve</button>
+      <button class="btn btn-sm btn-red  flex-1" onclick="reject('${id}','${r._k}')">✕ Reject</button>
     </div>` : '';
 
-  return `<div class="req-card">
+  const isUrgent = status.includes('pending') && canAct;
+
+  return `<div class="req-card ${isUrgent?'urgent':''}">
     <div class="req-hdr">
-      <div class="req-icon" style="background:${iconBg}">${icon}</div>
+      <div class="req-icon" style="background:${iconBg};">${icon}</div>
       <div class="flex-1">
         <div style="font-size:13px;font-weight:700;">${title}</div>
         <div style="font-size:11px;color:var(--t2);margin-top:2px;">${sub}</div>
       </div>
-      <span class="pill ${statusPill}">${statusLbl}</span>
+      <span class="pill ${sP}" style="flex-shrink:0;">${sLbl}</span>
     </div>
-    ${r.reason ? `<div class="req-body"><div style="font-size:12px;color:var(--t2);background:var(--bg);border-radius:8px;padding:8px 10px;">"${r.reason}"</div></div>` : ''}
-    ${actions ? `<div class="req-body">${actions}</div>` : ''}
-    <div style="padding:6px 14px 10px;font-size:10px;color:var(--t3);">${U.timeAgo(r.ts||r.created_at||'')}</div>
+    ${reason?`<div style="padding:0 14px 10px;font-size:12px;color:var(--t2);font-style:italic;">"${reason}"</div>`:''}
+    ${extraDetails}
+    ${actBtns}
+    <div class="req-footer">${U.timeAgo(r.ts||r.Timestamp||'')} · ID: ${id.slice(0,12)||'—'}</div>
   </div>`;
 }
 
-async function approveReq(id, kind, action) {
-  if (!id) return;
-  try {
-    let res;
-    if (kind==='leave') {
-      res = await API.approveLeave({ leaveId:id, action, approvedBy:user.name });
-    } else if (kind==='swap') {
-      res = await API.respondSwap({ swapId:id, action, respondedBy:user.name });
-    } else {
-      // Schedule request — direct update
-      res = await API.submitScheduleRequest({ ...allData.scheduleRequests?.find(r=>r.id===id), status:action==='approve'?'approved':'rejected' });
-    }
-    if (res?.ok !== false) {
-      U.toast(`Request ${action==='approve'?'approved':'rejected'} ✓`, 'ok');
-      API.clearCache();
-      allData = await API.getAll(true);
-      renderPending(); renderLeaves(); renderSwaps(); renderSchReqs();
-    } else {
-      U.toast('Failed — try again','err');
-    }
-  } catch(e) { U.toast('Network error','err'); }
+/* ── Approve / Reject ─────────────────────────────── */
+async function approve(id, kind) {
+  await actOnRequest(id, kind, 'approve');
+}
+async function reject(id, kind) {
+  const note = prompt('Rejection reason (optional):') ?? '';
+  await actOnRequest(id, kind, 'reject', note);
 }
 
-function emptyState(icon, msg, sub) {
-  return `<div class="empty-state"><div class="empty-icon">${icon}</div><div class="empty-msg">${msg}</div><div class="empty-sub">${sub}</div></div>`;
+async function actOnRequest(id, kind, action, note='') {
+  if (!id) return;
+  try {
+    if (kind === 'leave') {
+      await API.approveLeave({ leaveId:id, action, approvedBy:user.name, note });
+    } else if (kind === 'swap') {
+      await API.respondSwap({ swapId:id, action, respondedBy:user.name });
+    } else {
+      // Schedule preference — update status
+      await API.submitScheduleRequest({
+        agent: '', team: '', date: '', currentShift: '', requestedShift: '',
+        reason: note, Ref: id, Status: action==='approve'?'approved':'rejected'
+      });
+    }
+    U.toast(`${action==='approve'?'Approved':'Rejected'} ✓`, 'ok');
+    API.clearCache();
+    data = await API.getAll(true);
+    renderAll();
+  } catch(e) { U.toast('Failed — try again','err'); }
+}
+
+function empty(icon, msg, sub='') {
+  return `<div class="empty-state"><div class="empty-icon">${icon}</div><div class="empty-msg">${msg}</div>${sub?`<div class="empty-sub">${sub}</div>`:''}</div>`;
 }
 
 init();

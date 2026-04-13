@@ -55,6 +55,8 @@
     <div class="login-footer">
       Kuwait International Bank · Contact Center<br>
       WFM Portal v2 · Secure Login
+      <br><span id="debug-hint" style="font-size:9px;color:#ccc;cursor:pointer;"
+           onclick="runDiag()">v2.0</span>
     </div>
 
   </div>
@@ -120,11 +122,42 @@
   }
 
   function showError(msg) {
-    errMsg.textContent = '❌ ' + msg;
+    // Show multi-line errors properly
+    errMsg.innerHTML = '❌ ' + msg.replace(/\n/g, '<br>');
     errMsg.classList.add('show');
     shake(pwInput);
     pwInput.value = '';
     setTimeout(() => pwInput.focus(), 100);
+  }
+
+  /* ── Diagnostics (tap version number 3x) ── */
+  async function runDiag() {
+    const url = (typeof CFG !== 'undefined') ? CFG.N8N.GET : 'https://n8n.kib-cc-wfm.com/webhook/kib-wfm-get';
+    document.getElementById('err-msg').innerHTML =
+      '🔍 Testing connection to:<br>' + url + '<br>Please wait…';
+    document.getElementById('err-msg').classList.add('show');
+    try {
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({action:'ping'})
+      });
+      document.getElementById('err-msg').innerHTML =
+        '✅ n8n reached — HTTP ' + r.status + '<br>' +
+        (r.status === 200 ? 'Workflow is active ✓' :
+         r.status === 404 ? '❌ 404 — Workflow not published or wrong path' :
+         r.status === 500 ? '❌ 500 — n8n execution error' : 'Check n8n logs');
+    } catch(e) {
+      document.getElementById('err-msg').innerHTML =
+        '❌ Cannot reach n8n<br>' +
+        'URL: ' + url + '<br>' +
+        'Error: ' + e.message + '<br><br>' +
+        'Checklist:<br>' +
+        '1. Is n8n running at n8n.kib-cc-wfm.com?<br>' +
+        '2. Is the workflow <b>Published</b> (not just saved)?<br>' +
+        '3. Is the webhook path: kib-wfm-get?<br>' +
+        '4. Does n8n allow CORS from github.io?';
+    }
   }
 
   function shake(el) {

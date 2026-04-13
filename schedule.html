@@ -2,190 +2,245 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#0A4A8A">
 <title>KIB WFM — My Schedule</title>
 <link rel="stylesheet" href="css/kib.css">
 <style>
-.sch-week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:12px;}
-.sch-day-cell{border-radius:10px;padding:8px 4px;text-align:center;border:1.5px solid var(--border);background:var(--white);cursor:pointer;transition:.15s;}
-.sch-day-cell:active{transform:scale(.96);}
-.sch-day-cell.is-today{background:var(--navy);border-color:var(--navy);}
-.sch-day-cell.is-off{background:#F3F4F6;border-color:var(--border2);}
-.sch-day-cell.is-wknd{opacity:.7;}
-.sch-day-cell .dc-day{font-size:9px;font-weight:700;line-height:1;}
-.sch-day-cell .dc-num{font-size:14px;font-weight:900;margin:2px 0;}
-.sch-day-cell .dc-shift{font-size:9px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.sch-day-cell.is-today .dc-day,.sch-day-cell.is-today .dc-num,.sch-day-cell.is-today .dc-shift{color:#fff;}
-.sch-day-cell.is-off .dc-shift{color:#9CA3AF;}
-
-.shift-row{display:flex;align-items:center;gap:12px;padding:11px 13px;border-bottom:1px solid var(--border2);}
-.shift-row:last-child{border-bottom:none;}
-.shift-row.is-today{background:rgba(13,92,166,.03);}
-.sr-date{width:44px;height:44px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);border:1px solid var(--border);flex-shrink:0;}
-.sr-date.today-box{background:var(--navy);border-color:var(--navy);}
-.sr-date .sr-d{font-size:9px;font-weight:700;color:var(--t3);}
-.sr-date .sr-n{font-size:15px;font-weight:900;color:var(--t1);}
-.sr-date.today-box .sr-d,.sr-date.today-box .sr-n{color:#fff;}
-.sr-info{flex:1;min-width:0;}
-.sr-label{font-size:13px;font-weight:700;}
-.sr-times{font-size:11px;color:var(--t2);margin-top:2px;}
-.sr-right{display:flex;align-items:center;gap:6px;}
+.week-day{border-radius:10px;padding:8px 3px;text-align:center;border:1.5px solid var(--border);background:var(--white);cursor:pointer;transition:.14s;}
+.week-day.is-today{background:var(--navy);border-color:var(--navy);}
+.week-day.is-off{background:#F3F4F6;border-color:var(--border2);}
+.week-day.is-wknd{opacity:.75;}
+.sch-row{display:flex;align-items:center;gap:12px;padding:11px 13px;border-bottom:1px solid var(--border2);}
+.sch-row:last-child{border-bottom:none;}
+.sch-row.is-today{background:rgba(13,92,166,.03);}
+.sch-date-box{width:44px;height:44px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);border:1px solid var(--border);flex-shrink:0;}
+.sch-date-box.today{background:var(--navy);border-color:var(--navy);}
+.sch-date-box .dd{font-size:9px;font-weight:700;}
+.sch-date-box .dn{font-size:15px;font-weight:900;}
+.srf-counter{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.srf-counter button{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);font-size:18px;font-weight:700;cursor:pointer;}
+.srf-counter .val{width:36px;text-align:center;font-size:15px;font-weight:800;}
+.chip-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.shift-chip{padding:6px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);font-size:12px;font-weight:700;color:var(--t2);cursor:pointer;transition:.12s;}
+.shift-chip.sel{background:var(--navy);border-color:var(--navy);color:#fff;}
+.day-chip{padding:5px 10px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);font-size:11px;font-weight:700;color:var(--t2);cursor:pointer;transition:.12s;}
+.day-chip.sel{background:var(--teal);border-color:var(--teal);color:#fff;}
 </style>
 </head>
 <body>
-
 <div id="kib-topbar"></div>
 <div id="kib-app">
-  <div id="user-strip-container"></div>
-
+  <div id="user-strip-wrap"></div>
   <div class="page-content">
 
-    <!-- Tab bar -->
     <div class="tab-bar" style="margin-top:12px;">
-      <button class="tab-item active" id="tab-sched" onclick="switchTab('sched')">📅 My Schedule</button>
-      <button class="tab-item" id="tab-request" onclick="switchTab('request')">📝 Submit Request</button>
-      <button class="tab-item" id="tab-history" onclick="switchTab('history')">🕓 History</button>
+      <button class="tab-item active" id="tab-my"   onclick="switchTab('my')">📅 My Schedule</button>
+      <button class="tab-item"        id="tab-req"  onclick="switchTab('req')">📝 Submit Request</button>
+      <button class="tab-item"        id="tab-hist" onclick="switchTab('hist')">🕓 History</button>
     </div>
 
-    <!-- ══ MY SCHEDULE TAB ══ -->
-    <div id="pane-sched">
-      <!-- Week nav -->
-      <div class="card" style="margin-bottom:12px;">
+    <!-- ══ MY SCHEDULE ══ -->
+    <div id="pane-my">
+      <div class="card">
         <div class="card-header">
           <div class="week-nav">
-            <button onclick="prevWeek()">‹</button>
-            <div class="wn-label" id="week-label">Loading…</div>
-            <button onclick="nextWeek()">›</button>
+            <button onclick="prevWk()">‹</button>
+            <div class="wn-label" id="wk-lbl">—</div>
+            <button onclick="nextWk()">›</button>
           </div>
-          <button class="btn btn-xs btn-outline" onclick="goToday()">Today</button>
+          <button class="btn btn-xs btn-outline" onclick="gotoToday()">Today</button>
         </div>
         <div class="card-body" style="padding:10px;">
-          <div class="sch-week-grid" id="week-cells">
-            <!-- 7 day cells -->
-          </div>
+          <div id="week-cells" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
         </div>
       </div>
 
-      <!-- Shift list -->
       <div class="card">
         <div class="card-header">
           <div class="card-title">Schedule Details</div>
-          <span id="sched-range" class="text-sm text-muted"></span>
+          <span id="sch-range" class="text-sm text-muted"></span>
         </div>
-        <div id="shift-list">
-          <div class="card-body">
-            <div class="skel" style="height:52px;margin-bottom:8px;border-radius:8px;"></div>
-            <div class="skel" style="height:52px;margin-bottom:8px;border-radius:8px;"></div>
-            <div class="skel" style="height:52px;border-radius:8px;"></div>
-          </div>
-        </div>
+        <div id="sch-list"><div class="card-body"><div class="skel" style="height:52px;margin-bottom:6px;border-radius:8px;"></div><div class="skel" style="height:52px;border-radius:8px;"></div></div></div>
       </div>
     </div>
 
-    <!-- ══ REQUEST TAB ══ -->
-    <div id="pane-request" style="display:none;">
+    <!-- ══ SUBMIT REQUEST ══ -->
+    <div id="pane-req" style="display:none;">
+
+      <!-- Request type -->
       <div class="card">
-        <div class="card-header"><div class="card-title">Submit Schedule Request</div></div>
+        <div class="card-header"><div class="card-title">Request Type</div></div>
         <div class="card-body">
-          <div class="info-box navy">Submit a change request and your team leader will review it.</div>
+          <div class="chip-grid" id="req-type-chips">
+            <div class="shift-chip" onclick="setReqType('leave',this)">🏖 Leave</div>
+            <div class="shift-chip" onclick="setReqType('swap',this)">🔄 Shift Swap</div>
+            <div class="shift-chip" onclick="setReqType('pref',this)">📋 Schedule Preference</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── LEAVE ── -->
+      <div id="form-leave" style="display:none;" class="card">
+        <div class="card-header"><div class="card-title">🏖 Leave Request</div></div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="fld-label">Leave Type</label>
+            <select class="fld" id="lv-type">
+              <option value="Annual Leave">Annual Leave (AL)</option>
+              <option value="Sick Leave">Sick Leave (SL)</option>
+              <option value="Unpaid Leave">Unpaid Leave (UL)</option>
+              <option value="Partial Leave">Partial Leave (PL)</option>
+              <option value="Public Holiday">Public Holiday (PH)</option>
+            </select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="form-group"><label class="fld-label">From Date</label><input type="date" class="fld" id="lv-from"></div>
+            <div class="form-group"><label class="fld-label">To Date</label><input type="date" class="fld" id="lv-to"></div>
+          </div>
+          <div class="form-group">
+            <label class="fld-label">Reason / Notes</label>
+            <textarea class="fld" id="lv-reason" rows="3" placeholder="Brief reason for leave…" style="resize:none;"></textarea>
+          </div>
+          <button class="btn btn-navy btn-block" onclick="submitLeave()">Submit Leave Request</button>
+        </div>
+      </div>
+
+      <!-- ── SWAP ── -->
+      <div id="form-swap" style="display:none;" class="card">
+        <div class="card-header"><div class="card-title">🔄 Shift Swap</div></div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="fld-label">Date to Swap</label>
+            <input type="date" class="fld" id="sw-date" onchange="detectColleagueShift()">
+          </div>
+          <div class="form-group">
+            <label class="fld-label">My Shift That Day</label>
+            <input type="text" class="fld" id="sw-myshift" readonly placeholder="Auto-detected from schedule">
+          </div>
+          <div class="form-group">
+            <label class="fld-label">Swap With</label>
+            <select class="fld" id="sw-colleague" onchange="detectColleagueShift()">
+              <option value="">— Select colleague —</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="fld-label">Their Shift That Day</label>
+            <input type="text" class="fld" id="sw-theirshift" readonly placeholder="Auto-detected">
+          </div>
+          <div class="form-group">
+            <label class="fld-label">Reason</label>
+            <textarea class="fld" id="sw-reason" rows="2" placeholder="Reason for swap…" style="resize:none;"></textarea>
+          </div>
+          <button class="btn btn-navy btn-block" onclick="submitSwap()">Submit Swap Request</button>
+        </div>
+      </div>
+
+      <!-- ── SCHEDULE PREFERENCE ── -->
+      <div id="form-pref" style="display:none;" class="card">
+        <div class="card-header"><div class="card-title">📋 Schedule Preference</div></div>
+        <div class="card-body">
+          <div class="info-box navy">Submit your preferred schedule for the upcoming period. WFM will consider this when building the schedule.</div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="form-group"><label class="fld-label">Period From</label><input type="date" class="fld" id="pf-from"></div>
+            <div class="form-group"><label class="fld-label">Period To</label><input type="date" class="fld" id="pf-to"></div>
+          </div>
+
+          <div class="sec-hdr">Shifts Per Week</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;">
+            <div>
+              <label class="fld-label">Morning</label>
+              <div class="srf-counter">
+                <button onclick="adj('pf-morn',-1)">−</button>
+                <div class="val" id="pf-morn">0</div>
+                <button onclick="adj('pf-morn',1)">+</button>
+              </div>
+            </div>
+            <div>
+              <label class="fld-label">Afternoon</label>
+              <div class="srf-counter">
+                <button onclick="adj('pf-aft',-1)">−</button>
+                <div class="val" id="pf-aft">0</div>
+                <button onclick="adj('pf-aft',1)">+</button>
+              </div>
+            </div>
+            <div>
+              <label class="fld-label">Night</label>
+              <div class="srf-counter">
+                <button onclick="adj('pf-night',-1)">−</button>
+                <div class="val" id="pf-night">0</div>
+                <button onclick="adj('pf-night',1)">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="sec-hdr">Preferred Shifts</div>
+          <div class="chip-grid" id="pref-shift-chips">
+            <div class="shift-chip" onclick="toggleShift(this,'07:00-15:00')">7–3</div>
+            <div class="shift-chip" onclick="toggleShift(this,'08:00-16:00')">8–4</div>
+            <div class="shift-chip" onclick="toggleShift(this,'09:00-17:00')">9–5</div>
+            <div class="shift-chip" onclick="toggleShift(this,'10:00-18:00')">10–6</div>
+            <div class="shift-chip" onclick="toggleShift(this,'11:00-19:00')">11–7</div>
+            <div class="shift-chip" onclick="toggleShift(this,'12:00-20:00')">12–8</div>
+            <div class="shift-chip" onclick="toggleShift(this,'15:00-23:00')">3–11</div>
+            <div class="shift-chip" onclick="toggleShift(this,'16:00-00:00')">4–12</div>
+            <div class="shift-chip" onclick="toggleShift(this,'19:00-03:00')">7–3 (Night)</div>
+            <div class="shift-chip" onclick="toggleShift(this,'23:00-07:00')">11–7 (Night)</div>
+          </div>
 
           <div class="form-group">
-            <label class="fld-label">Request Type</label>
-            <select class="fld" id="req-type" onchange="onReqTypeChange()">
-              <option value="">— Select —</option>
-              <option value="leave">Leave Request</option>
-              <option value="swap">Shift Swap</option>
-              <option value="change">Shift Change Request</option>
+            <label class="fld-label">Off Day Preference</label>
+            <select class="fld" id="pf-offtype">
+              <option value="Weekends">Weekends (Fri–Sat)</option>
+              <option value="Any 2 days">Any 2 consecutive days</option>
+              <option value="Specific days">Specific days</option>
             </select>
           </div>
 
-          <!-- Leave fields -->
-          <div id="leave-fields" style="display:none;">
-            <div class="form-group">
-              <label class="fld-label">Leave Type</label>
-              <select class="fld" id="leave-type">
-                <option value="AL">Annual Leave (AL)</option>
-                <option value="SL">Sick Leave (SL)</option>
-                <option value="UL">Unpaid Leave (UL)</option>
-                <option value="PL">Partial Leave (PL)</option>
-              </select>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-              <div class="form-group">
-                <label class="fld-label">From Date</label>
-                <input type="date" class="fld" id="leave-start">
-              </div>
-              <div class="form-group">
-                <label class="fld-label">To Date</label>
-                <input type="date" class="fld" id="leave-end">
-              </div>
+          <div class="form-group" id="specific-days-group">
+            <label class="fld-label">Preferred Days Off</label>
+            <div class="chip-grid">
+              <div class="day-chip" onclick="toggleDay(this,'Sun')">Sun</div>
+              <div class="day-chip" onclick="toggleDay(this,'Mon')">Mon</div>
+              <div class="day-chip" onclick="toggleDay(this,'Tue')">Tue</div>
+              <div class="day-chip" onclick="toggleDay(this,'Wed')">Wed</div>
+              <div class="day-chip" onclick="toggleDay(this,'Thu')">Thu</div>
+              <div class="day-chip" onclick="toggleDay(this,'Fri')">Fri</div>
+              <div class="day-chip" onclick="toggleDay(this,'Sat')">Sat</div>
             </div>
           </div>
 
-          <!-- Swap fields -->
-          <div id="swap-fields" style="display:none;">
-            <div class="form-group">
-              <label class="fld-label">Swap Date</label>
-              <input type="date" class="fld" id="swap-date">
-            </div>
-            <div class="form-group">
-              <label class="fld-label">Swap With (Colleague)</label>
-              <select class="fld" id="swap-with">
-                <option value="">— Select colleague —</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="fld-label">Their Shift on That Day</label>
-              <input type="text" class="fld" id="swap-theirshift" placeholder="Will be fetched automatically" readonly>
-            </div>
+          <div class="form-group">
+            <label class="fld-label">Consecutive Days Off?</label>
+            <select class="fld" id="pf-consec">
+              <option value="Yes">Yes — consecutive days off</option>
+              <option value="No">No — separate days are fine</option>
+            </select>
           </div>
 
-          <!-- Shift change fields -->
-          <div id="change-fields" style="display:none;">
-            <div class="form-group">
-              <label class="fld-label">Date</label>
-              <input type="date" class="fld" id="change-date">
-            </div>
-            <div class="form-group">
-              <label class="fld-label">Requested Shift</label>
-              <select class="fld" id="change-shift">
-                <option value="">— Select shift —</option>
-              </select>
-            </div>
+          <div class="form-group">
+            <label class="fld-label">Special Request / Notes</label>
+            <textarea class="fld" id="pf-notes" rows="3" placeholder="Any additional notes for WFM…" style="resize:none;"></textarea>
           </div>
 
-          <!-- Reason (all types) -->
-          <div class="form-group" id="reason-group" style="display:none;">
-            <label class="fld-label">Reason / Notes</label>
-            <textarea class="fld" id="req-reason" rows="3" placeholder="Briefly explain your request…" style="resize:none;"></textarea>
-          </div>
-
-          <button class="btn btn-navy btn-block" id="submit-btn" onclick="submitRequest()" style="display:none;">
-            Submit Request
-          </button>
+          <button class="btn btn-navy btn-block" onclick="submitPref()">Submit Preference</button>
         </div>
       </div>
     </div>
 
-    <!-- ══ HISTORY TAB ══ -->
-    <div id="pane-history" style="display:none;">
+    <!-- ══ HISTORY ══ -->
+    <div id="pane-hist" style="display:none;">
       <div class="card">
-        <div class="card-header"><div class="card-title">My Request History</div></div>
-        <div id="history-list">
-          <div class="card-body">
-            <div class="skel" style="height:52px;margin-bottom:8px;border-radius:8px;"></div>
-            <div class="skel" style="height:52px;border-radius:8px;"></div>
-          </div>
-        </div>
+        <div class="card-header"><div class="card-title">Request History</div></div>
+        <div id="hist-list"><div class="card-body"><div class="skel" style="height:48px;margin-bottom:6px;border-radius:8px;"></div></div></div>
       </div>
     </div>
 
   </div>
 </div>
-
 <div id="kib-bottomnav"></div>
 
 <script src="js/config.js"></script>
@@ -198,255 +253,410 @@ if (!Auth.guard()) throw 0;
 
 const user   = Auth.user();
 const today  = U.today();
-let allData  = null;
+let data     = null;
 let myAgent  = null;
 let allDates = [];
-let weekStart= today; // anchor date for week display
+let weekAnchor = today;
+let selReqType = null;
+const selShifts= new Set();
+const selDays  = new Set();
 
 Nav.init('schedule');
-document.getElementById('user-strip-container').innerHTML = Nav.renderUserStrip();
+document.getElementById('user-strip-wrap').innerHTML = Nav.renderUserStrip();
 
-/* ── Load ─────────────────────────────────────────────── */
 async function init() {
   try {
-    allData  = await API.getAll();
-    allDates = (allData.dates || []).map(d => U.normDate(d));
-    myAgent  = (allData.agents || []).find(a => a.n === user.name || a.name === user.name);
-    renderWeekView();
-    populateSwapWith();
-    populateChangeShifts();
+    data     = await API.getAll();
+    allDates = (data.dates||[]);
+    myAgent  = (data.agents||[]).find(a => a.n===user.name||a.name===user.name);
+    renderWeek();
+    fillColleagues();
     setDefaultDates();
-  } catch(e) {
-    U.toast('Failed to load schedule', 'err');
-  }
+  } catch(e) { U.toast('Failed to load schedule','err'); }
 }
 
-/* ── Tabs ─────────────────────────────────────────────── */
-function switchTab(tab) {
-  ['sched','request','history'].forEach(t => {
-    document.getElementById('pane-' + t).style.display = t === tab ? '' : 'none';
-    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+function switchTab(t) {
+  ['my','req','hist'].forEach(id => {
+    document.getElementById('pane-'+id).style.display = id===t?'':'none';
+    document.getElementById('tab-'+id).classList.toggle('active', id===t);
   });
-  if (tab === 'history') renderHistory();
+  if (t==='hist') renderHist();
 }
 
-/* ── Week view ────────────────────────────────────────── */
-function prevWeek() { weekStart = U.addDays(weekStart, -7); renderWeekView(); }
-function nextWeek() { weekStart = U.addDays(weekStart,  7); renderWeekView(); }
-function goToday()  { weekStart = today; renderWeekView(); }
+/* ── Week navigation ─────────────────────────────── */
+function prevWk() { weekAnchor = U.addDays(weekAnchor,-7); renderWeek(); }
+function nextWk() { weekAnchor = U.addDays(weekAnchor, 7); renderWeek(); }
+function gotoToday() { weekAnchor = today; renderWeek(); }
 
-function renderWeekView() {
-  const week = U.getWeekDates(weekStart);
-  const firstDate = week[0], lastDate = week[6];
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const fd = new Date(firstDate + 'T00:00:00'), ld = new Date(lastDate + 'T00:00:00');
-  document.getElementById('week-label').textContent =
-    `${fd.getDate()} ${months[fd.getMonth()]} – ${ld.getDate()} ${months[ld.getMonth()]}`;
-  document.getElementById('sched-range').textContent =
-    `${U.fmtShort(firstDate)} – ${U.fmtShort(lastDate)}`;
+function renderWeek() {
+  const week  = U.getWeekDates(weekAnchor);
+  const DAYS  = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const months= ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const fd = new Date(week[0]+'T00:00:00'), ld = new Date(week[6]+'T00:00:00');
+  U.se('wk-lbl', `${fd.getDate()} ${months[fd.getMonth()]} – ${ld.getDate()} ${months[ld.getMonth()]}`);
+  U.se('sch-range', `${U.fmtShort(week[0])} – ${U.fmtShort(week[6])}`);
 
-  // Day cells
-  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  document.getElementById('week-cells').innerHTML = week.map((date, i) => {
-    const d = new Date(date + 'T00:00:00');
-    const idx = allDates.indexOf(date);
-    const rawShift = myAgent && idx >= 0 ? (myAgent.sch ? myAgent.sch[idx] : 'OFF') : '';
-    const code  = CFG.normalizeShiftCode(rawShift);
-    const def   = CFG.getShiftDisplay(rawShift);
-    const isT   = date === today;
-    const isOff = CFG.isOff(rawShift) || !rawShift;
-    const isW   = U.isWeekend(date);
-    const shiftLabel = def ? def.short || def.code : code || '?';
-    const shiftColor = def && !isOff ? def.color : '#9CA3AF';
-
-    return `<div class="sch-day-cell ${isT?'is-today':''} ${isOff?'is-off':''} ${isW?'is-wknd':''}" onclick="scrollToDate('${date}')">
-      <div class="dc-day" style="${!isT?'color:var(--t3)':''}">${days[i]}</div>
-      <div class="dc-num" style="${!isT?'color:var(--t1)':''}">${d.getDate()}</div>
-      <div class="dc-shift" style="color:${isT?'rgba(255,255,255,.8)':shiftColor}">${shiftLabel}</div>
+  document.getElementById('week-cells').innerHTML = week.map((date,i) => {
+    const idx  = allDates.indexOf(date);
+    const raw  = myAgent && idx>=0 && myAgent.sch ? myAgent.sch[idx] : '';
+    const d    = new Date(date+'T00:00:00');
+    const isT  = date===today;
+    const isOff= !raw || raw==='OFF' || raw==='AL' || raw==='SL';
+    const isW  = U.isWeekend(date);
+    const short= getShortLabel(raw);
+    const bg   = isT?'var(--navy)':isOff?'#F3F4F6':'var(--teal-bg)';
+    const clr  = isT?'#fff':isOff?'#9CA3AF':'var(--teal)';
+    const bdr  = isT?'2px solid var(--navy)':'1.5px solid var(--border)';
+    return `<div class="week-day ${isT?'is-today':''} ${isOff?'is-off':''} ${isW?'is-wknd':''}"
+      style="border-radius:9px;padding:7px 3px;text-align:center;background:${bg};border:${bdr};"
+      onclick="scrollToDate('${date}')">
+      <div style="font-size:9px;font-weight:700;color:${isT?'rgba(255,255,255,.6)':'var(--t3)'};">${DAYS[i]}</div>
+      <div style="font-size:14px;font-weight:900;color:${clr};margin:2px 0;">${d.getDate()}</div>
+      <div style="font-size:9px;font-weight:700;color:${clr};opacity:.9;">${isW&&isOff?'—':short}</div>
     </div>`;
   }).join('');
 
-  // Shift list
-  renderShiftList(week);
+  renderSchList(week);
 }
 
-function renderShiftList(week) {
+function getShortLabel(raw) {
+  if (!raw||raw==='OFF') return 'OFF';
+  if (['AL','SL','PH','UL','PL'].includes(raw)) return raw;
+  const m = raw.match(/^(\d{1,2}):\d{2}-(\d{1,2}):\d{2}$/);
+  if (m) return `${parseInt(m[1])}-${parseInt(m[2])}`;
+  return raw.slice(0,4);
+}
+
+function renderSchList(week) {
   const html = week.map(date => {
-    const idx = allDates.indexOf(date);
-    const rawShift = myAgent && idx >= 0 ? (myAgent.sch ? myAgent.sch[idx] : 'OFF') : '';
-    const code   = CFG.normalizeShiftCode(rawShift || 'OFF');
-    const def    = CFG.getShiftDisplay(rawShift);
-    const isT    = date === today;
-    const isOff  = CFG.isOff(rawShift);
-    const label  = def ? def.label : rawShift || 'Not Scheduled';
-    const times  = (def && !isOff && def.start) ? `${U.fmt12(def.start)} – ${U.fmt12(def.end)}` : '';
-    const chipCls= `sc-${code.toLowerCase()}`;
-    const d = new Date(date + 'T00:00:00');
+    const idx  = allDates.indexOf(date);
+    const raw  = myAgent && idx>=0 && myAgent.sch ? myAgent.sch[idx] : 'OFF';
+    const d    = new Date(date+'T00:00:00');
+    const isT  = date===today;
+    const isOff= !raw||raw==='OFF'||['AL','SL','PH','UL','PL'].includes(raw);
+    const tm   = raw.match(/^(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/);
+    const label= tm ? `${U.fmt12(tm[1])} – ${U.fmt12(tm[2])}` : (raw||'Day Off');
+    const times= tm ? `${tm[1]} – ${tm[2]}` : '';
 
-    // Check for swaps/leave for this date
-    const mySwap  = (allData?.swaps  || []).find(s => U.normDate(s.date) === date && (s.from === user.name || s.to === user.name) && s.status === 'approved');
-    const myLeave = (allData?.leaves || []).find(l => {
-      const ls = U.normDate(l.startDate), le = U.normDate(l.endDate);
-      return l.agent === user.name && date >= ls && date <= le && l.status === 'approved';
+    // Swap/leave overlay
+    const swap  = (data?.swaps||[]).find(s => U.normDate(s.date||s.Date)===date && (s.from===user.name||s.to===user.name) && (s.status||s.Status)==='approved');
+    const leave = (data?.leaves||[]).find(l => {
+      const sf=U.normDate(l.startDate||l.From||''), st=U.normDate(l.endDate||l.To||'');
+      return l.agent===user.name && date>=sf && date<=st && (l.status||l.Status)==='approved';
     });
+    const badge = swap  ? `<span class="pill pill-teal" style="font-size:9px;">🔄 Swapped</span>`
+                : leave ? `<span class="pill pill-amber" style="font-size:9px;">${leave.type||leave.Type} ✓</span>` : '';
 
-    const badge = mySwap  ? `<span class="pill pill-teal" style="font-size:9px;">🔄 Swapped</span>` :
-                  myLeave ? `<span class="pill pill-amber" style="font-size:9px;">${myLeave.type} Approved</span>` : '';
-
-    return `<div class="shift-row ${isT?'is-today':''}" id="date-${date}">
-      <div class="sr-date ${isT?'today-box':''}">
-        <div class="sr-d">${U.dayName(date)}</div>
-        <div class="sr-n">${d.getDate()}</div>
+    const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+    return `<div class="sch-row ${isT?'is-today':''}" id="date-${date}">
+      <div class="sch-date-box ${isT?'today':''}">
+        <div class="dd" style="color:${isT?'rgba(255,255,255,.6)':'var(--t3)'};">${dayName}</div>
+        <div class="dn" style="color:${isT?'#fff':'var(--t1)'};">${d.getDate()}</div>
       </div>
-      <div class="sr-info">
-        <div class="sr-label">${label} ${isT?'<span style="font-size:9px;background:var(--navy);color:#fff;border-radius:4px;padding:1px 5px;margin-left:4px;">TODAY</span>':''}</div>
-        <div class="sr-times">${times || (isOff ? 'Day off' : '')}</div>
-        ${badge ? `<div style="margin-top:4px;">${badge}</div>` : ''}
+      <div class="flex-1">
+        <div class="row-title">${label}${isT?' <span style="font-size:9px;background:var(--navy);color:#fff;border-radius:4px;padding:1px 5px;margin-left:4px;">TODAY</span>':''}</div>
+        <div class="row-meta">${times||'Day off'}</div>
+        ${badge?`<div style="margin-top:4px;">${badge}</div>`:''}
       </div>
-      <div class="sr-right">
-        <span class="sc ${chipCls}">${def?.short || code}</span>
-        ${!isOff ? `<button class="btn btn-xs btn-outline" onclick="quickRequest('${date}','${code}')">Request</button>` : ''}
-      </div>
+      ${!isOff?`<button class="btn btn-xs btn-outline" onclick="quickReq('${date}','${raw}')">Request</button>`:''}
     </div>`;
   }).join('');
-  document.getElementById('shift-list').innerHTML = `<div>${html}</div>`;
+  document.getElementById('sch-list').innerHTML = `<div>${html}</div>`;
 }
 
 function scrollToDate(date) {
-  const el = document.getElementById('date-' + date);
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const el = document.getElementById('date-'+date);
+  if (el) el.scrollIntoView({behavior:'smooth',block:'center'});
 }
 
-function quickRequest(date, currentShift) {
-  switchTab('request');
-  document.getElementById('req-type').value = 'change';
-  onReqTypeChange();
-  const ci = document.getElementById('change-date');
-  if (ci) ci.value = date;
+function quickReq(date, shift) {
+  switchTab('req');
+  setReqType('swap', null);
+  const sd = document.getElementById('sw-date');
+  if (sd) { sd.value = date; detectColleagueShift(); }
 }
 
-/* ── Request form ─────────────────────────────────────── */
-function onReqTypeChange() {
-  const t = document.getElementById('req-type').value;
-  U.hide('leave-fields'); U.hide('swap-fields'); U.hide('change-fields'); U.hide('reason-group'); U.hide('submit-btn');
-  if (t === 'leave')  { U.show('leave-fields');  U.show('reason-group'); U.show('submit-btn'); }
-  if (t === 'swap')   { U.show('swap-fields');   U.show('reason-group'); U.show('submit-btn'); }
-  if (t === 'change') { U.show('change-fields'); U.show('reason-group'); U.show('submit-btn'); }
+/* ── Request type ─────────────────────────────────── */
+function setReqType(type, el) {
+  selReqType = type;
+  document.querySelectorAll('#req-type-chips .shift-chip').forEach(c => c.classList.remove('sel'));
+  if (el) el.classList.add('sel');
+  ['leave','swap','pref'].forEach(t =>
+    document.getElementById('form-'+t).style.display = t===type?'':'none'
+  );
 }
 
-function setDefaultDates() {
-  const t = today;
-  const ci = document.getElementById('leave-start'); if (ci) ci.value = t;
-  const ce = document.getElementById('leave-end');   if (ce) ce.value = t;
-  const sd = document.getElementById('swap-date');   if (sd) sd.value = t;
-  const cd = document.getElementById('change-date'); if (cd) cd.value = t;
-}
-
-function populateSwapWith() {
-  const sel = document.getElementById('swap-with');
-  (allData?.agents || [])
-    .filter(a => (a.n || a.name) !== user.name)
-    .sort((a, b) => (a.n || a.name).localeCompare(b.n || b.name))
+/* ── Colleagues ───────────────────────────────────── */
+function fillColleagues() {
+  const sel = document.getElementById('sw-colleague');
+  (data?.agents||[])
+    .filter(a => (a.n||a.name) !== user.name)
+    .sort((a,b) => (a.n||a.name).localeCompare(b.n||b.name))
     .forEach(a => {
       const o = document.createElement('option');
-      o.value = a.n || a.name;
-      o.textContent = `${a.n || a.name} (${a.t || a.team})`;
+      o.value = a.n||a.name;
+      o.textContent = `${a.n||a.name} (${a.t||''})`;
       sel.appendChild(o);
     });
 }
 
-function populateChangeShifts() {
-  const sel = document.getElementById('change-shift');
-  CFG.SHIFT_OPTIONS.forEach(s => {
-    const o = document.createElement('option');
-    o.value = s; o.textContent = s;
-    sel.appendChild(o);
+function detectColleagueShift() {
+  const date      = document.getElementById('sw-date').value;
+  const colleague = document.getElementById('sw-colleague').value;
+  if (!date) return;
+
+  const idx = allDates.indexOf(date);
+
+  // My shift
+  const myShift = myAgent && idx>=0 && myAgent.sch ? myAgent.sch[idx] : '';
+  document.getElementById('sw-myshift').value = myShift || 'Not scheduled';
+
+  // Colleague shift
+  if (colleague) {
+    const ca = (data?.agents||[]).find(a => (a.n||a.name) === colleague);
+    const cs = ca && idx>=0 && ca.sch ? ca.sch[idx] : '';
+    document.getElementById('sw-theirshift').value = cs || 'Not scheduled';
+  }
+}
+
+function setDefaultDates() {
+  const t = today;
+  ['lv-from','lv-to','sw-date'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = t;
   });
+  // Preference period defaults
+  const pf = document.getElementById('pf-from');
+  const pt = document.getElementById('pf-to');
+  if (pf) pf.value = U.addDays(today, 7);
+  if (pt) pt.value = U.addDays(today, 37);
 }
 
-async function submitRequest() {
-  const type = document.getElementById('req-type').value;
-  const reason = document.getElementById('req-reason').value.trim();
-  if (!type) return U.toast('Select request type', 'warn');
+/* ── Shift/day toggles ────────────────────────────── */
+function toggleShift(el, val) {
+  el.classList.toggle('sel');
+  if (selShifts.has(val)) selShifts.delete(val);
+  else selShifts.add(val);
+}
+function toggleDay(el, val) {
+  el.classList.toggle('sel');
+  if (selDays.has(val)) selDays.delete(val);
+  else selDays.add(val);
+}
 
-  const btn = document.getElementById('submit-btn');
-  btn.disabled = true; btn.textContent = 'Submitting…';
+function adj(id, delta) {
+  const el = document.getElementById(id);
+  const v  = Math.max(0, Math.min(7, parseInt(el.textContent||0) + delta));
+  el.textContent = v;
+}
 
+/* ── Submit Leave ─────────────────────────────────── */
+async function submitLeave() {
+  const from = document.getElementById('lv-from').value;
+  const to   = document.getElementById('lv-to').value;
+  const type = document.getElementById('lv-type').value;
+  if (!from||!to) return U.toast('Select dates','warn');
+  if (from > to)  return U.toast('From date must be before To date','warn');
   try {
-    let result;
-    if (type === 'leave') {
-      result = await API.submitLeave({
-        agent: user.name, team: user.dept,
-        startDate: document.getElementById('leave-start').value,
-        endDate:   document.getElementById('leave-end').value,
-        type:      document.getElementById('leave-type').value,
-        reason, submittedBy: user.name,
-      });
-    } else if (type === 'swap') {
-      const swDate = document.getElementById('swap-date').value;
-      const swWith = document.getElementById('swap-with').value;
-      if (!swWith) { U.toast('Select a colleague to swap with', 'warn'); return; }
-      const myIdx = allDates.indexOf(swDate);
-      const myShift = myAgent && myIdx >= 0 ? (myAgent.sch?.[myIdx] || '') : '';
-      result = await API.submitSwap({
-        from: user.name, to: swWith, date: swDate,
-        shiftFrom: myShift,
-        shiftTo:   document.getElementById('swap-theirshift').value || '',
-        reason,
-      });
-    } else {
-      result = await API.submitScheduleRequest({
-        agent: user.name, team: user.dept,
-        date:          document.getElementById('change-date').value,
-        currentShift:  '',
-        requestedShift:document.getElementById('change-shift').value,
-        reason,
-      });
-    }
-
-    if (result?.ok !== false) {
-      U.toast('Request submitted successfully ✓', 'ok');
-      document.getElementById('req-type').value = '';
-      document.getElementById('req-reason').value = '';
-      onReqTypeChange();
-      API.clearCache();
-      switchTab('history');
-      allData = await API.getAll(true);
-      renderHistory();
-    } else {
-      U.toast('Submission failed — try again', 'err');
-    }
-  } catch(e) { U.toast('Network error', 'err'); }
-  finally { btn.disabled = false; btn.textContent = 'Submit Request'; }
+    await API.submitLeave({ agent:user.name, team:user.dept, startDate:from, endDate:to,
+      type, reason:document.getElementById('lv-reason').value, submittedBy:user.name });
+    U.toast('Leave request submitted ✓','ok');
+    switchTab('hist');
+    data = await API.getAll(true);
+    renderHist();
+  } catch(e) { U.toast('Failed to submit','err'); }
 }
 
-/* ── History ──────────────────────────────────────────── */
-function renderHistory() {
-  const leaves = (allData?.leaves || []).filter(l => l.agent === user.name).reverse();
-  const schReqs = (allData?.scheduleRequests || allData?.schRequests || []).filter(r => r.agent === user.name).reverse();
-  const swaps   = (allData?.swaps || []).filter(s => s.from === user.name || s.to === user.name).reverse();
-  const all     = [
-    ...leaves.map(l => ({ ...l, _kind: 'Leave', _icon: '🏖️' })),
-    ...schReqs.map(r => ({ ...r, _kind: 'Shift Change', _icon: '🔄' })),
-    ...swaps.map(s => ({ ...s, _kind: 'Swap', _icon: '↔️' })),
-  ].sort((a, b) => new Date(b.ts || b.created_at || 0) - new Date(a.ts || a.created_at || 0));
+/* ── Submit Swap ──────────────────────────────────── */
+async function submitSwap() {
+  const date = document.getElementById('sw-date').value;
+  const coll = document.getElementById('sw-colleague').value;
+  if (!date||!coll) return U.toast('Fill all fields','warn');
+  const myShift   = document.getElementById('sw-myshift').value || '';
+  const theirShift= document.getElementById('sw-theirshift').value || '';
+  try {
+    await API.submitSwap({ from:user.name, to:coll, date,
+      shiftFrom:myShift, shiftTo:theirShift,
+      reason:document.getElementById('sw-reason').value });
+    U.toast('Swap request submitted ✓','ok');
+    switchTab('hist');
+    data = await API.getAll(true);
+    renderHist();
+  } catch(e) { U.toast('Failed to submit','err'); }
+}
+
+/* ── Submit Schedule Preference ───────────────────── */
+async function submitPref() {
+  const from = document.getElementById('pf-from').value;
+  const to   = document.getElementById('pf-to').value;
+  if (!from||!to) return U.toast('Select period dates','warn');
+  try {
+    await API.submitScheduleRequest({
+      agent: user.name, team: user.dept,
+      date: from,
+      periodFrom: from, periodTo: to,
+      morningWeek:   document.getElementById('pf-morn').textContent,
+      afternoonWeek: document.getElementById('pf-aft').textContent,
+      nightWeek:     document.getElementById('pf-night').textContent,
+      requestedShift: [...selShifts].join(' | '),
+      offDayType:  document.getElementById('pf-offtype').value,
+      specificOff: [...selDays].join(', '),
+      consecutive: document.getElementById('pf-consec').value,
+      reason: document.getElementById('pf-notes').value,
+    });
+    U.toast('Preference submitted ✓','ok');
+    switchTab('hist');
+    data = await API.getAll(true);
+    renderHist();
+  } catch(e) { U.toast('Failed to submit','err'); }
+}
+
+/* ── History ──────────────────────────────────────── */
+function renderHist() {
+  const leaves = (data?.leaves||[]).filter(l => l.agent===user.name).reverse();
+  const swaps  = (data?.swaps||[]).filter(s => s.from===user.name||s.to===user.name).reverse();
+  const prefs  = (data?.scheduleRequests||[]).filter(r => r.agent===user.name).reverse();
+  const all    = [
+    ...leaves.map(l => ({...l,_k:'Leave',_i:'🏖'})),
+    ...swaps.map(s  => ({...s,_k:'Swap', _i:'🔄'})),
+    ...prefs.map(r  => ({...r,_k:'Preference',_i:'📋'})),
+  ].sort((a,b) => new Date(b.ts||b.Timestamp||0) - new Date(a.ts||a.Timestamp||0));
 
   if (!all.length) {
-    document.getElementById('history-list').innerHTML = `<div class="card-body"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-msg">No requests yet</div></div></div>`;
+    document.getElementById('hist-list').innerHTML =
+      `<div class="card-body"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-msg">No requests yet</div></div></div>`;
     return;
   }
 
-  const statusPill = s => s === 'approved' ? 'pill-green' : s === 'rejected' ? 'pill-red' : 'pill-amber';
+  const sP = s => {
+    s=(s||'').toLowerCase();
+    return s==='approved'?'pill-green':s==='rejected'?'pill-red':'pill-amber';
+  };
 
-  document.getElementById('history-list').innerHTML = all.map(r => `
-    <div class="row-item" style="padding:11px 13px;">
-      <div class="row-icon" style="background:var(--bg);font-size:18px;">${r._icon}</div>
+  document.getElementById('hist-list').innerHTML = all.map(r => {
+    const status = r.status||r.Status||'pending';
+    const date   = r._k==='Leave' ? U.normDate(r.startDate||r.From||'')
+                 : r._k==='Swap'  ? U.normDate(r.date||r.Date||'')
+                 : U.normDate(r.periodFrom||r.submitDate||'');
+    const sub    = r._k==='Leave' ? `${r.type||r.Type} · ${date}`
+                 : r._k==='Swap'  ? `${r.from||r.From} ↔ ${r.to||r.To} · ${date}`
+                 : `Period: ${date}`;
+    return `<div class="row-item" style="padding:10px 13px;">
+      <div class="row-icon" style="background:var(--bg);font-size:17px;">${r._i}</div>
       <div class="row-info">
-        <div class="row-title">${r._kind} · ${U.normDate(r.startDate || r.date || '')}</div>
-        <div class="row-meta">${r.type || r.reason || '—'} · ${U.timeAgo(r.ts || r.created_at || '')}</div>
+        <div class="row-title">${r._k}</div>
+        <div class="row-meta">${sub}</div>
       </div>
-      <span class="pill ${statusPill(r.status)}">${r.status || 'pending'}</span>
-    </div>`).join('');
+      <span class="pill ${sP(status)}">${status}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ── Full Team Schedule Grid ─────────────────────────── */
+let gridTeamFilter = 'All';
+
+function buildGridTeamFilter() {
+  const teams = ['All',...CFG.TEAMS.filter(t=>(allData?.agents||[]).some(a=>a.t===t))];
+  document.getElementById('grid-team-filter').innerHTML = teams.map(t=>
+    `<button class="tab-item ${t===gridTeamFilter?'active':''}" onclick="setGridTeam('${t}',this)">${t}</button>`
+  ).join('');
+}
+
+function setGridTeam(t,el){
+  gridTeamFilter=t;
+  document.querySelectorAll('#grid-team-filter .tab-item').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active'); renderFullGrid();
+}
+
+function renderFullGrid() {
+  const search = (document.getElementById('grid-search')?.value||'').toLowerCase();
+  let agents = (allData?.agents||[]).filter(a=>a.t!=='Management');
+  if (gridTeamFilter!=='All') agents=agents.filter(a=>a.t===gridTeamFilter);
+  if (search) agents=agents.filter(a=>(a.n||a.name||'').toLowerCase().includes(search));
+
+  const dates = (allData?.dates||[]).map(d=>U.normDate(d));
+  if (!dates.length||!agents.length) {
+    document.getElementById('grid-wrap').innerHTML='<div class="card-body"><div class="empty-state"><div class="empty-icon">📅</div><div class="empty-msg">No schedule data</div></div></div>';
+    return;
+  }
+
+  // Date labels (short)
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dateLabels = dates.map(d=>{
+    const dt=new Date(d+'T00:00:00');
+    return `${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dt.getDay()]}\n${dt.getDate()} ${months[dt.getMonth()]}`;
+  });
+
+  // Title
+  if(dates.length>=2){
+    const f=new Date(dates[0]+'T00:00:00'),l=new Date(dates[dates.length-1]+'T00:00:00');
+    document.getElementById('grid-title').textContent=`Team Schedule — ${f.getDate()} ${months[f.getMonth()]} – ${l.getDate()} ${months[l.getMonth()]}`;
+  }
+
+  // Group by team
+  const teams=[...new Set(agents.map(a=>a.t))];
+  const TEAM_COLORS={Inbound:'#0D5CA6',Outbound:'#7C3AED',ITM:'#00A89A',Wage:'#B45309','Back Office':'#374151',Quality:'#DC2626',Supervisors:'#0A4A8A',Management:'#1E293B',OP:'#0369A1'};
+
+  let th=`<th style="position:sticky;left:0;z-index:20;background:#0A2E5A;color:rgba(255,255,255,.7);padding:8px 12px;font-size:11px;font-weight:700;text-align:left;min-width:170px;border-right:2px solid rgba(255,255,255,.1);">Agent</th>`;
+  dates.forEach((d,i)=>{
+    const isT=d===today,isW=U.isWeekend(d);
+    const bg=isT?'#00A89A':isW?'#0D2040':'#0A2E5A';
+    th+=`<th style="background:${bg};color:${isT?'#fff':'rgba(255,255,255,.7)'};padding:8px 4px;font-size:9px;font-weight:700;text-align:center;min-width:58px;white-space:pre-line;">${dateLabels[i]}</th>`;
+  });
+
+  let rows='';
+  teams.forEach(team=>{
+    const members=agents.filter(a=>a.t===team);
+    if(!members.length) return;
+    const tc=TEAM_COLORS[team]||'#6B7280';
+    rows+=`<tr><td colspan="${dates.length+1}" style="background:#EEF4FC;font-size:10px;font-weight:800;color:${tc};text-transform:uppercase;letter-spacing:.7px;padding:6px 12px;position:sticky;left:0;">${team} (${members.length})</td></tr>`;
+    members.forEach(ag=>{
+      const name=ag.n||ag.name;
+      const isMe=name===user.name;
+      rows+=`<tr style="${isMe?'background:rgba(13,92,166,.04);':''}">
+        <td style="position:sticky;left:0;background:${isMe?'rgba(13,92,166,.06)':'#fff'};border-right:2px solid #C9DDF0;padding:8px 12px;font-size:12px;font-weight:${isMe?'800':'600'};color:#0A2E5A;white-space:nowrap;min-width:170px;">
+          ${name}${isMe?' <span style="font-size:9px;background:#0D5CA6;color:#fff;border-radius:4px;padding:1px 5px;">ME</span>':''}
+        </td>`;
+      dates.forEach((d,i)=>{
+        const raw=ag.sch?ag.sch[i]:'OFF';
+        const isT=d===today,isW=U.isWeekend(d);
+        const isOff=['OFF','AL','SL','PH','UL','PL'].includes(raw)||!raw;
+        // Short label
+        const m2=raw.match(/^(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})$/);
+        const short=m2?`${m2[1]}-${m2[3]}`:raw||'OFF';
+        // Color
+        let bg='#F3F4F6',fg='#9CA3AF';
+        if(!isOff&&m2){
+          const h=parseInt(m2[1]);
+          if(h<9){bg='#DBEAFE';fg='#1D4ED8';}
+          else if(h<12){bg='#E0F2FE';fg='#0369A1';}
+          else if(h<15){bg='#CCFBF1';fg='#0F766E';}
+          else if(h<18){bg='#FEF3CD';fg='#D97706';}
+          else if(h<22){bg='#F3E8FF';fg='#7C3AED';}
+          else {bg='#F1F5F9';fg='#475569';}
+        } else if(['AL','SL'].includes(raw)){bg='#FEE2E2';fg='#DC2626';}
+        const cellBg=isW?'rgba(240,245,251,.5)':'';
+        rows+=`<td style="padding:4px 3px;text-align:center;border-bottom:1px solid #E2ECF8;border-right:1px solid #E2ECF8;${isT?'background:rgba(0,168,154,.06);':''}${cellBg}">
+          <div style="background:${bg};color:${fg};border-radius:5px;padding:3px 2px;font-size:9px;font-weight:800;white-space:nowrap;">${short}</div>
+        </td>`;
+      });
+      rows+='</tr>';
+    });
+  });
+
+  document.getElementById('grid-wrap').innerHTML=`
+    <table style="border-collapse:collapse;width:max-content;min-width:100%;">
+      <thead style="position:sticky;top:0;z-index:10;"><tr>${th}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function exportScheduleCSV() {
+  const agents=(allData?.agents||[]).filter(a=>a.t!=='Management');
+  const dates=(allData?.dates||[]).map(d=>U.normDate(d));
+  const rows=[['Agent','Team',...dates]];
+  agents.forEach(ag=>rows.push([ag.n||ag.name,ag.t||'',...(ag.sch||[])]));
+  U.downloadCSV(rows,`KIB_Schedule_${today}.csv`);
 }
 
 init();

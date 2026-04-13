@@ -32,10 +32,14 @@
   <div class="page-content">
 
     <!-- Date selector -->
-    <div class="card" style="margin-top:12px;">
+    <div class="tab-bar" style="margin-top:12px;">
+      <button class="tab-item active" id="tab-today" onclick="attTab('today')">📋 Today</button>
+      <button class="tab-item" id="tab-athist" onclick="attTab('athist')">🕓 History</button>
+    </div>
+    <div class="card">
       <div class="card-header">
-        <div class="card-title">Attendance</div>
-        <input type="date" class="fld" id="att-date" style="width:auto;padding:6px 10px;font-size:12px;" onchange="onDateChange()">
+        <div class="card-title" id="att-title">Attendance</div>
+        <input type="date" class="fld" id="att-date" style="width:auto;padding:6px 10px;font-size:16px;" onchange="onDateChange()">
       </div>
     </div>
 
@@ -267,6 +271,72 @@ function exportAtt() {
     rows.push([name, ag.t, selDate, rec.status||'', rec.time||'', rec.note||'']);
   });
   U.downloadCSV(rows, `KIB_Attendance_${selDate}.csv`);
+}
+
+function attTab(tab) {
+  ['today','athist'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
+  });
+  const mgmtView=document.getElementById('mgmt-att-view');
+  const agentView=document.getElementById('agent-checkin');
+  if(tab==='athist') {
+    if(mgmtView) mgmtView.style.display='none';
+    if(agentView) agentView.style.display='none';
+    renderAttHistory();
+  } else {
+    if(isMgmt&&mgmtView) mgmtView.style.display='';
+    if(!isMgmt&&agentView) agentView.style.display='';
+  }
+}
+
+function renderAttHistory() {
+  // Show attendance history for past 30 days
+  const target = isMgmt ? null : user.name; // null = all agents
+  const hist = (allData?.attendance||[])
+    .filter(a=>!target||(a.agent===target))
+    .sort((a,b)=>b.date?.localeCompare(a.date||''));
+
+  // Group by date
+  const byDate={};
+  hist.forEach(a=>{
+    const d=U.normDate(a.date);
+    if(!byDate[d]) byDate[d]=[];
+    byDate[d].push(a);
+  });
+
+  const mgmtView=document.getElementById('mgmt-att-view');
+  const agentView=document.getElementById('agent-checkin');
+  if(mgmtView) mgmtView.style.display='none';
+  if(agentView) agentView.style.display='none';
+
+  // Insert history view
+  let histEl=document.getElementById('att-hist-view');
+  if(!histEl){
+    histEl=document.createElement('div');
+    histEl.id='att-hist-view';
+    document.querySelector('.page-content').appendChild(histEl);
+  }
+
+  if(!Object.keys(byDate).length){
+    histEl.innerHTML='<div class="card"><div class="card-body"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-msg">No attendance history</div></div></div></div>';
+    return;
+  }
+
+  const statusPill=s=>s==='on_time'?'pill-green':s==='late'?'pill-amber':s==='sick'||s==='noshow'?'pill-red':'pill-navy';
+
+  histEl.innerHTML = Object.entries(byDate).slice(0,30).map(([date,records])=>`
+    <div class="card" style="margin-bottom:10px;">
+      <div class="card-header"><div class="card-title">${U.fmtDisplay(date)}</div><span class="pill pill-gray">${records.length} records</span></div>
+      ${records.map(r=>`
+        <div class="row-item" style="padding:10px 13px;">
+          <div class="row-icon" style="background:var(--bg);font-size:16px;">👤</div>
+          <div class="row-info">
+            <div class="row-title">${r.agent}</div>
+            <div class="row-meta">${r.markedBy||r.MarkedBy||'—'} · ${r.note||r.Note||''}</div>
+          </div>
+          <span class="pill ${statusPill(r.status)}">${r.status}</span>
+        </div>`).join('')}
+    </div>`).join('');
 }
 
 init();

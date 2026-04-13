@@ -105,11 +105,11 @@ const CFG = {
     ],
     // management (TL/ATL/QA/BackOffice): team monitor + attendance + approvals + schedule
     management: [
-      { id:'home',       icon:'🏠', label:'Home',       page:'home.html'       },
-      { id:'schedule',   icon:'📅', label:'Schedule',   page:'schedule.html'   },
-      { id:'breaks',     icon:'☕', label:'Team',       page:'breaks.html'     },
-      { id:'attendance', icon:'✅', label:'Attendance', page:'attendance.html' },
-      { id:'requests',   icon:'🔔', label:'Approvals',  page:'requests.html'   },
+      { id:'home',         icon:'🏠', label:'Home',       page:'home.html'       },
+      { id:'breaks',       icon:'☕', label:'Breaks',     page:'breaks.html'     },
+      { id:'attendance',   icon:'✅', label:'Attendance', page:'attendance.html' },
+      { id:'requests',     icon:'📋', label:'Requests',   page:'requests.html'   },
+      { id:'kpi',          icon:'📊', label:'KPI',        page:'kpi.html'        },
     ],
     // wfm: schedule editor + kpi + attendance + admin
     wfm: [

@@ -12,103 +12,106 @@
 <body>
 <div id="kib-topbar"></div>
 <div id="kib-app">
-  <div id="user-strip-container"></div>
+  <div id="user-strip-wrap"></div>
   <div class="page-content">
 
     <div class="tab-bar" style="margin-top:12px;">
-      <button class="tab-item active" id="tab-log"  onclick="switchTab('log')">📝 Log Entry</button>
-      <button class="tab-item" id="tab-dash" onclick="switchTab('dash')">📊 Dashboard</button>
+      <button class="tab-item active" id="tab-log"  onclick="switchTab('log')">📝 Log</button>
+      <button class="tab-item"        id="tab-dash" onclick="switchTab('dash')">📊 Dashboard</button>
+      <button class="tab-item"        id="tab-act"  onclick="switchTab('act')">📋 Activity Log</button>
     </div>
 
-    <!-- Log entry -->
+    <!-- ══ LOG ══ -->
     <div id="pane-log">
-      <div class="sec-hdr">Extra Break</div>
-      <div class="card">
-        <div class="card-body">
-          <div class="form-group">
-            <label class="fld-label">Agent</label>
-            <select class="fld" id="kpi-agent-extra"></select>
-          </div>
-          <div class="form-group">
-            <label class="fld-label">Duration (minutes)</label>
-            <input class="fld" type="number" id="kpi-extra-dur" placeholder="e.g. 10" min="1" max="60">
-          </div>
-          <div class="form-group">
-            <label class="fld-label">Reason</label>
-            <input class="fld" type="text" id="kpi-extra-reason" placeholder="Reason for extra break">
-          </div>
-          <button class="btn btn-navy btn-block" onclick="logKPI('extra')">Log Extra Break</button>
-        </div>
-      </div>
 
+      <!-- Extra Break -->
+      <div class="sec-hdr">Extra Break</div>
+      <div class="card"><div class="card-body">
+        <div class="form-group"><label class="fld-label">Agent</label><select class="fld" id="eb-agent"></select></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="form-group"><label class="fld-label">Duration (min)</label><input class="fld" type="number" id="eb-dur" placeholder="e.g. 10" min="1" max="120"></div>
+          <div class="form-group"><label class="fld-label">Shift</label><select class="fld" id="eb-shift">
+            <option value="Morning">Morning</option><option value="Afternoon">Afternoon</option>
+            <option value="Evening">Evening</option><option value="Night">Night</option>
+          </select></div>
+        </div>
+        <div class="form-group"><label class="fld-label">Approved By</label><select class="fld" id="eb-approver"></select></div>
+        <div class="form-group"><label class="fld-label">Reason</label><input class="fld" type="text" id="eb-reason" placeholder="Reason for extra break"></div>
+        <div class="form-group"><label class="fld-label">Comment</label><input class="fld" type="text" id="eb-comment" placeholder="Optional comment"></div>
+        <button class="btn btn-amber btn-block" onclick="logKPI('extra')">Log Extra Break</button>
+      </div></div>
+
+      <!-- Meeting -->
       <div class="sec-hdr">Meeting / Training</div>
-      <div class="card">
-        <div class="card-body">
-          <div class="form-group">
-            <label class="fld-label">Agent(s)</label>
-            <select class="fld" id="kpi-agent-meeting"></select>
-          </div>
-          <div class="form-group">
-            <label class="fld-label">Duration (minutes)</label>
-            <input class="fld" type="number" id="kpi-meet-dur" placeholder="e.g. 30">
-          </div>
-          <div class="form-group">
-            <label class="fld-label">Meeting Type</label>
-            <select class="fld" id="kpi-meet-type">
-              <option value="meeting">Meeting</option>
-              <option value="training">Training</option>
-              <option value="coaching">Coaching</option>
-              <option value="briefing">Briefing</option>
+      <div class="card"><div class="card-body">
+        <div class="form-group"><label class="fld-label">Agent</label><select class="fld" id="mt-agent"></select></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="form-group"><label class="fld-label">Duration (min)</label><input class="fld" type="number" id="mt-dur" placeholder="e.g. 30"></div>
+          <div class="form-group"><label class="fld-label">Shift</label><select class="fld" id="mt-shift">
+            <option value="Morning">Morning</option><option value="Afternoon">Afternoon</option>
+            <option value="Evening">Evening</option><option value="Night">Night</option>
+          </select></div>
+        </div>
+        <div class="form-group"><label class="fld-label">Subject / Topic</label><input class="fld" type="text" id="mt-subject" placeholder="Meeting topic or training name"></div>
+        <div class="form-group"><label class="fld-label">Organizer</label><select class="fld" id="mt-organizer"></select></div>
+        <div class="form-group"><label class="fld-label">Comment</label><input class="fld" type="text" id="mt-comment" placeholder="Optional"></div>
+        <button class="btn btn-teal btn-block" onclick="logKPI('meeting')">Log Meeting</button>
+      </div></div>
+
+      <!-- Permission -->
+      <div class="sec-hdr">Permission</div>
+      <div class="card"><div class="card-body">
+        <div class="form-group"><label class="fld-label">Agent</label><select class="fld" id="pm-agent"></select></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="form-group"><label class="fld-label">From Time</label><input class="fld" type="time" id="pm-from"></div>
+          <div class="form-group"><label class="fld-label">To Time</label><input class="fld" type="time" id="pm-to"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="form-group"><label class="fld-label">Duration (min)</label><input class="fld" type="number" id="pm-dur" placeholder="e.g. 60"></div>
+          <div class="form-group"><label class="fld-label">Monthly Count</label><input class="fld" type="number" id="pm-count" value="1" min="1"></div>
+        </div>
+        <div class="form-group"><label class="fld-label">Permission Type</label>
+          <select class="fld" id="pm-type">
+            <option value="Personal permissions">Personal</option>
+            <option value="Medical">Medical</option>
+            <option value="Family emergency">Family Emergency</option>
+            <option value="Official business">Official Business</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="fld-label">Approved By</label><select class="fld" id="pm-approver"></select></div>
+        <div class="form-group"><label class="fld-label">Reason</label><input class="fld" type="text" id="pm-reason" placeholder="Permission reason"></div>
+        <button class="btn btn-navy btn-block" onclick="logKPI('permission')">Log Permission</button>
+      </div></div>
+
+      <!-- System Issue -->
+      <div class="sec-hdr">System Issue</div>
+      <div class="card"><div class="card-body">
+        <div class="form-group"><label class="fld-label">Agent (if agent-specific, else leave blank)</label><select class="fld" id="si-agent"><option value="">— All agents affected —</option></select></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="form-group"><label class="fld-label">Application / System</label><input class="fld" type="text" id="si-app" placeholder="e.g. IVR, CRM, PC"></div>
+          <div class="form-group"><label class="fld-label">Duration (min)</label><input class="fld" type="number" id="si-dur" placeholder="e.g. 15"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="form-group"><label class="fld-label">Issue Type</label>
+            <select class="fld" id="si-type">
+              <option value="Low">Low</option><option value="Medium">Medium</option>
+              <option value="High">High</option><option value="Critical">Critical</option>
             </select>
           </div>
-          <button class="btn btn-teal btn-block" onclick="logKPI('meeting')">Log Meeting</button>
+          <div class="form-group"><label class="fld-label">Helpdesk No.</label><input class="fld" type="text" id="si-hd" placeholder="Ticket #"></div>
         </div>
-      </div>
+        <div class="form-group"><label class="fld-label">Description</label><textarea class="fld" id="si-desc" rows="2" placeholder="Describe the issue…" style="resize:none;"></textarea></div>
+        <div class="form-group"><label class="fld-label">Approved By</label><select class="fld" id="si-approver"></select></div>
+        <button class="btn btn-red btn-block" onclick="logKPI('issue')">Log System Issue</button>
+      </div></div>
 
-      <div class="sec-hdr">Permission / Permission</div>
-      <div class="card">
-        <div class="card-body">
-          <div class="form-group">
-            <label class="fld-label">Agent</label>
-            <select class="fld" id="kpi-agent-perm"></select>
-          </div>
-          <div class="form-group">
-            <label class="fld-label">Duration (minutes)</label>
-            <input class="fld" type="number" id="kpi-perm-dur" placeholder="e.g. 20">
-          </div>
-          <div class="form-group">
-            <label class="fld-label">Reason</label>
-            <input class="fld" type="text" id="kpi-perm-reason" placeholder="Permission reason">
-          </div>
-          <button class="btn btn-amber btn-block" onclick="logKPI('permission')">Log Permission</button>
-        </div>
-      </div>
+    </div><!-- /pane-log -->
 
-      <div class="sec-hdr">System Issue</div>
-      <div class="card">
-        <div class="card-body">
-          <div class="form-group">
-            <label class="fld-label">Affected Team / System</label>
-            <input class="fld" type="text" id="kpi-issue-sys" placeholder="e.g. IVR, CRM, Internet">
-          </div>
-          <div class="form-group">
-            <label class="fld-label">Duration (minutes)</label>
-            <input class="fld" type="number" id="kpi-issue-dur" placeholder="Duration of issue">
-          </div>
-          <div class="form-group">
-            <label class="fld-label">Description</label>
-            <textarea class="fld" id="kpi-issue-desc" rows="2" placeholder="Describe the issue…" style="resize:none;"></textarea>
-          </div>
-          <button class="btn btn-red btn-block" onclick="logKPI('issue')">Log System Issue</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Dashboard -->
+    <!-- ══ DASHBOARD ══ -->
     <div id="pane-dash" style="display:none;">
-      <div class="card" style="margin-top:8px;">
+      <div class="card">
         <div class="card-header">
-          <div class="card-title">Today's KPI Summary</div>
+          <div class="card-title">KPI Summary</div>
           <input type="date" id="kpi-date" class="fld" style="width:auto;padding:5px 9px;font-size:12px;" onchange="renderDash()">
         </div>
         <div class="card-body">
@@ -120,11 +123,24 @@
           </div>
         </div>
       </div>
+
       <div class="card">
-        <div class="card-header"><div class="card-title">Recent Entries</div></div>
-        <div id="kpi-log-list" class="card-body">
-          <div class="skel" style="height:48px;margin-bottom:6px;border-radius:8px;"></div>
+        <div class="card-header">
+          <div class="card-title">Entries</div>
+          <button class="btn btn-xs btn-outline" onclick="exportKPI()">⬇ Export</button>
         </div>
+        <div id="kpi-entries"></div>
+      </div>
+    </div>
+
+    <!-- ══ ACTIVITY LOG ══ -->
+    <div id="pane-act" style="display:none;">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Activity Log</div>
+          <button class="btn btn-xs btn-outline" onclick="exportActLog()">⬇ Export</button>
+        </div>
+        <div id="act-list"></div>
       </div>
     </div>
 
@@ -138,109 +154,211 @@
 <script src="js/utils.js"></script>
 <script src="js/nav.js"></script>
 <script>
-if (!Auth.guard()) throw 0; // All roles can submit KPI
+if (!Auth.guard('management')) throw 0;
 
 const user  = Auth.user();
-let allData = null;
+const today = U.today();
+let data    = null;
 
 Nav.init('kpi');
-document.getElementById('user-strip-container').innerHTML = Nav.renderUserStrip();
-document.getElementById('kpi-date').value = U.today();
+document.getElementById('user-strip-wrap').innerHTML = Nav.renderUserStrip();
+document.getElementById('kpi-date').value = today;
+
+/* ── Auto-fill shift from schedule ─────────────────────── */
+function autoFillShift(agentName) {
+  if (!agentName || !allData) return;
+  const agents = allData.agents || [];
+  const dates  = (allData.dates||[]).map(d=>U.normDate(d));
+  const ag     = agents.find(a=>(a.n||a.name)===agentName);
+  if (!ag) return;
+  const idx = dates.indexOf(U.today());
+  if (idx<0||!ag.sch) return;
+  const raw   = ag.sch[idx] || '';
+  const m     = raw.match(/(\d{1,2}:\d{2})-(\d{1,2}:\d{2})/);
+  const shift  = m ? raw : raw||'—';
+  // Find shift label for this time
+  let label = 'Morning';
+  if (m) {
+    const h=parseInt(m[1]);
+    if(h<9)label='Morning'; else if(h<12)label='Mid-Morning';
+    else if(h<15)label='Afternoon'; else if(h<18)label='Evening'; else label='Night';
+  }
+  return label;
+}
 
 async function init() {
   try {
-    allData = await API.getAll();
-    populateAgentSelects();
-  } catch(e) { U.toast('Failed to load KPI data','err'); }
+    data = await API.getAll();
+    fillAllSelects();
+  } catch(e) { U.toast('Failed to load','err'); }
 }
 
-function populateAgentSelects() {
-  const isAgent = !Auth.isManagement();
-  const agents = isAgent
-    ? [{ n: user.name, t: user.dept }]  // agents only see themselves
-    : (allData?.agents||[]).filter(a=>a.t!=='Management').sort((a,b)=>(a.n||a.name).localeCompare(b.n||b.name));
-  ['kpi-agent-extra','kpi-agent-meeting','kpi-agent-perm'].forEach(id => {
-    const sel = document.getElementById(id);
-    sel.innerHTML = '<option value="">— Select agent —</option>' +
-      agents.map(a=>`<option value="${a.n||a.name}">${a.n||a.name} (${a.t})</option>`).join('');
+function switchTab(t) {
+  ['log','dash','act'].forEach(id => {
+    document.getElementById('pane-'+id).style.display = id===t?'':'none';
+    document.getElementById('tab-'+id).classList.toggle('active', id===t);
+  });
+  if (t==='dash') renderDash();
+  if (t==='act')  renderActLog();
+}
+
+/* ── Populate selects ────────────────────────────── */
+function fillAllSelects() {
+  const agents = (data?.agents||[])
+    .filter(a => a.t !== 'Management')
+    .sort((a,b) => (a.n||a.name).localeCompare(b.n||b.name));
+
+  const mgmt = (data?.agents||[])
+    .filter(a => ['Supervisors','Management','Quality'].includes(a.t))
+    .sort((a,b) => (a.n||a.name).localeCompare(b.n||b.name));
+
+  const agentOpts = '<option value="">— Select agent —</option>' +
+    agents.map(a => `<option value="${a.n||a.name}">${a.n||a.name} (${a.t})</option>`).join('');
+
+  const mgmtOpts  = `<option value="${user.name}">${user.name} (me)</option>` +
+    mgmt.filter(a => (a.n||a.name)!==user.name)
+        .map(a => `<option value="${a.n||a.name}">${a.n||a.name}</option>`).join('');
+
+  ['eb-agent','mt-agent','pm-agent','si-agent'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = agentOpts;
+  });
+  ['eb-approver','pm-approver','si-approver','mt-organizer'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = mgmtOpts;
   });
 }
 
-function switchTab(tab) {
-  ['log','dash'].forEach(t => {
-    document.getElementById('pane-'+t).style.display = t===tab?'':'none';
-    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
-  });
-  if (tab==='dash') renderDash();
-}
-
+/* ── Log KPI ─────────────────────────────────────── */
 async function logKPI(type) {
-  let entry = { type, date: U.today(), loggedBy: user.name, ts: new Date().toISOString() };
+  let entry = {
+    date: today, type,
+    loggedBy: user.name,
+    Dept: user.dept,
+    Team: user.dept,
+    Shift: '',
+  };
 
-  if (type==='extra') {
-    entry.agent    = document.getElementById('kpi-agent-extra').value;
-    entry.duration = document.getElementById('kpi-extra-dur').value;
-    entry.reason   = document.getElementById('kpi-extra-reason').value;
-    if (!entry.agent||!entry.duration) { U.toast('Fill all fields','warn'); return; }
-  } else if (type==='meeting') {
-    entry.agent    = document.getElementById('kpi-agent-meeting').value;
-    entry.duration = document.getElementById('kpi-meet-dur').value;
-    entry.kind     = document.getElementById('kpi-meet-type').value;
-    if (!entry.agent||!entry.duration) { U.toast('Fill all fields','warn'); return; }
-  } else if (type==='permission') {
-    entry.agent    = document.getElementById('kpi-agent-perm').value;
-    entry.duration = document.getElementById('kpi-perm-dur').value;
-    entry.reason   = document.getElementById('kpi-perm-reason').value;
-    if (!entry.agent||!entry.duration) { U.toast('Fill all fields','warn'); return; }
-  } else if (type==='issue') {
-    entry.system   = document.getElementById('kpi-issue-sys').value;
-    entry.duration = document.getElementById('kpi-issue-dur').value;
-    entry.desc     = document.getElementById('kpi-issue-desc').value;
-    if (!entry.system||!entry.duration) { U.toast('Fill all fields','warn'); return; }
+  if (type === 'extra') {
+    entry.Agent    = document.getElementById('eb-agent').value;
+    entry.Duration = document.getElementById('eb-dur').value;
+    entry.Shift    = document.getElementById('eb-shift').value;
+    entry.ApprovedBy=document.getElementById('eb-approver').value;
+    entry.Reason   = document.getElementById('eb-reason').value;
+    entry.Comment  = document.getElementById('eb-comment').value;
+    if (!entry.Agent||!entry.Duration) return U.toast('Agent and duration required','warn');
+  } else if (type === 'meeting') {
+    entry.Agent    = document.getElementById('mt-agent').value;
+    entry.Duration = document.getElementById('mt-dur').value;
+    entry.Shift    = document.getElementById('mt-shift').value;
+    entry.Subject  = document.getElementById('mt-subject').value;
+    entry.Organizer= document.getElementById('mt-organizer').value;
+    entry.Comment  = document.getElementById('mt-comment').value;
+    if (!entry.Agent||!entry.Duration) return U.toast('Agent and duration required','warn');
+  } else if (type === 'permission') {
+    entry.Agent         = document.getElementById('pm-agent').value;
+    entry.Duration      = document.getElementById('pm-dur').value;
+    entry.From          = document.getElementById('pm-from').value;
+    entry.To            = document.getElementById('pm-to').value;
+    entry.MonthlyCount  = document.getElementById('pm-count').value;
+    entry.PermissionType= document.getElementById('pm-type').value;
+    entry.ApprovedBy    = document.getElementById('pm-approver').value;
+    entry.Reason        = document.getElementById('pm-reason').value;
+    if (!entry.Agent) return U.toast('Select agent','warn');
+  } else if (type === 'issue') {
+    entry.Agent       = document.getElementById('si-agent').value;
+    entry.Application = document.getElementById('si-app').value;
+    entry.Duration    = document.getElementById('si-dur').value;
+    entry.IssueType   = document.getElementById('si-type').value;
+    entry.HelpdeskNo  = document.getElementById('si-hd').value;
+    entry.Description = document.getElementById('si-desc').value;
+    entry.ApprovedBy  = document.getElementById('si-approver').value;
+    if (!entry.Application) return U.toast('Application name required','warn');
   }
 
   try {
     await API.saveKPI(type, entry);
     U.toast(`${type} logged ✓`, 'ok');
     API.clearCache();
-    allData = await API.getAll(true);
-  } catch(e) { U.toast('Failed to log KPI','err'); }
+    data = await API.getAll(true);
+  } catch(e) { U.toast('Failed to log','err'); }
 }
 
+/* ── Dashboard ───────────────────────────────────── */
 function renderDash() {
-  const selDate = document.getElementById('kpi-date').value || U.today();
-  const kpiData = allData?.kpi || {};
-  const extra   = (kpiData.extra    ||[]).filter(e => U.normDate(e.date)===selDate);
-  const meeting = (kpiData.meeting  ||[]).filter(e => U.normDate(e.date)===selDate);
-  const perm    = (kpiData.permission||[]).filter(e => U.normDate(e.date)===selDate);
-  const issue   = (kpiData.issue    ||[]).filter(e => U.normDate(e.date)===selDate);
+  const sel  = document.getElementById('kpi-date').value || today;
+  const kpi  = data?.kpi || {};
+  const norm = v => U.normDate(v?.Date || v?.date || '');
+
+  const extra  = (kpi.extra   ||[]).filter(e => norm(e) === sel);
+  const meet   = (kpi.meeting ||[]).filter(e => norm(e) === sel);
+  const perm   = (kpi.permission||[]).filter(e => norm(e) === sel);
+  const issue  = (kpi.issue   ||[]).filter(e => norm(e) === sel);
 
   U.se('kd-extra', extra.length);
-  U.se('kd-meet',  meeting.length);
+  U.se('kd-meet',  meet.length);
   U.se('kd-perm',  perm.length);
   U.se('kd-issue', issue.length);
 
-  const typeIcon = {extra:'☕',meeting:'📋',permission:'🚪',issue:'⚠️'};
-  const typeColor= {extra:'var(--amber-bg)',meeting:'var(--teal-bg)',permission:'rgba(13,92,166,.08)',issue:'var(--red-bg)'};
-
-  const allEntries = [
+  const typeIcon  = {extra:'☕',meeting:'📋',permission:'🚪',issue:'⚠️'};
+  const typeBg    = {extra:'var(--amber-bg)',meeting:'var(--teal-bg)',permission:'rgba(13,92,166,.08)',issue:'var(--red-bg)'};
+  const allEntries= [
     ...extra.map(e=>({...e,_t:'extra'})),
-    ...meeting.map(e=>({...e,_t:'meeting'})),
+    ...meet.map(e=>({...e,_t:'meeting'})),
     ...perm.map(e=>({...e,_t:'permission'})),
     ...issue.map(e=>({...e,_t:'issue'})),
-  ].sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0));
+  ].sort((a,b) => new Date(b.Timestamp||b.ts||0)-new Date(a.Timestamp||a.ts||0));
 
-  document.getElementById('kpi-log-list').innerHTML = allEntries.length
-    ? allEntries.map(e=>`
-      <div class="row-item">
-        <div class="row-icon" style="background:${typeColor[e._t]}">${typeIcon[e._t]}</div>
+  document.getElementById('kpi-entries').innerHTML = allEntries.length
+    ? allEntries.map(e => `
+      <div class="row-item" style="padding:10px 13px;">
+        <div class="row-icon" style="background:${typeBg[e._t]}">${typeIcon[e._t]}</div>
         <div class="row-info">
-          <div class="row-title">${e.agent||e.system||'—'}</div>
-          <div class="row-meta">${e._t} · ${e.duration||'—'} min${e.reason||e.kind||e.desc?' · '+(e.reason||e.kind||e.desc):''}</div>
+          <div class="row-title">${e.Agent||e.agent||'—'}</div>
+          <div class="row-meta">${e._t} · ${e.Duration||e.duration||'—'} min${(e.Reason||e.reason||e.Subject||e.subject||e.Application||e.application)?' · '+(e.Reason||e.reason||e.Subject||e.subject||e.Application||e.application):''}</div>
         </div>
-        <div style="font-size:10px;color:var(--t3);">${e.ts?e.ts.substring(11,16):''}</div>
+        <div style="font-size:10px;color:var(--t3);">${(e.Timestamp||e.ts||'').slice(11,16)||''}</div>
       </div>`).join('')
-    : `<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-msg">No KPI entries for this date</div></div>`;
+    : `<div class="card-body"><div class="empty-state"><div class="empty-icon">📊</div><div class="empty-msg">No KPI entries for this date</div></div></div>`;
+}
+
+/* ── Activity log ────────────────────────────────── */
+function renderActLog() {
+  const log = (data?.activityLog||[]).slice(-100).reverse();
+  const lvlClr = {ok:'var(--green)',err:'var(--red)',warn:'var(--amber)',inf:'var(--navy)'};
+  const lvlIcon= {ok:'✅',err:'❌',warn:'⚠️',inf:'ℹ️'};
+
+  document.getElementById('act-list').innerHTML = log.length
+    ? log.map(e => `
+      <div class="row-item" style="padding:8px 13px;">
+        <div class="row-icon" style="font-size:16px;background:var(--bg);">${lvlIcon[e.level||e.Level||'inf']||'ℹ️'}</div>
+        <div class="row-info">
+          <div class="row-title">${e.action||e.Action||'—'}</div>
+          <div class="row-meta">${e.user||e.Agent||'—'} · ${e.detail||e.Detail||''}</div>
+        </div>
+        <div style="font-size:10px;color:var(--t3);">${(e.ts||e.Timestamp||'').slice(11,16)||''}</div>
+      </div>`).join('')
+    : `<div class="card-body"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-msg">No activity logged yet</div></div></div>`;
+}
+
+/* ── Export ──────────────────────────────────────── */
+function exportKPI() {
+  const sel  = document.getElementById('kpi-date').value || today;
+  const kpi  = data?.kpi || {};
+  const rows = [['Type','Agent','Date','Duration','Details','ApprovedBy']];
+  const norm = v => U.normDate(v?.Date||v?.date||'');
+  [...(kpi.extra||[]).filter(e=>norm(e)===sel).map(e=>['Extra Break',e.Agent||e.agent,sel,e.Duration||e.duration,e.Reason||e.reason,e.ApprovedBy||e.approvedBy]),
+   ...(kpi.meeting||[]).filter(e=>norm(e)===sel).map(e=>['Meeting',e.Agent||e.agent,sel,e.Duration||e.duration,e.Subject||e.subject,e.Organizer||e.organizer]),
+   ...(kpi.permission||[]).filter(e=>norm(e)===sel).map(e=>['Permission',e.Agent||e.agent,sel,e.Duration||e.duration,e.PermissionType||e.permissionType,e.ApprovedBy||e.approvedBy]),
+   ...(kpi.issue||[]).filter(e=>norm(e)===sel).map(e=>['Issue','All',sel,e.Duration||e.duration,e.Application||e.application,e.ApprovedBy||e.approvedBy]),
+  ].forEach(r => rows.push(r));
+  U.downloadCSV(rows, `KIB_KPI_${sel}.csv`);
+}
+
+function exportActLog() {
+  const rows = [['Timestamp','Agent','Role','Action','Detail','Level']];
+  (data?.activityLog||[]).forEach(e => rows.push([e.ts||e.Timestamp,e.user||e.Agent,e.role||e.Role,e.action||e.Action,e.detail||e.Detail,e.level||e.Level]));
+  U.downloadCSV(rows, `KIB_ActivityLog_${today}.csv`);
 }
 
 init();
