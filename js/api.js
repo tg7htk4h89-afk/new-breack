@@ -99,7 +99,6 @@ const API = (() => {
         throw e;
       }
     },
- },
 
     /** Single agent's schedule */
     async getAgentSchedule(agentName, force = false) {
