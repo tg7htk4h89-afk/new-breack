@@ -35,19 +35,36 @@ const API = (() => {
        READ — GET workflow  (action-based routing)
     ────────────────────────────────────────────────── */
 
-    /** Full initial load — parallel calls to all GET endpoints */
+    /** Full initial load — parallel calls, resilient with timeout */
     async getAll(force = false) {
       if (!force) {
-        const cached = fromCache('getAll', 15000);
+        const cached = fromCache('getAll', 20000);
         if (cached) return cached;
       }
-      const N = CFG.N8N;
+
+      const N = CFG.N8N || {};
+
+      // Fetch with timeout — never crash even if one endpoint is down
       const safe = async (url) => {
+        if (!url) return {};
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout
         try {
-          const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({})});
+          const r = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({}),
+            signal: controller.signal
+          });
+          clearTimeout(timeout);
           return r.ok ? await r.json() : {};
-        } catch(e) { return {}; }
+        } catch(e) {
+          clearTimeout(timeout);
+          return {};
+        }
       };
+
+      // Run in parallel — if some fail, we still get what we can
       const [sched, brks, lvs, swps, att, kpi, notif, sr] = await Promise.all([
         safe(N.GET_SCHEDULE),
         safe(N.GET_BREAKS),
@@ -58,23 +75,30 @@ const API = (() => {
         safe(N.GET_NOTIF),
         safe(N.GET_SCHEDREQUESTS),
       ]);
+
+      // Require at least schedule data — if completely empty, throw so retry shows
+      if (!sched.ok && !sched.agents) {
+        throw new Error('Schedule data unavailable');
+      }
+
       const data = {
-        ok:    true,
-        agents: sched.agents   || [],
-        dates:  sched.dates    || [],
-        wknd:   sched.wknd     || [],
-        breaks: [],
-        breakLog:         brks.breakLog   || [],
-        leaves:           lvs.leaves      || [],
-        swaps:            swps.swaps      || [],
-        attendance:       att.attendance  || [],
+        ok:               true,
+        agents:           sched.agents   || [],
+        dates:            sched.dates    || [],
+        wknd:             sched.wknd     || [],
+        breaks:           [],
+        breakLog:         brks.breakLog  || [],
+        leaves:           lvs.leaves     || [],
+        swaps:            swps.swaps     || [],
+        attendance:       att.attendance || [],
         activityLog:      [],
-        scheduleRequests: sr.scheduleRequests || [],
-        kpi:    kpi.kpi || {extra:[],meeting:[],permission:[],issue:[]},
+        scheduleRequests: sr.scheduleRequests  || [],
+        kpi:    kpi.kpi  || { extra:[], meeting:[], permission:[], issue:[] },
         notifications:    notif.notifications || [],
-        settings: {},
-        _meta:  sched._meta || {},
+        settings:         {},
+        _meta:            sched._meta    || {},
       };
+
       toCache('getAll', data);
       return data;
     },
