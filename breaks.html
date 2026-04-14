@@ -643,13 +643,6 @@ function renderSwapRequests() {
   }
 
   container.innerHTML = html;
-
-  // Update badge on tab
-  const badge = document.getElementById('swap-badge');
-  if (badge) {
-    badge.textContent = incoming.length;
-    badge.style.display = incoming.length ? '' : 'none';
-  }
 }
 
 async function respondToSwap(swapId, fromBreakId, toBreakId, fromSlot, toSlot, accepted) {
