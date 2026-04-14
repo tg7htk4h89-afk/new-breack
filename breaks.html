@@ -155,13 +155,9 @@ document.getElementById('date-lbl').textContent=U.fmtDisplay(today);
 
 function renderBookedBanner() {
   // Get next upcoming booked break (earliest by breakStart time)
-  const booked = (data?.breakLog||[])
-    .filter(b =>
-      b.agent === user.name &&
-      U.normDate(b.date||b['Date']) === today &&
-      b.status === 'booked'
-    )
-    .sort((a,b) => (a.breakStart||'').localeCompare(b.breakStart||''));
+  const booked = getBreaks(today, user.name)
+    .filter(b => (b.status||b.Status||'').toLowerCase() === 'booked')
+    .sort((a,b) => (a.breakStart||a['Break Start']||'').localeCompare(b.breakStart||b['Break Start']||''));
 
   const banner = document.getElementById('live-banner');
 
@@ -176,7 +172,7 @@ function renderBookedBanner() {
 
   const next      = booked[0];  // earliest upcoming
   const remaining = booked.length - 1;
-  const slotDisp  = U.fmt12 ? U.fmt12(next.breakStart) : next.breakStart;
+  const slotDisp  = U.fmt12 ? U.fmt12((next.breakStart||next['Break Start']||'').slice(0,5)) : (next.breakStart||next['Break Start']||'');
 
   banner.classList.add('show');
   banner.innerHTML = `
@@ -185,17 +181,17 @@ function renderBookedBanner() {
         Next Break${remaining > 0 ? ' · ' + remaining + ' more after' : ''}
       </div>
       <div style="font-size:15px;font-weight:800;color:#fff;">
-        ${next.duration||15} min · ${slotDisp}
+        ${next.duration||next.Duration||15} min · ${slotDisp}
       </div>
     </div>
     <div style="display:flex;gap:8px;">
-      <button onclick="startBookedBreak('${next.id}')"
+      <button onclick="startBookedBreak('${next.id||next.ID}')"
         style="padding:10px 18px;border-radius:10px;border:2px solid rgba(0,190,174,.6);
                background:rgba(0,190,174,.2);color:#00BEAE;font-size:14px;font-weight:800;
                cursor:pointer;-webkit-tap-highlight-color:transparent;">
         ▶ Start
       </button>
-      <button onclick="cancelBookedBreak('${next.id}')"
+      <button onclick="cancelBookedBreak('${next.id||next.ID}')"
         style="padding:10px 12px;border-radius:10px;border:2px solid rgba(255,255,255,.15);
                background:rgba(255,255,255,.08);color:rgba(255,255,255,.55);font-size:13px;font-weight:700;
                cursor:pointer;-webkit-tap-highlight-color:transparent;">
@@ -208,7 +204,7 @@ function renderBookedBanner() {
 async function startBookedBreak(breakId) {
   // Find the specific booked break by ID
   const bk = breakId
-    ? (data?.breakLog||[]).find(b => b.id === breakId && b.status === 'booked')
+    ? getBreaks(today, user.name).find(b => (b.id||b.ID) === breakId && (b.status||b.Status||'').toLowerCase() === 'booked')
     : bookedBreak;
   if (!bk) return U.toast('Break not found', 'err');
   try {
@@ -266,9 +262,15 @@ function renderBalance(){
 }
 
 function detectActiveBreak(){
-  const ab=getBreaks(today,user.name).find(b=>(b.status||b.Status||'').toLowerCase()==='active');
-  if(!ab)return;
-  activeBreak=ab;startLiveBanner(ab);
+  const myBreaks = getBreaks(today, user.name);
+  const ab = myBreaks.find(b => (b.status||b.Status||'').toLowerCase() === 'active');
+  if (ab) {
+    activeBreak = ab;
+    startLiveBanner(ab);
+  } else {
+    // No active break — show next booked break banner
+    renderBookedBanner();
+  }
 }
 
 function startLiveBanner(b){
@@ -386,7 +388,7 @@ async function bookBreak(){
 
 async function cancelBookedBreak(breakId) {
   if (!confirm('Cancel this break?')) return;
-  const bk = (data?.breakLog||[]).find(b => b.id === breakId);
+  const bk = getBreaks(today, user.name).find(b => (b.id||b.ID) === breakId);
   if (!bk) return;
   // Optimistic update
   bk.status = 'cancelled';
