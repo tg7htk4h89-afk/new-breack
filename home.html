@@ -380,7 +380,14 @@ async function init() {
     Nav.setSyncStatus(false);
     console.error('Home init error:', e);
     document.getElementById('hero-shift').textContent = 'Connection error';
-    U.toast('Tap to retry','err');
+    // Auto-retry once after 4s
+    if (!window._homeRetried) {
+      window._homeRetried = true;
+      U.toast('Reconnecting…','');
+      setTimeout(() => { window._homeRetried = false; init(); }, 4000);
+    } else {
+      U.toast('Connection error — tap retry','err');
+    }
   }
 }
 
