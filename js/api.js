@@ -52,16 +52,46 @@ const API = (() => {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 12000);
       try {
-        const r = await fetch(CFG.N8N.GET_SCHEDULE, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'getAll' }),
-          signal: controller.signal
-        });
+        // Call all GET endpoints in parallel
+        const N = CFG.N8N;
+        const safe = async (url) => {
+          try {
+            const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:'{}' });
+            return r.ok ? await r.json() : {};
+          } catch(e) { return {}; }
+        };
+
+        const [sched, brks, lvs, swps, att, kpi, notif, sr] = await Promise.all([
+          safe(N.GET_SCHEDULE),
+          safe(N.GET_BREAKS),
+          safe(N.GET_LEAVES),
+          safe(N.GET_SWAPS),
+          safe(N.GET_ATTENDANCE),
+          safe(N.GET_KPI),
+          safe(N.GET_NOTIF),
+          safe(N.GET_SCHEDREQUESTS),
+        ]);
         clearTimeout(timer);
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        const d = await r.json();
-        if (!d || !d.ok) throw new Error('Invalid response');
+
+        if (!sched.agents?.length) throw new Error('Schedule unavailable');
+
+        const d = {
+          ok: true,
+          agents:           sched.agents   || [],
+          dates:            sched.dates    || [],
+          wknd:             sched.wknd     || [],
+          breaks:           [],
+          breakLog:         brks.breakLog  || [],
+          leaves:           lvs.leaves     || [],
+          swaps:            swps.swaps     || [],
+          attendance:       att.attendance || [],
+          activityLog:      [],
+          scheduleRequests: sr.scheduleRequests || [],
+          kpi:              kpi.kpi || {extra:[],meeting:[],permission:[],issue:[]},
+          notifications:    notif.notifications || [],
+          settings:         {},
+          _meta:            sched._meta || {},
+        };
         toCache('getAll', d);
         return d;
       } catch(e) {
