@@ -34,7 +34,7 @@ const CFG = {
     UPDATE_SHIFT:      'https://n8n.kib-cc-wfm.com/webhook/kib-update-shift',
     SUBMIT_SCHEDREQ:   'https://n8n.kib-cc-wfm.com/webhook/kib-submit-schedrequest',
     NOTIFY:            'https://n8n.kib-cc-wfm.com/webhook/kib-notify',
-  },,
+  },
 
   /* ── Google Sheet ID ───────────────────────────────── */
   SHEET_ID: '1j0So-QvjT10NtSfx8avDMob1bK4gem8FLJLs5yiEgi4',
