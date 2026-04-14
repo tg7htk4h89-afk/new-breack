@@ -6,7 +6,7 @@ const CFG = {
 
   N8N: {
     AUTH:              'https://n8n.kib-cc-wfm.com/webhook/kib-auth',
-    GET_SCHEDULE:      'https://n8n.kib-cc-wfm.com/webhook/kib-wfm-get',
+    GET_SCHEDULE:      'https://n8n.kib-cc-wfm.com/webhook/kib-get-schedule',
     GET_BREAKS:        'https://n8n.kib-cc-wfm.com/webhook/kib-get-breaks',
     GET_LEAVES:        'https://n8n.kib-cc-wfm.com/webhook/kib-get-leaves',
     GET_SWAPS:         'https://n8n.kib-cc-wfm.com/webhook/kib-get-swaps',
