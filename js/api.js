@@ -139,7 +139,8 @@ const API = (() => {
     ────────────────────────────────────────────────── */
 
     async saveBreaks(data) {
-      return post(CFG.N8N.BREAKS, { action: 'saveAll', ...data });
+      clearCache('getAll');
+      return post(CFG.N8N.BREAKS, data);
     },
 
     async logLogin(emp, shift) {
