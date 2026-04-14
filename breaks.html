@@ -153,27 +153,56 @@ Nav.init('breaks');
 document.getElementById('user-strip-wrap').innerHTML=Nav.renderUserStrip();
 document.getElementById('date-lbl').textContent=U.fmtDisplay(today);
 
-function renderBookedBanner(bk) {
-  if (!bk) { document.getElementById('live-banner').classList.remove('show'); return; }
+function renderBookedBanner() {
+  // Get next upcoming booked break (earliest by breakStart time)
+  const booked = (data?.breakLog||[])
+    .filter(b =>
+      b.agent === user.name &&
+      U.normDate(b.date||b['Date']) === today &&
+      b.status === 'booked'
+    )
+    .sort((a,b) => (a.breakStart||'').localeCompare(b.breakStart||''));
+
   const banner = document.getElementById('live-banner');
-  const slotDisp = U.fmt12 ? U.fmt12(bk.breakStart) : bk.breakStart;
+
+  // If agent is on active break, don't show booked banner
+  if (activeBreak) { return; }
+
+  if (!booked.length) {
+    banner.classList.remove('show');
+    banner.innerHTML = '';
+    return;
+  }
+
+  const next      = booked[0];  // earliest upcoming
+  const remaining = booked.length - 1;
+  const slotDisp  = U.fmt12 ? U.fmt12(next.breakStart) : next.breakStart;
+
+  banner.classList.add('show');
   banner.innerHTML = `
     <div style="flex:1;">
-      <div style="font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;">Break Booked</div>
-      <div style="font-size:15px;font-weight:800;color:#fff;">${bk.duration} min break · ${slotDisp}</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">
+        Next Break${remaining > 0 ? ' · ' + remaining + ' more after' : ''}
+      </div>
+      <div style="font-size:15px;font-weight:800;color:#fff;">
+        ${next.duration||15} min · ${slotDisp}
+      </div>
     </div>
-    <button onclick="startBookedBreak()"
-      style="padding:10px 18px;border-radius:10px;border:2px solid rgba(0,190,174,.6);
-             background:rgba(0,190,174,.2);color:#00BEAE;font-size:13px;font-weight:800;
+    <button onclick="startBookedBreak('${next.id}')"
+      style="padding:10px 20px;border-radius:10px;border:2px solid rgba(0,190,174,.6);
+             background:rgba(0,190,174,.2);color:#00BEAE;font-size:14px;font-weight:800;
              cursor:pointer;-webkit-tap-highlight-color:transparent;">
       ▶ Start
     </button>`;
-  banner.classList.add('show');
 }
 
-async function startBookedBreak() {
-  if (!bookedBreak) return;
-  const bk = bookedBreak;
+
+async function startBookedBreak(breakId) {
+  // Find the specific booked break by ID
+  const bk = breakId
+    ? (data?.breakLog||[]).find(b => b.id === breakId && b.status === 'booked')
+    : bookedBreak;
+  if (!bk) return U.toast('Break not found', 'err');
   try {
     bk.status    = 'active';
     bk.startedAt = new Date().toISOString();
@@ -182,7 +211,7 @@ async function startBookedBreak() {
     bookedBreak  = null;
     startLiveBanner(bk);
     data = await API.getAll(true);
-    Nav.setSyncStatus(true); renderBalance(); buildSlotGrid();
+    Nav.setSyncStatus(true); renderBalance(); buildSlotGrid(); renderBookedBanner();
     U.toast('Break started ✓', 'ok');
   } catch(e) {
     U.toast('Failed to start break', 'err');
@@ -331,7 +360,9 @@ async function bookBreak(){
     await API.saveBreaks({action:'saveBreak', break:bk, ...bk, agent:bk.agent||user.name});
     // Break is BOOKED — show Start Break button, not live banner yet
     bookedBreak=bk;
-    renderBookedBanner(bk);
+    if(!data.breakLog) data.breakLog=[];
+    data.breakLog.push(bk);
+    renderBookedBanner();
     data=await API.getAll(true);
     Nav.setSyncStatus(true);renderBalance();buildSlotGrid();
     U.toast('Break booked ✓ — tap Start when ready','ok');
@@ -352,6 +383,8 @@ async function endBreak(){
     document.getElementById('book-btn').textContent='Book Break';
     data=await API.getAll(true);
     Nav.setSyncStatus(true);renderBalance();buildSlotGrid();
+    // Auto-show next booked break if any
+    renderBookedBanner();
     U.toast('Break ended ✓','ok');
   }catch(e){U.toast('Failed to end break','err');}
 }
