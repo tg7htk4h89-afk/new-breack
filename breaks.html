@@ -230,7 +230,16 @@ async function init(){
     DAILY_MIN=parseInt(s.dailyMin||s.daily_min||60);
     MAX_CON=parseInt(s.maxCon||s.max_con||2);
     renderBalance();detectActiveBreak();buildSlotGrid();fillSwapColleagues();
-  }catch(e){U.toast('Failed to load','err');}
+  }catch(e){
+    console.error('Breaks load error:', e);
+    if (!window._breaksRetried) {
+      window._breaksRetried = true;
+      U.toast('Reconnecting…','');
+      setTimeout(() => { window._breaksRetried = false; init(); }, 4000);
+    } else {
+      U.toast('Failed to load — tap retry','err');
+    }
+  }
 }
 
 function switchTab(t){
