@@ -192,22 +192,36 @@
           <span id="bc-max">Max: 60 min/day</span>
         </div>
 
-        <!-- Next available break -->
-        <div class="next-break" id="next-break" style="display:none;">
-          <div>
-            <div class="nb-label">Next Available Slot</div>
-            <div class="nb-time" id="next-break-time">—</div>
-          </div>
-          <a href="breaks.html" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:7px 14px;border-radius:10px;font-size:12px;font-weight:700;text-decoration:none;">Book →</a>
+        <!-- Start Break button (idle state) -->
+        <div id="bc-start-row" style="display:none;margin-top:4px;">
+          <button id="btn-start-break" onclick="startBreak()"
+            style="width:100%;padding:11px;border-radius:12px;border:2px solid rgba(255,255,255,.3);
+                   background:rgba(255,255,255,.15);color:#fff;font-size:14px;font-weight:800;
+                   cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+                   -webkit-tap-highlight-color:transparent;">
+            <span>▶</span> Start Break
+          </button>
         </div>
 
-        <!-- Active break timer -->
-        <div class="bc-active" id="bc-active" style="display:none;">
-          <div>
-            <div style="font-size:10px;color:rgba(255,255,255,.45);margin-bottom:2px;">● Break In Progress</div>
-            <div class="bc-timer" id="bc-timer">00:00</div>
+        <!-- Active break state -->
+        <div id="bc-active" style="display:none;margin-top:4px;">
+          <div style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:13px;padding:11px 14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <div>
+                <div style="font-size:10px;color:rgba(255,255,255,.5);margin-bottom:2px;">🟢 Break in progress</div>
+                <div class="bc-timer" id="bc-timer">00:00</div>
+              </div>
+              <button onclick="endBreak()"
+                style="padding:9px 16px;border-radius:10px;border:none;background:rgba(220,38,38,.85);
+                       color:#fff;font-size:13px;font-weight:800;cursor:pointer;
+                       -webkit-tap-highlight-color:transparent;">
+                ■ End Break
+              </button>
+            </div>
+            <div style="background:rgba(255,255,255,.15);border-radius:3px;height:3px;">
+              <div id="bc-live-fill" style="height:100%;border-radius:3px;background:rgba(255,255,255,.7);width:0%;transition:width 1s;"></div>
+            </div>
           </div>
-          <a href="breaks.html" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:7px 12px;border-radius:10px;font-size:12px;font-weight:700;text-decoration:none;">Manage →</a>
         </div>
       </div>
     </div>
@@ -375,7 +389,7 @@ function renderHero() {
   const agents = data?.agents || [];
   const dates  = (data?.dates || []).map(d => U.normDate(d));
   const idx    = dates.indexOf(today);
-  const me     = agents.find(a => (a.n||a.name) === user.name);
+  const me     = U.findAgent(agents, user.name);
   const raw    = (me && idx >= 0 && me.sch) ? me.sch[idx] : '';
 
   const tm   = raw.match(/^(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/);
@@ -445,18 +459,76 @@ function renderBreakCard() {
     document.getElementById('break-card').style.background = 'linear-gradient(135deg,#7F1D1D,#DC2626)';
   }
 
-  // Active break
+  // Change card color
+  const card = document.getElementById('break-card');
+  if (rem <= 0) card.style.background = 'linear-gradient(135deg,#7F1D1D,#DC2626)';
+  else if (rem <= 15) card.style.background = 'linear-gradient(135deg,#92400E,#B45309)';
+
   const active = bl.find(b => b.status === 'active');
   if (active) {
-    document.getElementById('bc-active').style.display = 'flex';
+    document.getElementById('bc-start-row').style.display = 'none';
+    document.getElementById('bc-active').style.display    = '';
     const startTs = active.startedAt ? new Date(active.startedAt).getTime() : Date.now();
     if (timerInt) clearInterval(timerInt);
     timerInt = setInterval(() => {
-      document.getElementById('bc-timer').textContent = U.elapsedStr(startTs);
+      const elapsed = Math.floor((Date.now()-startTs)/1000);
+      const m=Math.floor(elapsed/60), s=elapsed%60;
+      document.getElementById('bc-timer').textContent = U.pad(m)+':'+U.pad(s);
+      const usedNow = used + elapsed/60;
+      document.getElementById('bc-live-fill').style.width = Math.min(100,(usedNow/DAILY)*100)+'%';
     }, 1000);
   } else {
-    // Show next available slot
-    renderNextBreak();
+    document.getElementById('bc-active').style.display    = 'none';
+    document.getElementById('bc-start-row').style.display = rem > 0 ? '' : 'none';
+    if (timerInt) { clearInterval(timerInt); timerInt = null; }
+  }
+}
+
+/* ── Start Break ───────────────────────────────────── */
+async function startBreak() {
+  const btn = document.getElementById('btn-start-break');
+  if (btn) { btn.disabled=true; btn.innerHTML='⏳ Starting…'; }
+  const now = U.kuwaitNow();
+  const id  = 'BRK-'+Date.now()+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
+  const startedAt = now.toISOString();
+  const fake = { id, agent:user.name, status:'active', date:today, startedAt, duration:0,
+    breakStart: U.pad(now.getHours())+':'+U.pad(now.getMinutes()) };
+  if (!data.breakLog) data.breakLog=[];
+  data.breakLog.push(fake);
+  renderBreakCard();
+  try {
+    await API.saveBreaks({ action:'saveBreak', break:{
+      id, agent:user.name, dept:user.dept||'', date:today,
+      breakStart:fake.breakStart, startedAt, status:'active', duration:0 }});
+    API.clearCache('getAll');
+    U.toast('Break started ✓','ok');
+  } catch(e) {
+    data.breakLog = data.breakLog.filter(b=>b.id!==id);
+    renderBreakCard();
+    U.toast('Failed to start break','err');
+    if(btn){btn.disabled=false;btn.innerHTML='<span>▶</span> Start Break';}
+  }
+}
+
+/* ── End Break ─────────────────────────────────────── */
+async function endBreak() {
+  const active=(data?.breakLog||[]).find(b=>b.agent===user.name&&U.normDate(b.date)===today&&b.status==='active');
+  if(!active) return;
+  const endTs = new Date().toISOString();
+  const startTs = active.startedAt ? new Date(active.startedAt).getTime() : Date.now();
+  const mins = Math.max(1, Math.round((Date.now()-startTs)/60000));
+  active.status='done'; active.endedAt=endTs; active.duration=mins;
+  if(timerInt){clearInterval(timerInt);timerInt=null;}
+  renderBreakCard();
+  try {
+    await API.saveBreaks({ action:'endBreak', id:active.id, endedAt:endTs,
+      actualDuration:mins, duration:mins });
+    API.clearCache('getAll');
+    U.toast(`Break ended — ${mins} min used`,'ok');
+  } catch(e) {
+    active.status='active';
+    renderBreakCard();
+    U.toast('Failed to end break','err');
   }
 }
 
@@ -465,7 +537,7 @@ function renderNextBreak() {
   const agents  = data?.agents || [];
   const dates   = (data?.dates || []).map(d => U.normDate(d));
   const idx     = dates.indexOf(today);
-  const me      = agents.find(a => (a.n||a.name) === user.name);
+  const me      = U.findAgent(agents, user.name);
   const raw     = me && idx >= 0 && me.sch ? me.sch[idx] : '';
   const tm      = raw.match(/^(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/);
   if (!tm) return;
@@ -597,7 +669,7 @@ function renderInfoCards() {
   // Tomorrow's shift
   const agents = data?.agents || [];
   const dates  = (data?.dates || []).map(d => U.normDate(d));
-  const me     = agents.find(a => (a.n||a.name) === user.name);
+  const me     = U.findAgent(agents, user.name);
   const tmrw   = U.addDays(today, 1);
   const tIdx   = dates.indexOf(tmrw);
   if (me && tIdx >= 0 && me.sch) {
@@ -631,7 +703,7 @@ function renderInfoCards() {
 function renderWeek(elId) {
   const agents = data?.agents || [];
   const dates  = (data?.dates || []).map(d => U.normDate(d));
-  const me     = agents.find(a => (a.n||a.name) === user.name);
+  const me     = U.findAgent(agents, user.name);
   const week   = U.getWeekDates(today);
   const DAYS   = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
@@ -662,7 +734,7 @@ function renderWeek(elId) {
 function renderUpcoming() {
   const agents = data?.agents || [];
   const dates  = (data?.dates || []).map(d => U.normDate(d));
-  const me     = agents.find(a => (a.n||a.name) === user.name);
+  const me     = U.findAgent(agents, user.name);
   if (!me || !dates.length) {
     document.getElementById('upcoming-list').innerHTML = '<div class="empty-state" style="padding:16px 0;"><div class="empty-msg">No schedule data</div></div>';
     return;
