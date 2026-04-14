@@ -149,6 +149,7 @@
 <body>
 <div id="kib-topbar"></div>
 <div id="kib-app">
+<div id="user-strip-wrap"></div>
 <div class="page-content" style="padding-top:14px;">
 
   <!-- Announcement -->
@@ -338,19 +339,9 @@ let   data   = null;
 let   timerInt = null;
 
 Nav.init('home');
+document.getElementById('user-strip-wrap').innerHTML = Nav.renderUserStrip();
 
-/* ── Topbar user strip ─────────────────────────────────── */
-// Show greeting in topbar sub text via DOM override
-document.addEventListener('DOMContentLoaded', () => {
-  const sub = document.querySelector('.tb-sub');
-  if (sub) {
-    const h = U.nowHH();
-    const g = h<12?'Good morning':h<17?'Good afternoon':'Good evening';
-    sub.textContent = `${g}, ${(user.name||'').split(' ')[0]}`;
-  }
-});
 
-/* ── BOOT ──────────────────────────────────────────────── */
 async function init() {
   // Show role-specific section immediately
   if (isMgmt) {
