@@ -8,6 +8,71 @@
 <meta name="theme-color" content="#0A4A8A">
 <title>KIB WFM — My Schedule</title>
 <link rel="stylesheet" href="css/kib.css">
+
+<style>
+/* ── Team Schedule Grid ─────────────────────────────── */
+.tgrid { border-collapse: collapse; font-size: 11px; min-width: 600px; width: 100%; }
+.tgrid th, .tgrid td { border: 1px solid #E5E7EB; padding: 0; white-space: nowrap; }
+
+/* Agent column */
+.tgrid .tg-agent { 
+  position: sticky; left: 0; z-index: 2;
+  background: #F8FAFF; min-width: 120px; max-width: 140px;
+  padding: 6px 10px; font-weight: 700; font-size: 11px; color: var(--t1);
+  border-right: 2px solid #CBD5E1;
+}
+.tgrid .tg-team-hdr {
+  position: sticky; left: 0; z-index: 3;
+  background: var(--navy); color: #fff; font-weight: 800; font-size: 10px;
+  padding: 5px 10px; text-transform: uppercase; letter-spacing: .5px;
+  border-right: 2px solid #CBD5E1;
+}
+
+/* Date header */
+.tgrid .tg-date { 
+  min-width: 54px; text-align: center; padding: 4px 2px;
+  font-weight: 700; font-size: 9px; line-height: 1.3;
+  background: var(--navy); color: #fff;
+}
+.tgrid .tg-date.wknd { background: #1E3A5F; color: rgba(255,255,255,.55); }
+.tgrid .tg-date.today-col { background: #00BEAE; color: #fff; }
+
+/* Shift cells */
+.tgrid .tg-cell { 
+  text-align: center; padding: 5px 3px;
+  font-size: 10px; font-weight: 700; cursor: default;
+  min-width: 54px;
+}
+.tgrid .tg-cell.today-col { outline: 2px solid #00BEAE; outline-offset: -2px; }
+.tgrid tr:hover .tg-cell { filter: brightness(.95); }
+.tgrid tr:hover .tg-agent { background: #EFF6FF; }
+
+/* Team separator row */
+.tgrid .tg-sep td { height: 4px; background: #F1F5F9; }
+
+/* Shift colors */
+.sc-08 { background:#DBEAFE; color:#1D4ED8; }
+.sc-09 { background:#E0F2FE; color:#0369A1; }
+.sc-10 { background:#CCFBF1; color:#0F766E; }
+.sc-12 { background:#D1FAE5; color:#065F46; }
+.sc-16 { background:#FEF3CD; color:#B45309; }
+.sc-19 { background:#F3E8FF; color:#6D28D9; }
+.sc-00 { background:#F1F5F9; color:#475569; }
+.sc-off{ background:#F9FAFB; color:#CBD5E1; }
+.sc-al { background:#FEF9EE; color:#D97706; }
+.sc-sl { background:#FFF1F2; color:#DC2626; }
+.sc-lv { background:#FEF9EE; color:#D97706; }
+
+/* Filter chips */
+.team-chip {
+  padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;
+  border: 1.5px solid var(--border); background: var(--white); color: var(--t2);
+  cursor: pointer; white-space: nowrap; transition: .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.team-chip.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+</style>
+
 <style>
 .week-day{border-radius:10px;padding:8px 3px;text-align:center;border:1.5px solid var(--border);background:var(--white);cursor:pointer;transition:.14s;}
 .week-day.is-today{background:var(--navy);border-color:var(--navy);}
@@ -38,6 +103,7 @@
 
     <div class="tab-bar" style="margin-top:12px;">
       <button class="tab-item active" id="tab-my"   onclick="switchTab('my')">📅 My Schedule</button>
+      <button class="tab-item"        id="tab-team" onclick="switchTab('team')">👥 Team Grid</button>
       <button class="tab-item"        id="tab-req"  onclick="switchTab('req')">📝 Submit Request</button>
       <button class="tab-item"        id="tab-hist" onclick="switchTab('hist')">🕓 History</button>
     </div>
@@ -64,6 +130,25 @@
           <span id="sch-range" class="text-sm text-muted"></span>
         </div>
         <div id="sch-list"><div class="card-body"><div class="skel" style="height:52px;margin-bottom:6px;border-radius:8px;"></div><div class="skel" style="height:52px;border-radius:8px;"></div></div></div>
+      </div>
+    </div>
+
+
+    <!-- ══ TEAM GRID ══ -->
+    <div id="pane-team" style="display:none;">
+      <!-- Team filter chips -->
+      <div style="overflow-x:auto;white-space:nowrap;padding:0 0 10px;margin-bottom:4px;">
+        <div id="team-filter-chips" style="display:inline-flex;gap:6px;"></div>
+      </div>
+      <!-- Legend -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;" id="grid-legend">
+        <span style="font-size:10px;color:var(--t2);font-weight:600;">Legend:</span>
+      </div>
+      <!-- Scroll wrapper -->
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.08);">
+        <div id="team-grid-wrap">
+          <div class="skel" style="height:300px;border-radius:14px;"></div>
+        </div>
       </div>
     </div>
 
@@ -264,6 +349,148 @@ const selDays  = new Set();
 Nav.init('schedule');
 document.getElementById('user-strip-wrap').innerHTML = Nav.renderUserStrip();
 
+/* ══════════════════════════════════════════════════════
+   TEAM GRID
+══════════════════════════════════════════════════════ */
+let gridTeamFilter = 'All';
+
+function buildTeamChips() {
+  const agents = data?.agents || [];
+  const teams  = ['All', ...new Set(agents.map(a => a.t).filter(Boolean))].filter(Boolean);
+  document.getElementById('team-filter-chips').innerHTML = teams.map(t =>
+    `<div class="team-chip ${t===gridTeamFilter?'active':''}" onclick="setGridTeam('${t}',this)">${t}</div>`
+  ).join('');
+}
+
+function setGridTeam(t, el) {
+  gridTeamFilter = t;
+  document.querySelectorAll('.team-chip').forEach(c => c.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderTeamGrid();
+}
+
+function shiftClass(raw) {
+  if (!raw || raw === 'OFF') return 'sc-off';
+  if (raw === 'AL' || raw === 'Leave') return 'sc-lv';
+  if (raw === 'SL' || raw === 'Sick')  return 'sc-sl';
+  const m = raw.match(/^(\d{1,2}):/);
+  if (!m) return 'sc-off';
+  const h = parseInt(m[1]);
+  if (h === 0)  return 'sc-00';
+  if (h < 9)    return 'sc-08';
+  if (h < 11)   return 'sc-09';
+  if (h < 14)   return 'sc-10';
+  if (h < 15)   return 'sc-12';
+  if (h < 18)   return 'sc-16';
+  if (h < 22)   return 'sc-19';
+  return 'sc-00';
+}
+
+function shiftShort(raw) {
+  if (!raw || raw === 'OFF') return '—';
+  if (['AL','Leave'].includes(raw)) return 'AL';
+  if (['SL','Sick'].includes(raw))  return 'SL';
+  if (['PH'].includes(raw)) return 'PH';
+  const m = raw.match(/^(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})$/);
+  if (!m) return raw.slice(0,5);
+  return m[1] + '-' + m[3];
+}
+
+function renderTeamGrid() {
+  if (!data) return;
+  const agents  = data.agents || [];
+  const dates   = (data.dates || []).map(d => U.normDate(d));
+  const wknd    = data.wknd || [];
+  const today   = U.today();
+
+  // Get visible week range (same as my schedule week)
+  const week    = U.getWeekDates(weekAnchor);
+  // Show 2 weeks: current + next (14 days total from anchor)
+  const twoWeeks = [];
+  for (let i = 0; i < 14; i++) {
+    const d = new Date(weekAnchor + 'T00:00:00');
+    d.setDate(d.getDate() + i);
+    twoWeeks.push(U.fmt(d));
+  }
+
+  const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // Filter agents
+  const filtered = gridTeamFilter === 'All' ? agents : agents.filter(a => a.t === gridTeamFilter);
+
+  // Group by team
+  const byTeam = {};
+  filtered.forEach(a => {
+    if (!byTeam[a.t]) byTeam[a.t] = [];
+    byTeam[a.t].push(a);
+  });
+
+  // Build header row
+  const dateHeaders = twoWeeks.map(date => {
+    const dObj   = new Date(date + 'T00:00:00');
+    const isT    = date === today;
+    const isW    = dObj.getDay() === 5 || dObj.getDay() === 6;
+    const cls    = isT ? 'today-col' : isW ? 'wknd' : '';
+    return `<th class="tg-date ${cls}">${DAYS[dObj.getDay()]}<br>${dObj.getDate()}<br>${MONTHS[dObj.getMonth()]}</th>`;
+  }).join('');
+
+  // Build rows
+  let rows = '';
+  Object.entries(byTeam).forEach(([team, teamAgents], ti) => {
+    if (ti > 0) rows += `<tr class="tg-sep"><td colspan="${twoWeeks.length + 1}"></td></tr>`;
+    // Team header
+    rows += `<tr><td class="tg-team-hdr" colspan="${twoWeeks.length + 1}">${team} (${teamAgents.length})</td></tr>`;
+
+    teamAgents.forEach(agent => {
+      const name    = agent.n;
+      const initials= U.initials(name);
+      const color   = U.avatarColor(name);
+      const cells   = twoWeeks.map(date => {
+        const di  = dates.indexOf(date);
+        const raw = di >= 0 && agent.sch ? agent.sch[di] : '';
+        const dObj= new Date(date + 'T00:00:00');
+        const isT = date === today;
+        const isW = dObj.getDay() === 5 || dObj.getDay() === 6;
+        const cls = `tg-cell ${shiftClass(raw)} ${isT ? 'today-col' : ''}`;
+        const lbl = shiftShort(raw || 'OFF');
+        return `<td class="${cls}" title="${name}: ${raw||'OFF'} (${date})">${lbl}</td>`;
+      }).join('');
+
+      rows += `<tr>
+        <td class="tg-agent">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:22px;height:22px;border-radius:6px;background:${color};display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;color:#fff;flex-shrink:0;">${initials}</div>
+            <div>
+              <div style="font-size:11px;font-weight:700;color:var(--t1);">${name.split(' ')[0]}</div>
+              <div style="font-size:9px;color:var(--t2);">${name.split(' ').slice(1).join(' ')}</div>
+            </div>
+          </div>
+        </td>${cells}</tr>`;
+    });
+  });
+
+  // Build legend
+  const legendItems = [
+    ['sc-08','Early (8h)'],['sc-09','Morning (9h)'],['sc-10','Mid (10h)'],
+    ['sc-16','Evening (16h)'],['sc-19','Night (19h)'],['sc-00','Night (00h)'],
+    ['sc-lv','Leave'],['sc-sl','Sick'],['sc-off','OFF'],
+  ];
+  document.getElementById('grid-legend').innerHTML =
+    '<span style="font-size:10px;color:var(--t2);font-weight:600;align-self:center;">Legend:</span>' +
+    legendItems.map(([cls,lbl]) =>
+      `<span style="display:inline-flex;align-items:center;gap:4px;">
+        <span class="${cls} tg-cell" style="border-radius:4px;padding:2px 6px;font-size:9px;">${lbl}</span>
+      </span>`
+    ).join('');
+
+  document.getElementById('team-grid-wrap').innerHTML =
+    `<table class="tgrid">
+      <thead><tr><th class="tg-agent" style="background:var(--navy);color:#fff;font-size:10px;padding:6px 10px;position:sticky;left:0;z-index:3;">Agent</th>${dateHeaders}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
 async function init() {
   try {
     data     = await API.getAll();
@@ -279,13 +506,15 @@ myAgent = _agents.find(a => a.n === user.name || a.name === user.name)
     renderWeek();
     fillColleagues();
     setDefaultDates();
+    buildTeamChips();
+    if (document.getElementById('pane-team').style.display !== 'none') renderTeamGrid();
   } catch(e) {
     Nav.setSyncStatus(false); U.toast('Failed to load schedule','err'); }
 }
 
 function switchTab(t) {
-  ['my','req','hist'].forEach(id => {
-    document.getElementById('pane-'+id).style.display = id===t?'':'none';
+  ['my','team','req','hist'].forEach(id => {
+    document.getElementById('pane-'+id).style.display = id===t?'':'none'; if(id===t&&id==='team'&&data){buildTeamChips();renderTeamGrid();}
     document.getElementById('tab-'+id).classList.toggle('active', id===t);
   });
   if (t==='hist') renderHist();
