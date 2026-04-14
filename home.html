@@ -396,7 +396,9 @@ function renderHero() {
   const agents = data?.agents || [];
   const dates  = (data?.dates || []).map(d => U.normDate(d));
   const idx    = dates.indexOf(today);
-  const me     = U.findAgent(agents, user.name);
+  const _uname = (user.name||'').trim().toLowerCase();
+  const me = agents.find(a => a.n === user.name)
+          || agents.find(a => (a.n||'').trim().toLowerCase() === _uname);
   const raw    = (me && idx >= 0 && me.sch) ? me.sch[idx] : '';
 
   const tm   = raw.match(/^(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/);
@@ -544,7 +546,9 @@ function renderNextBreak() {
   const agents  = data?.agents || [];
   const dates   = (data?.dates || []).map(d => U.normDate(d));
   const idx     = dates.indexOf(today);
-  const me      = U.findAgent(agents, user.name);
+  const _un2 = (user.name||'').trim().toLowerCase();
+  const me = agents.find(a => a.n === user.name)
+          || agents.find(a => (a.n||'').trim().toLowerCase() === _un2);
   const raw     = me && idx >= 0 && me.sch ? me.sch[idx] : '';
   const tm      = raw.match(/^(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/);
   if (!tm) return;
@@ -676,7 +680,9 @@ function renderInfoCards() {
   // Tomorrow's shift
   const agents = data?.agents || [];
   const dates  = (data?.dates || []).map(d => U.normDate(d));
-  const me     = U.findAgent(agents, user.name);
+  const _uname = (user.name||'').trim().toLowerCase();
+  const me = agents.find(a => a.n === user.name)
+          || agents.find(a => (a.n||'').trim().toLowerCase() === _uname);
   const tmrw   = U.addDays(today, 1);
   const tIdx   = dates.indexOf(tmrw);
   if (me && tIdx >= 0 && me.sch) {
@@ -710,7 +716,9 @@ function renderInfoCards() {
 function renderWeek(elId) {
   const agents = data?.agents || [];
   const dates  = (data?.dates || []).map(d => U.normDate(d));
-  const me     = U.findAgent(agents, user.name);
+  const _uname = (user.name||'').trim().toLowerCase();
+  const me = agents.find(a => a.n === user.name)
+          || agents.find(a => (a.n||'').trim().toLowerCase() === _uname);
   const week   = U.getWeekDates(today);
   const DAYS   = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
@@ -741,7 +749,9 @@ function renderWeek(elId) {
 function renderUpcoming() {
   const agents = data?.agents || [];
   const dates  = (data?.dates || []).map(d => U.normDate(d));
-  const me     = U.findAgent(agents, user.name);
+  const _uname = (user.name||'').trim().toLowerCase();
+  const me = agents.find(a => a.n === user.name)
+          || agents.find(a => (a.n||'').trim().toLowerCase() === _uname);
   if (!me || !dates.length) {
     document.getElementById('upcoming-list').innerHTML = '<div class="empty-state" style="padding:16px 0;"><div class="empty-msg">No schedule data</div></div>';
     return;
