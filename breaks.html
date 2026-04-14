@@ -69,6 +69,7 @@
 
     <div class="tab-bar">
       <button class="tab-item active" id="tab-book"    onclick="switchTab('book')">☕ Book Break</button>
+      <button class="tab-item"        id="tab-swaps"   onclick="switchTab('swaps')">🔄 Swaps <span id="swap-badge" style="display:none;background:#EF4444;color:#fff;border-radius:8px;padding:1px 5px;font-size:9px;font-weight:900;margin-left:2px;"></span></button>
       <button class="tab-item"        id="tab-team"    onclick="switchTab('team')">👥 Team</button>
       <button class="tab-item"        id="tab-history" onclick="switchTab('history')">🕓 History</button>
     </div>
@@ -103,6 +104,14 @@
           <div class="form-group"><label class="fld-label">Swap with colleague</label><select class="fld" id="swap-coll"><option value="">— Select —</option></select></div>
           <button class="btn btn-teal btn-block" onclick="swapBreak()">🔄 Request Swap</button>
         </div></div>
+      </div>
+    </div>
+
+
+    <!-- ══ SWAPS PANE ══ -->
+    <div id="pane-swaps" style="display:none;">
+      <div id="pending-swaps-list">
+        <div style="text-align:center;padding:24px;color:var(--t2);font-size:13px;">Loading swaps...</div>
       </div>
     </div>
 
@@ -154,9 +163,7 @@ function showSwapForBreak(breakId) {
   // Build swap modal
   const slot = (bk.breakStart||bk['Break Start']||'');
   const slotDisp = U.fmt12 ? U.fmt12(slot.slice(0,5)) : slot;
-  const colleagues = (data?.agents||[])
-    .filter(a => (a.n||a.name) !== user.name)
-    .sort((a,b) => (a.n||a.name).localeCompare(b.n||b.name));
+  // Colleagues with booked breaks only — will be filled by fillSwapColleagues()
 
   const opts = colleagues.map(a =>
     `<option value="${a.n||a.name}">${a.n||a.name} (${a.t||a.team||''})</option>`
@@ -167,7 +174,7 @@ function showSwapForBreak(breakId) {
   banner.innerHTML = `
     <div style="width:100%;">
       <div style="font-size:10px;color:rgba(255,255,255,.5);margin-bottom:8px;text-transform:uppercase;letter-spacing:.6px;">
-        Swap Break · ${slotDisp}
+        Swap Break · ${slotDisp} ↔
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
         <select id="swap-inline-coll" style="flex:1;padding:9px 12px;border-radius:10px;border:1.5px solid rgba(255,255,255,.2);
@@ -293,7 +300,7 @@ async function init(){
     const s=data?.settings||{};
     DAILY_MIN=parseInt(s.dailyMin||s.daily_min||60);
     MAX_CON=parseInt(s.maxCon||s.max_con||2);
-    renderBalance();detectActiveBreak();buildSlotGrid();fillSwapColleagues();
+    renderBalance();detectActiveBreak();buildSlotGrid();fillSwapColleagues();renderSwapRequests();
   }catch(e){
     console.error('Breaks load error:', e);
     if (!window._breaksRetried) {
@@ -307,10 +314,11 @@ async function init(){
 }
 
 function switchTab(t){
-  ['book','team','history'].forEach(id=>{
+  ['book','swaps','team','history'].forEach(id=>{
     document.getElementById('pane-'+id).style.display=id===t?'':'none';
     const b=document.getElementById('tab-'+id);if(b)b.classList.toggle('active',id===t);
   });
+  if(t==='swaps')renderSwapRequests();
   if(t==='team')renderTeam();
   if(t==='history')renderHistory();
 }
@@ -370,7 +378,7 @@ function startLiveBanner(b){
     </div>`;
 
   banner.classList.add('show');
-  fillSwapColleagues();
+  fillSwapColleagues(b.id||b.ID);
   document.getElementById('book-btn').disabled=true;
   document.getElementById('book-btn').textContent='Break In Progress';
 
@@ -385,4 +393,202 @@ function startLiveBanner(b){
     if (prog) prog.style.width = Math.min(100,(elapsed*1000/durMs)*100)+'%';
     if (elapsed > durMs/1000) el.style.color='#FCA5A5';
   }, 1000);
+}
+
+function renderSwapRequests() {
+  const container = document.getElementById('pending-swaps-list');
+  if (!container) return;
+
+  // Swaps where I am the target (Agent B) and status is pending
+  const incoming = (data?.swaps||[]).filter(s =>
+    s.to === user.name &&
+    (s.status||'').toLowerCase().includes('pending')
+  );
+
+  // Swaps I sent
+  const outgoing = (data?.swaps||[]).filter(s =>
+    s.from === user.name
+  ).slice(-5);
+
+  // Update badge
+  const badge = document.getElementById('swap-badge');
+  if (badge) {
+    badge.textContent = incoming.length;
+    badge.style.display = incoming.length ? '' : 'none';
+  }
+
+  if (!incoming.length && !outgoing.length) {
+    container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--t2);font-size:13px;">No swap requests</div>';
+    return;
+  }
+
+  let html = '';
+
+  if (incoming.length) {
+    html += `<div style="font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;padding:4px 0 8px;">Incoming Requests</div>`;
+    incoming.forEach(s => {
+      const mySlot    = U.fmt12 ? U.fmt12((s.toSlot||s.shiftTo||'').slice(0,5))   : s.toSlot||'?';
+      const theirSlot = U.fmt12 ? U.fmt12((s.fromSlot||s.shiftFrom||'').slice(0,5)) : s.fromSlot||'?';
+      html += `
+        <div style="background:#F0F7FF;border:1.5px solid #BFDBFE;border-radius:14px;padding:14px;margin-bottom:10px;">
+          <div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:4px;">
+            ${s.from} wants to swap
+          </div>
+          <div style="font-size:12px;color:var(--t2);margin-bottom:10px;">
+            Their slot: <b>${theirSlot}</b> ↔ Your slot: <b>${mySlot}</b>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="respondToSwap('${s.id}','${s.fromBreakId||''}','${s.toBreakId||''}','${s.fromSlot||s.shiftFrom||''}','${s.toSlot||s.shiftTo||''}',true)"
+              style="flex:1;padding:9px;border-radius:10px;border:none;background:#0A4A8A;color:#fff;font-size:13px;font-weight:800;cursor:pointer;">
+              ✓ Accept
+            </button>
+            <button onclick="respondToSwap('${s.id}','${s.fromBreakId||''}','${s.toBreakId||''}','${s.fromSlot||s.shiftFrom||''}','${s.toSlot||s.shiftTo||''}',false)"
+              style="flex:1;padding:9px;border-radius:10px;border:1.5px solid #E5E7EB;background:#fff;color:#EF4444;font-size:13px;font-weight:800;cursor:pointer;">
+              ✕ Reject
+            </button>
+          </div>
+        </div>`;
+    });
+  }
+
+  if (outgoing.length) {
+    html += `<div style="font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;padding:8px 0 8px;">Sent Requests</div>`;
+    outgoing.reverse().forEach(s => {
+      const mySlot    = U.fmt12 ? U.fmt12((s.fromSlot||s.shiftFrom||'').slice(0,5)) : s.fromSlot||'?';
+      const theirSlot = U.fmt12 ? U.fmt12((s.toSlot||s.shiftTo||'').slice(0,5))     : s.toSlot||'?';
+      const statusColor = s.status==='approved'?'#16A34A':s.status==='rejected'?'#DC2626':'#B45309';
+      html += `
+        <div style="background:#F8FAFF;border:1px solid #E5E7EB;border-radius:12px;padding:12px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:12px;font-weight:700;color:var(--t1);">
+              To ${s.to}: ${mySlot} ↔ ${theirSlot}
+            </div>
+            <span style="font-size:10px;font-weight:700;color:${statusColor};text-transform:uppercase;">${s.status||'pending'}</span>
+          </div>
+        </div>`;
+    });
+  }
+
+  container.innerHTML = html;
+
+  // Update badge on tab
+  const badge = document.getElementById('swap-badge');
+  if (badge) {
+    badge.textContent = incoming.length;
+    badge.style.display = incoming.length ? '' : 'none';
+  }
+}
+
+async function respondToSwap(swapId, fromBreakId, toBreakId, fromSlot, toSlot, accepted) {
+  try {
+    if (accepted) {
+      // Swap the break times in BreakLog
+      await fetch(CFG.N8N.RESPOND_SWAP, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ accepted: 'true', swapId, fromBreakId, toBreakId, fromSlot, toSlot, respondedBy: user.name })
+      });
+      U.toast('Swap accepted — times exchanged ✓', 'ok');
+    } else {
+      await fetch(CFG.N8N.RESPOND_SWAP, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ accepted: 'false', swapId, respondedBy: user.name })
+      });
+      U.toast('Swap rejected', 'ok');
+    }
+    API.clearCache('getAll');
+    data = await API.getAll(true);
+    renderBalance(); buildSlotGrid(); renderBookedBanner(); renderSwapRequests();
+  } catch(e) {
+    U.toast('Failed to respond to swap', 'err');
+  }
+}
+
+function fillSwapColleagues(myBreakId) {
+  const sel = document.getElementById('swap-coll');
+  if (!sel) return;
+
+  // Get all agents who have a BOOKED break today (not active, not done)
+  const todayBooked = (data?.breakLog || []).filter(b =>
+    U.normDate(b.date||b['Date']) === today &&
+    (b.status||b.Status||'').toLowerCase() === 'booked' &&
+    (b.agent||b.Agent) !== user.name   // exclude self
+  );
+
+  sel.innerHTML = '<option value="">— Select colleague & slot —</option>';
+
+  if (!todayBooked.length) {
+    sel.innerHTML = '<option value="">No colleagues have booked breaks</option>';
+    return;
+  }
+
+  todayBooked
+    .sort((a,b) => (a.breakStart||a['Break Start']||'').localeCompare(b.breakStart||b['Break Start']||''))
+    .forEach(b => {
+      const agentName = b.agent || b.Agent || '';
+      const slot      = (b.breakStart||b['Break Start']||'').slice(0,5);
+      const slotDisp  = U.fmt12 ? U.fmt12(slot) : slot;
+      const dur       = b.duration || b.Duration || 15;
+      const o = document.createElement('option');
+      o.value = JSON.stringify({ agent: agentName, breakId: b.id||b.ID, slot });
+      o.textContent = `${agentName} — ${slotDisp} (${dur} min)`;
+      sel.appendChild(o);
+    });
+}
+
+async function swapBreak() {
+  const sel = document.getElementById('swap-coll');
+  if (!sel || !sel.value) return U.toast('Select a colleague to swap with', 'warn');
+
+  let target;
+  try { target = JSON.parse(sel.value); } catch(e) { return U.toast('Invalid selection', 'err'); }
+
+  // My current break (active or the one being swapped from booked banner)
+  const myBreak = activeBreak ||
+    getBreaks(today, user.name).find(b => (b.status||b.Status||'').toLowerCase() === 'booked');
+  if (!myBreak) return U.toast('No active break to swap', 'warn');
+
+  const mySlot     = (myBreak.breakStart||myBreak['Break Start']||'').slice(0,5);
+  const mySlotDisp = U.fmt12 ? U.fmt12(mySlot) : mySlot;
+  const theirSlotDisp = U.fmt12 ? U.fmt12(target.slot) : target.slot;
+
+  if (!confirm(`Swap your ${mySlotDisp} break with ${target.agent}'s ${theirSlotDisp} break?`)) return;
+
+  try {
+    // Submit swap request — agent B needs to accept
+    await API.saveBreaks({
+      action:       'saveBreak',
+      break: {
+        id:          'SWAP-' + Date.now(),
+        agent:       user.name,
+        breakStart:  myBreak.breakStart||myBreak['Break Start'],
+        duration:    myBreak.duration||myBreak.Duration||15,
+        status:      'booked',
+        date:        today,
+        dept:        user.dept||''
+      }
+    });
+
+    await API.submitSwap({
+      from:      user.name,
+      fromBreakId: myBreak.id||myBreak.ID,
+      fromSlot:  mySlot,
+      to:        target.agent,
+      toBreakId: target.breakId,
+      toSlot:    target.slot,
+      date:      today,
+      reason:    `Break time swap: ${mySlotDisp} ↔ ${theirSlotDisp}`
+    });
+
+    // Send notification to target agent
+    await API.saveBreaks({ action: 'cancelBreak', id: myBreak.id||myBreak.ID });
+
+    U.toast(`Swap request sent to ${target.agent} ✓`, 'ok');
+    API.clearCache('getAll');
+    data = await API.getAll(true);
+    renderBalance(); buildSlotGrid(); renderBookedBanner();
+
+  } catch(e) {
+    console.error('Swap error:', e);
+    U.toast('Failed to send swap request', 'err');
+  }
 }
