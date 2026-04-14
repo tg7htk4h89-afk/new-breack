@@ -267,7 +267,8 @@ const API = (() => {
     ────────────────────────────────────────────────── */
 
     async saveKPI(type, entry) {
-      return post(CFG.N8N.SUBMIT_KPI || CFG.N8N.KPI, { action: 'saveKPI', type, entry, ts: new Date().toISOString() });
+      // Send flat payload with kpiType — matches n8n workflow expectation
+      return post(CFG.N8N.SUBMIT_KPI, { ...entry, kpiType: type, action: 'saveKPI' });
     },
 
     /* ──────────────────────────────────────────────────
