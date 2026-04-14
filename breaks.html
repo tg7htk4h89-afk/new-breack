@@ -64,14 +64,7 @@
     </div>
 
     <div class="break-live" id="live-banner">
-      <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;">Break In Progress</div>
-      <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px;" id="live-type">—</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;">
-        <div class="bl-timer" id="live-timer">00:00</div>
-        <div style="text-align:right;font-size:10px;color:rgba(255,255,255,.4);" id="live-due"></div>
-      </div>
-      <div class="bl-prog-wrap"><div class="bl-prog" id="live-prog" style="width:0%;"></div></div>
-      <button class="btn btn-block" style="margin-top:12px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);color:#fff;" onclick="endBreak()">End Break Now</button>
+      <!-- Dynamically populated by renderBookedBanner() or startLiveBanner() -->
     </div>
 
     <div class="tab-bar">
@@ -354,273 +347,42 @@ function detectActiveBreak(){
 }
 
 function startLiveBanner(b){
-  document.getElementById('live-banner').classList.add('show');
-  document.getElementById('live-type').textContent=`${b.duration||b.Duration} min break · ${U.fmt12((b.breakStart||b['Break Start']||'').slice(0,5))}`;
-  const startTs=b.startedAt||b['Booked At']?new Date(b.startedAt||b['Booked At']).getTime():Date.now();
-  const durMs=parseInt(b.duration||b.Duration||15)*60000;
-  document.getElementById('live-due').textContent='Due: '+U.fmt12(U.fromMin(Math.floor((startTs+durMs)/60000)%1440));
+  const banner = document.getElementById('live-banner');
+  const startTs = b.startedAt ? new Date(b.startedAt).getTime() : Date.now();
+  const durMs   = parseInt(b.duration||b.Duration||15) * 60000;
+  const slotDisp= U.fmt12 ? U.fmt12((b.breakStart||b['Break Start']||'').slice(0,5)) : (b.breakStart||'');
+  const dueDisp = U.fmt12(U.fromMin(Math.floor((startTs+durMs)/60000)%1440));
+
+  banner.innerHTML = `
+    <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;">Break In Progress</div>
+    <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:6px;">${b.duration||b.Duration||15} min · ${slotDisp}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div class="bl-timer" id="live-timer">00:00</div>
+      <div style="text-align:right;font-size:10px;color:rgba(255,255,255,.4);">Due: ${dueDisp}</div>
+    </div>
+    <div class="bl-prog-wrap"><div class="bl-prog" id="live-prog" style="width:0%;"></div></div>
+    <button class="btn btn-block" style="margin-top:10px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);color:#fff;" onclick="endBreak()">End Break Now</button>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+      <select id="swap-coll" style="flex:1;padding:8px 10px;border-radius:10px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:12px;font-weight:600;">
+        <option value="">🔄 Swap with colleague...</option>
+      </select>
+      <button onclick="swapBreak()" style="padding:8px 14px;border-radius:10px;border:none;background:rgba(0,190,174,.3);color:#00BEAE;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">Send</button>
+    </div>`;
+
+  banner.classList.add('show');
+  fillSwapColleagues();
   document.getElementById('book-btn').disabled=true;
   document.getElementById('book-btn').textContent='Break In Progress';
-  document.getElementById('swap-sec').style.display='';
-  if(timerInt)clearInterval(timerInt);
-  timerInt=setInterval(()=>{
-    const el=document.getElementById('live-timer');if(!el){clearInterval(timerInt);return;}
-    const e=Math.floor((Date.now()-startTs)/1000);
-    el.textContent=U.pad(Math.floor(e/60))+':'+U.pad(e%60);
-    if(e>durMs/1000)el.style.color='#E84040';
-    const p=document.getElementById('live-prog');
-    if(p)p.style.width=Math.min(100,Math.round(e/(durMs/1000)*100))+'%';
-  },1000);
+
+  if(timerInt) clearInterval(timerInt);
+  timerInt = setInterval(() => {
+    const el = document.getElementById('live-timer');
+    if (!el) { clearInterval(timerInt); return; }
+    const elapsed = Math.floor((Date.now()-startTs)/1000);
+    const m = Math.floor(elapsed/60), s = elapsed%60;
+    el.textContent = U.pad(m)+':'+U.pad(s);
+    const prog = document.getElementById('live-prog');
+    if (prog) prog.style.width = Math.min(100,(elapsed*1000/durMs)*100)+'%';
+    if (elapsed > durMs/1000) el.style.color='#FCA5A5';
+  }, 1000);
 }
-
-function buildSlotGrid(){
-  const myAgent=(data?.agents||[]).find(a=>a.n===user.name||a.name===user.name);
-  const todayIdx=(data?.dates||[]).indexOf(today);
-  const shiftRaw=myAgent&&todayIdx>=0&&myAgent.sch?myAgent.sch[todayIdx]:'';
-  const tm=shiftRaw.match(/^(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/);
-  let startMin=U.toMin('08:00')+90,endMin=U.toMin('16:00')-30;
-  if(tm){startMin=U.toMin(tm[1])+90;endMin=U.toMin(tm[2])-30;}
-  if(endMin<=startMin)endMin+=1440;
-  const slots=[],nowMin=U.toMin(U.nowHHMM()),all=allBreaksToday();
-  for(let m=startMin;m<=endMin;m+=15)slots.push(U.fromMin(m));
-  document.getElementById('slot-loading').style.display='none';
-  const grid=document.getElementById('slot-grid');grid.style.display='';
-  if(!slots.length){grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--t3);">No slots available for your shift</div>`;return;}
-  grid.innerHTML=slots.map(t=>{
-    const inSlot=all.filter(b=>(b.breakStart||b['Break Start']||'').slice(0,5)===t.slice(0,5));
-    const mine=inSlot.find(b=>b.agent===user.name||b.Agent===user.name);
-    // Count regular (non-voicemail) and voicemail breaks separately
-    const regularInSlot  = inSlot.filter(b => !b.voicemailOverride);
-    const vmInSlot       = inSlot.filter(b => b.voicemailOverride);
-    const iAmVm          = document.getElementById('vm-cb')?.checked;
-    // Regular slots: max MAX_CON (2)
-    // Voicemail slot: 1 extra allowed on top of MAX_CON
-    const regularFull    = regularInSlot.length >= MAX_CON;
-    const vmFull         = vmInSlot.length >= 1;  // only 1 voicemail slot per time
-    const full           = !mine && (iAmVm ? (regularFull && vmFull) : regularFull);
-    const cnt            = inSlot.length;
-    const slotMin=U.toMin(t),passed=(slotMin%1440)<(nowMin%1440)-5&&!mine;
-    const vmSlots = vmInSlot.length;
-    const regSlots = regularInSlot.length;
-    const maxTotal = MAX_CON + 1; // +1 for voicemail
-    let cls='', cntText = vmSlots > 0
-      ? `${regSlots}/${MAX_CON} +📞${vmSlots}`
-      : `${regSlots}/${MAX_CON}`;
-    if(mine){cls='mine';cntText='✓ Mine';}
-    else if(full){cls='full';cntText='Full';}
-    else if(passed){cls='blocked';cntText='Passed';}
-    else if(cnt>0)cls='partial';
-    const clickable=!mine&&!full&&!passed;
-    return `<div class="slot ${cls}" id="s-${t.replace(':','-')}" onclick="${clickable?`pickSlot('${t}',this)`:''}" >
-      <div class="slot-time">${U.fmt12(t)}</div><div class="slot-cnt">${cntText}</div></div>`;
-  }).join('');
-}
-
-function pickSlot(t,el){
-  document.querySelectorAll('.slot.sel').forEach(s=>s.classList.remove('sel'));
-  el.classList.add('sel');selSlot=t;
-  if(!activeBreak)document.getElementById('book-btn').disabled=false;
-  checkBalWarn();
-}
-
-function selDurFn(d,el){
-  document.querySelectorAll('.dur-btn').forEach(b=>b.classList.remove('sel'));
-  el.classList.add('sel');selDurVal=d;checkBalWarn();
-}
-
-function checkBalWarn(){
-  const used=myBreaksToday().reduce((s,b)=>s+(parseInt(b.duration||b.Duration)||0),0);
-  const rem=DAILY_MIN-used,warn=document.getElementById('bal-warn');
-  if(selDurVal>rem){warn.style.display='';warn.textContent=`⚠ Only ${rem} min remaining`;}
-  else warn.style.display='none';
-}
-
-async function bookBreak(){
-  if(!selSlot)return U.toast('Select a time slot','warn');
-  if(activeBreak)return U.toast('You already have an active break','warn');
-  const used=myBreaksToday().reduce((s,b)=>s+(parseInt(b.duration||b.Duration)||0),0);
-  if(used+selDurVal>DAILY_MIN)return U.toast(`Only ${DAILY_MIN-used} min remaining`,'warn');
-  // Max 2 pending breaks per agent (booked + active) — can't hog slots
-  const pendingCount = (data?.breakLog||[]).filter(b =>
-    b.agent === user.name &&
-    U.normDate(b.date||b['Date']) === today &&
-    (b.status === 'booked' || b.status === 'active')
-  ).length;
-  if (pendingCount >= 2) return U.toast('Max 2 breaks queued — complete one first','warn');
-  const btn=document.getElementById('book-btn');
-  btn.disabled=true;btn.textContent='Booking…';
-  const bk={id:U.uid(),agent:user.name,Agent:user.name,date:today,Date:today,
-    breakStart:selSlot,'Break Start':selSlot,duration:selDurVal,Duration:selDurVal,
-    status:'booked',Status:'booked',startedAt:'',
-    'Booked At':new Date().toISOString(),voicemailOverride:document.getElementById('vm-cb').checked,dept:user.dept||''};
-  try{
-    await API.saveBreaks({action:'saveBreak', break:bk, ...bk, agent:bk.agent||user.name});
-    // Break is BOOKED — show Start Break button, not live banner yet
-    bookedBreak=bk;
-    if(!data.breakLog) data.breakLog=[];
-    data.breakLog.push(bk);
-    renderBookedBanner();
-    data=await API.getAll(true);
-    Nav.setSyncStatus(true);renderBalance();buildSlotGrid();
-    U.toast('Break booked ✓ — tap Start when ready','ok');
-  }catch(e){U.toast('Failed to book break','err');btn.disabled=false;btn.textContent='Book Break';}
-}
-
-async function cancelBookedBreak(breakId) {
-  if (!confirm('Cancel this break?')) return;
-  const bk = getBreaks(today, user.name).find(b => (b.id||b.ID) === breakId);
-  if (!bk) return;
-  // Optimistic update
-  bk.status = 'cancelled';
-  renderBookedBanner();
-  renderBalance();
-  buildSlotGrid();
-  try {
-    await API.saveBreaks({ action: 'cancelBreak', id: breakId, agent: user.name });
-    API.clearCache('getAll');
-    data = await API.getAll(true);
-    renderBalance(); buildSlotGrid(); renderBookedBanner();
-    U.toast('Break cancelled', 'ok');
-  } catch(e) {
-    bk.status = 'booked'; // rollback
-    renderBookedBanner();
-    U.toast('Failed to cancel', 'err');
-  }
-}
-
-async function endBreak(){
-  if(!activeBreak)return;
-  if(!confirm('End your break now?'))return;
-  try{
-    const _startTs = activeBreak.startedAt ? new Date(activeBreak.startedAt).getTime() : Date.now();
-    const _actualMin = Math.max(1, Math.round((Date.now()-_startTs)/60000));
-    await API.saveBreaks({action:'endBreak', id:activeBreak.id, agent:user.name, actualDuration:_actualMin, duration:_actualMin});
-    activeBreak=null;if(timerInt)clearInterval(timerInt);
-    document.getElementById('live-banner').classList.remove('show');
-    document.getElementById('swap-sec').style.display='none';
-    document.getElementById('book-btn').disabled=false;
-    document.getElementById('book-btn').textContent='Book Break';
-    data=await API.getAll(true);
-    Nav.setSyncStatus(true);renderBalance();buildSlotGrid();
-    // Auto-show next booked break if any
-    renderBookedBanner();
-    U.toast('Break ended ✓','ok');
-  }catch(e){U.toast('Failed to end break','err');}
-}
-
-function fillSwapColleagues(){
-  const sel=document.getElementById('swap-coll');
-  (data?.agents||[]).filter(a=>(a.n||a.name)!==user.name).sort((a,b)=>(a.n||a.name).localeCompare(b.n||b.name))
-    .forEach(a=>{const o=document.createElement('option');o.value=a.n||a.name;o.textContent=`${a.n||a.name} (${a.t||''})`;sel.appendChild(o);});
-}
-
-async function swapBreak(){
-  const c=document.getElementById('swap-coll').value;
-  if(!c)return U.toast('Select a colleague','warn');
-  if(!activeBreak)return U.toast('No active break','warn');
-  try{
-    await API.submitSwap({from:user.name,to:c,date:today,shiftFrom:activeBreak.breakStart||activeBreak['Break Start']||'',shiftTo:'',reason:'Break swap'});
-    U.toast('Swap request sent ✓','ok');
-  }catch(e){U.toast('Failed','err');}
-}
-
-function renderTeam(){
-  const all=allBreaksToday(),active=all.filter(b=>(b.status||b.Status||'').toLowerCase()==='active');
-  const nowMin=U.toMin(U.nowHHMM());
-  U.se('t-live',active.length);U.se('t-total',all.length);
-  let free=0;
-  for(let m=nowMin;m<=nowMin+30;m+=15){
-    const t=U.fromMin(m).slice(0,5);
-    const cnt=all.filter(b=>(b.breakStart||b['Break Start']||'').slice(0,5)===t).length;
-    if(cnt<MAX_CON)free++;
-  }
-  U.se('t-free',free);
-  const agents=(data?.agents||[]).filter(a=>a.t!=='Management');
-  let teamMin=0;
-  agents.forEach(a=>{
-    const name=a.n||a.name;
-    const used=all.filter(b=>(b.agent||b.Agent)===name).reduce((s,b)=>s+(parseInt(b.duration||b.Duration)||0),0);
-    teamMin+=Math.max(0,DAILY_MIN-used);
-  });
-  U.se('t-min',teamMin);
-
-  const liveEl=document.getElementById('live-list');
-  if(!active.length){
-    liveEl.innerHTML=`<div class="card-body"><div class="empty-state" style="padding:16px;"><div class="empty-icon">☕</div><div class="empty-msg">No one on break</div></div></div>`;
-  }else{
-    liveEl.innerHTML=active.map(b=>{
-      const name=b.agent||b.Agent||'—',color=U.avatarColor(name);
-      const bId='mt-'+(b.id||b.ID||Math.random().toString(36).slice(2));
-      const startTs=b.startedAt||b['Booked At']?new Date(b.startedAt||b['Booked At']).getTime():Date.now();
-      const dur=parseInt(b.duration||b.Duration||15);
-      return `<div class="mon-row">
-        <div class="mon-av" style="background:${color};">${U.initials(name)}</div>
-        <div class="flex-1"><div class="row-title">${name}</div>
-        <div class="row-meta">${U.fmt12((b.breakStart||b['Break Start']||'').slice(0,5))} · ${dur} min${b.voicemailOverride?' · 📞':''}</div></div>
-        <div class="mon-timer" id="${bId}">—</div>
-        ${isMgmt?`<button class="btn btn-xs btn-red" style="margin-left:8px;" onclick="mgmtEnd('${b.id||b.ID}','${name}')">End</button>`:''}
-      </div>`;
-    }).join('');
-    active.forEach(b=>{
-      const bId='mt-'+(b.id||b.ID||'');
-      const startTs=b.startedAt||b['Booked At']?new Date(b.startedAt||b['Booked At']).getTime():Date.now();
-      const dur=parseInt(b.duration||b.Duration||15);
-      setInterval(()=>{
-        const el=document.getElementById(bId);if(!el)return;
-        const e=Math.floor((Date.now()-startTs)/1000);
-        el.textContent=U.pad(Math.floor(e/60))+':'+U.pad(e%60);
-        el.classList.toggle('late',e>dur*60);
-      },1000);
-    });
-  }
-
-  const sP=s=>{s=(s||'').toLowerCase();return s==='active'?'pill-teal':s==='done'?'pill-gray':s==='cancelled'?'pill-red':'pill-amber';};
-  const todayEl=document.getElementById('all-today');
-  if(!all.length){
-    todayEl.innerHTML=`<div class="card-body"><div class="empty-state" style="padding:16px;"><div class="empty-icon">📋</div><div class="empty-msg">No breaks today</div></div></div>`;
-  }else{
-    todayEl.innerHTML=[...all].sort((a,b)=>U.toMin((a.breakStart||a['Break Start']||'00:00').slice(0,5))-U.toMin((b.breakStart||b['Break Start']||'00:00').slice(0,5)))
-      .map(b=>`<div class="row-item" style="padding:9px 13px;">
-        <div class="row-icon" style="background:var(--bg);">☕</div>
-        <div class="row-info"><div class="row-title">${b.agent||b.Agent} · ${U.fmt12((b.breakStart||b['Break Start']||'').slice(0,5))}</div>
-        <div class="row-meta">${b.duration||b.Duration} min · ${U.normDate(b.date||b.Date||today)}</div></div>
-        <span class="pill ${sP(b.status||b.Status)}">${b.status||b.Status||'—'}</span>
-      </div>`).join('');
-  }
-}
-
-async function mgmtEnd(id,name){
-  if(!confirm(`End ${name}'s break?`))return;
-  try{await API.saveBreaks({action:'endBreak',id,agent:name});data=await API.getAll(true);
-    Nav.setSyncStatus(true);renderTeam();U.toast(`${name}'s break ended ✓`,'ok');}
-  catch(e){U.toast('Failed','err');}
-}
-
-function renderHistory(){
-  const bl=(data?.breakLog||[]).filter(b=>isMgmt||(b.agent||b.Agent)===user.name)
-    .sort((a,b)=>new Date(b['Booked At']||b.startedAt||0)-new Date(a['Booked At']||a.startedAt||0)).slice(0,60);
-  U.se('hist-cnt',`${bl.length} records`);
-  const sP=s=>{s=(s||'').toLowerCase();return s==='active'?'pill-teal':s==='done'?'pill-gray':s==='cancelled'?'pill-red':'pill-amber';};
-  if(!bl.length){document.getElementById('hist-list').innerHTML=`<div class="card-body"><div class="empty-state"><div class="empty-icon">🕓</div><div class="empty-msg">No break history</div></div></div>`;return;}
-  document.getElementById('hist-list').innerHTML=bl.map(b=>{
-    const name=b.agent||b.Agent||'—',date=U.normDate(b.date||b.Date||''),slot=U.fmt12((b.breakStart||b['Break Start']||'').slice(0,5));
-    const dur=b.duration||b.Duration||'—',st=(b.status||b.Status||'').toLowerCase();
-    return `<div class="row-item" style="padding:9px 13px;">
-      <div class="row-icon" style="background:var(--bg);font-size:15px;">☕</div>
-      <div class="row-info"><div class="row-title">${isMgmt?name+' · ':''}${date} · ${slot}</div>
-      <div class="row-meta">${dur} min${b.voicemailOverride?' · 📞 Voicemail':''}</div></div>
-      <span class="pill ${sP(st)}">${st||'—'}</span>
-    </div>`;
-  }).join('');
-}
-
-function dlCSV(){
-  const all=allBreaksToday(),rows=[['Agent','Date','Slot','Duration','Status','Voicemail','Booked At']];
-  all.forEach(b=>rows.push([b.agent||b.Agent,U.normDate(b.date||b.Date),b.breakStart||b['Break Start'],b.duration||b.Duration,b.status||b.Status,b.voicemailOverride?'Yes':'No',b['Booked At']||b.startedAt||'']));
-  U.downloadCSV(rows,`KIB_Breaks_${today}.csv`);
-}
-
-init();
-</script>
-</body>
-</html>
