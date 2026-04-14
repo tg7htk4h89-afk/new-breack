@@ -148,7 +148,7 @@
 <script>
 if(!Auth.guard())throw 0;
 const user=Auth.user(),today=U.today(),isMgmt=Auth.isManagement();
-let data=null,selSlot=null,selDurVal=15,activeBreak=null,timerInt=null,DAILY_MIN=60,MAX_CON=3;
+let data=null,selSlot=null,selDurVal=15,activeBreak=null,timerInt=null,DAILY_MIN=60,MAX_CON=2;
 Nav.init('breaks');
 document.getElementById('user-strip-wrap').innerHTML=Nav.renderUserStrip();
 document.getElementById('date-lbl').textContent=U.fmtDisplay(today);
@@ -159,7 +159,7 @@ async function init(){
     Nav.setSyncStatus(true);
     const s=data?.settings||{};
     DAILY_MIN=parseInt(s.dailyMin||s.daily_min||60);
-    MAX_CON=parseInt(s.maxCon||s.max_con||3);
+    MAX_CON=parseInt(s.maxCon||s.max_con||2);
     renderBalance();detectActiveBreak();buildSlotGrid();fillSwapColleagues();
   }catch(e){U.toast('Failed to load','err');}
 }
@@ -234,9 +234,23 @@ function buildSlotGrid(){
   grid.innerHTML=slots.map(t=>{
     const inSlot=all.filter(b=>(b.breakStart||b['Break Start']||'').slice(0,5)===t.slice(0,5));
     const mine=inSlot.find(b=>b.agent===user.name||b.Agent===user.name);
-    const cnt=inSlot.length,full=cnt>=MAX_CON&&!mine;
+    // Count regular (non-voicemail) and voicemail breaks separately
+    const regularInSlot  = inSlot.filter(b => !b.voicemailOverride);
+    const vmInSlot       = inSlot.filter(b => b.voicemailOverride);
+    const iAmVm          = document.getElementById('vm-cb')?.checked;
+    // Regular slots: max MAX_CON (2)
+    // Voicemail slot: 1 extra allowed on top of MAX_CON
+    const regularFull    = regularInSlot.length >= MAX_CON;
+    const vmFull         = vmInSlot.length >= 1;  // only 1 voicemail slot per time
+    const full           = !mine && (iAmVm ? (regularFull && vmFull) : regularFull);
+    const cnt            = inSlot.length;
     const slotMin=U.toMin(t),passed=(slotMin%1440)<(nowMin%1440)-5&&!mine;
-    let cls='',cntText=`${cnt}/${MAX_CON}`;
+    const vmSlots = vmInSlot.length;
+    const regSlots = regularInSlot.length;
+    const maxTotal = MAX_CON + 1; // +1 for voicemail
+    let cls='', cntText = vmSlots > 0
+      ? `${regSlots}/${MAX_CON} +📞${vmSlots}`
+      : `${regSlots}/${MAX_CON}`;
     if(mine){cls='mine';cntText='✓ Mine';}
     else if(full){cls='full';cntText='Full';}
     else if(passed){cls='blocked';cntText='Passed';}
@@ -278,7 +292,7 @@ async function bookBreak(){
     status:'active',Status:'active',startedAt:new Date().toISOString(),
     'Booked At':new Date().toISOString(),voicemailOverride:document.getElementById('vm-cb').checked,dept:user.dept||''};
   try{
-    await API.saveBreaks({action:'saveBreak',break:bk});
+    await API.saveBreaks({action:'saveBreak', break:bk, ...bk, agent:bk.agent||user.name});
     activeBreak=bk;startLiveBanner(bk);
     data=await API.getAll(true);
     Nav.setSyncStatus(true);renderBalance();buildSlotGrid();
@@ -290,7 +304,9 @@ async function endBreak(){
   if(!activeBreak)return;
   if(!confirm('End your break now?'))return;
   try{
-    await API.saveBreaks({action:'endBreak',id:activeBreak.id,agent:user.name});
+    const _startTs = activeBreak.startedAt ? new Date(activeBreak.startedAt).getTime() : Date.now();
+    const _actualMin = Math.max(1, Math.round((Date.now()-_startTs)/60000));
+    await API.saveBreaks({action:'endBreak', id:activeBreak.id, agent:user.name, actualDuration:_actualMin, duration:_actualMin});
     activeBreak=null;if(timerInt)clearInterval(timerInt);
     document.getElementById('live-banner').classList.remove('show');
     document.getElementById('swap-sec').style.display='none';
