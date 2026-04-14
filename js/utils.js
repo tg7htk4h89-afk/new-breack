@@ -7,7 +7,12 @@
 const U = {
 
   /* ── Kuwait time ──────────────────────────────────── */
-  kuwaitNow()  { return new Date(Date.now() + 3 * 60 * 60 * 1000); },
+  kuwaitNow() {
+    // Always use Asia/Kuwait timezone regardless of browser locale
+    const now = new Date();
+    const kw  = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kuwait' }));
+    return kw;
+  },
   today()      { const d = this.kuwaitNow(); return this.fmt(d); },
   nowHHMM()    { const d = this.kuwaitNow(); return this.pad(d.getHours()) + ':' + this.pad(d.getMinutes()); },
   nowHH()      { return parseInt(this.kuwaitNow().getHours()); },
