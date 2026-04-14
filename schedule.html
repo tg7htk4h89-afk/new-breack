@@ -496,20 +496,22 @@ async function init() {
     data     = await API.getAll();
     Nav.setSyncStatus(true);
     allDates = (data.dates||[]).map(d => U.normDate(d));
-    // Robust name matching: exact → trimmed → case-insensitive → partial
-const _agents = data.agents || [];
-const _uname  = (user.name||'').trim().toLowerCase();
-myAgent = _agents.find(a => a.n === user.name || a.name === user.name)
-       || _agents.find(a => (a.n||'').trim() === user.name.trim())
-       || _agents.find(a => (a.n||'').trim().toLowerCase() === _uname)
-       || _agents.find(a => (a.n||'').trim().toLowerCase().includes(_uname) || _uname.includes((a.n||'').trim().toLowerCase()));
+    // Robust name matching
+    const _agents = data.agents || [];
+    const _uname  = (user.name||'').trim().toLowerCase();
+    myAgent = _agents.find(a => a.n === user.name || a.name === user.name)
+           || _agents.find(a => (a.n||'').trim() === user.name.trim())
+           || _agents.find(a => (a.n||'').trim().toLowerCase() === _uname)
+           || _agents.find(a => (a.n||'').trim().toLowerCase().includes(_uname) || _uname.includes((a.n||'').trim().toLowerCase()));
     renderWeek();
     fillColleagues();
     setDefaultDates();
     buildTeamChips();
-    if (document.getElementById('pane-team').style.display !== 'none') renderTeamGrid();
   } catch(e) {
-    Nav.setSyncStatus(false); U.toast('Failed to load schedule','err'); }
+    Nav.setSyncStatus(false);
+    console.error('Schedule init error:', e);
+    U.toast('Failed to load schedule','err');
+  }
 }
 
 function switchTab(t) {
