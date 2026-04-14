@@ -45,7 +45,7 @@
         <div style="flex:1;"><div class="kpi-card-title">System Issue</div><div class="kpi-card-sub">PC, application or connectivity problem</div></div>
         <span id="chv-issue" style="color:var(--t3);font-size:20px;">›</span>
       </div>
-      <div class="kpi-card-body">
+      <div class="kpi-card-body" onclick="event.stopPropagation()">
         <div class="form-group"><label class="fld-label">Agent</label><select class="fld" id="si-agent"><option value="">— Select Agent —</option></select></div>
         <div class="form-group"><label class="fld-label">Application / System</label><input class="fld" id="si-app" placeholder="e.g. UAGENT, PC, CRM"></div>
         <div class="form-group"><label class="fld-label">Duration</label><input class="fld" id="si-dur" placeholder="e.g. 15 minutes"></div>
@@ -65,7 +65,7 @@
         <div style="flex:1;"><div class="kpi-card-title">Permission</div><div class="kpi-card-sub">Early leave or late arrival</div></div>
         <span id="chv-permission" style="color:var(--t3);font-size:20px;">›</span>
       </div>
-      <div class="kpi-card-body">
+      <div class="kpi-card-body" onclick="event.stopPropagation()">
         <div class="form-group"><label class="fld-label">Agent</label><select class="fld" id="pm-agent"><option value="">— Select Agent —</option></select></div>
         <div class="form-group"><label class="fld-label">Permission Type</label>
           <select class="fld" id="pm-type"><option>Early Leave</option><option>Late Arrival</option><option>Personal</option><option>Medical</option><option>Other</option></select></div>
@@ -86,7 +86,7 @@
         <div style="flex:1;"><div class="kpi-card-title">Extra Break</div><div class="kpi-card-sub">Break outside regular allocation</div></div>
         <span id="chv-extra" style="color:var(--t3);font-size:20px;">›</span>
       </div>
-      <div class="kpi-card-body">
+      <div class="kpi-card-body" onclick="event.stopPropagation()">
         <div class="form-group"><label class="fld-label">Agent</label><select class="fld" id="eb-agent"><option value="">— Select Agent —</option></select></div>
         <div class="form-group"><label class="fld-label">Duration (minutes)</label><input class="fld" id="eb-dur" type="number" placeholder="15" min="1" max="60"></div>
         <div class="form-group"><label class="fld-label">Shift</label><input class="fld" id="eb-shift" placeholder="e.g. 08:00-16:00"></div>
@@ -104,7 +104,7 @@
         <div style="flex:1;"><div class="kpi-card-title">Meeting / Training</div><div class="kpi-card-sub">Scheduled or ad-hoc meeting</div></div>
         <span id="chv-meeting" style="color:var(--t3);font-size:20px;">›</span>
       </div>
-      <div class="kpi-card-body">
+      <div class="kpi-card-body" onclick="event.stopPropagation()">
         <div class="form-group"><label class="fld-label">Agent</label><select class="fld" id="mt-agent"><option value="">— Select Agent —</option></select></div>
         <div class="form-group"><label class="fld-label">Duration</label><input class="fld" id="mt-dur" placeholder="e.g. 1 hour"></div>
         <div class="form-group"><label class="fld-label">Shift</label><input class="fld" id="mt-shift" placeholder="e.g. 08:00-16:00"></div>
