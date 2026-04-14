@@ -112,39 +112,35 @@ const CFG = {
 
   /* ── Bottom Nav per Role (matches old portal role logic) ─ */
   NAV: {
-    // agent: Book Break + My Schedule + Swap + KPI submit + Me
     agent: [
       { id:'home',     icon:'🏠', label:'Home',     page:'home.html'     },
-      { id:'schedule', icon:'📅', label:'Schedule', page:'schedule.html' },
+      { id:'schedule', icon:'🗓', label:'Schedule', page:'schedule.html' },
       { id:'breaks',   icon:'☕', label:'Breaks',   page:'breaks.html'   },
-      { id:'kpi',      icon:'📌', label:'KPI',      page:'kpi.html'      },
+      { id:'kpi',      icon:'📊', label:'KPI',      page:'kpi.html'      },
       { id:'settings', icon:'👤', label:'Me',       page:'settings.html' },
     ],
-    // management (TL/ATL/QA/BackOffice): team monitor + attendance + approvals + schedule
     management: [
-      { id:'home',         icon:'🏠', label:'Home',       page:'home.html'       },
-      { id:'breaks',       icon:'☕', label:'Breaks',     page:'breaks.html'     },
-      { id:'attendance',   icon:'✅', label:'Attendance', page:'attendance.html' },
-      { id:'requests',     icon:'📋', label:'Requests',   page:'requests.html'   },
-      { id:'kpi',          icon:'📊', label:'KPI',        page:'kpi.html'        },
+      { id:'home',       icon:'🏠', label:'Home',       page:'home.html'       },
+      { id:'schedule',   icon:'🗓', label:'Schedule',   page:'schedule.html'   },
+      { id:'breaks',     icon:'☕', label:'Breaks',     page:'breaks.html'     },
+      { id:'requests',   icon:'📋', label:'Requests',  page:'requests.html'   },
+      { id:'kpi',        icon:'📊', label:'KPI',        page:'kpi.html'        },
     ],
-    // wfm: schedule editor + kpi + attendance + admin
     wfm: [
-      { id:'home',          icon:'🏠', label:'Home',       page:'home.html'          },
-      { id:'schedule-edit', icon:'📅', label:'Schedule',   page:'schedule-edit.html' },
-      { id:'kpi',           icon:'📌', label:'KPI',        page:'kpi.html'           },
-      { id:'attendance',    icon:'✅', label:'Attendance', page:'attendance.html'    },
-      { id:'admin',         icon:'⚙️', label:'Admin',      page:'admin.html'         },
+      { id:'home',          icon:'🏠', label:'Home',     page:'home.html'          },
+      { id:'schedule-edit', icon:'✏️', label:'Editor',  page:'schedule-edit.html' },
+      { id:'attendance',    icon:'✅', label:'Attend',   page:'attendance.html'    },
+      { id:'requests',      icon:'📋', label:'Requests', page:'requests.html'      },
+      { id:'admin',         icon:'⚙️', label:'Admin',   page:'admin.html'         },
     ],
-    // admin: same as wfm
     admin: [
-      { id:'home',          icon:'🏠', label:'Home',       page:'home.html'          },
-      { id:'schedule-edit', icon:'📅', label:'Schedule',   page:'schedule-edit.html' },
-      { id:'kpi',           icon:'📌', label:'KPI',        page:'kpi.html'           },
-      { id:'attendance',    icon:'✅', label:'Attendance', page:'attendance.html'    },
-      { id:'admin',         icon:'⚙️', label:'Admin',      page:'admin.html'         },
+      { id:'home',     icon:'🏠', label:'Home',    page:'home.html'    },
+      { id:'admin',    icon:'⚙️', label:'Admin',  page:'admin.html'   },
+      { id:'requests', icon:'📋', label:'Requests',page:'requests.html'},
+      { id:'kpi',      icon:'📊', label:'KPI',     page:'kpi.html'     },
+      { id:'settings', icon:'👤', label:'Me',      page:'settings.html'},
     ],
-  },
+  },,
 
 };
 
