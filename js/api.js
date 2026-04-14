@@ -37,10 +37,17 @@ const API = (() => {
 
     /** Full initial load — parallel calls, resilient with timeout */
     async getAll(force = false) {
-      if (!force) {
-        const cached = fromCache('getAll', 20000);
+      // Debounce forced refresh — never hit API more than once per 10s
+      const now = Date.now();
+      if (force && window._lastGetAll && (now - window._lastGetAll) < 10000) {
+        const cached = fromCache('getAll', 999999);
         if (cached) return cached;
       }
+      if (!force) {
+        const cached = fromCache('getAll', 180000); // 3 min cache
+        if (cached) return cached;
+      }
+      window._lastGetAll = now;
 
       const N = CFG.N8N || {};
 
@@ -65,16 +72,19 @@ const API = (() => {
       };
 
       // Run in parallel — if some fail, we still get what we can
-      const [sched, brks, lvs, swps, att, kpi, notif, sr] = await Promise.all([
+      // Stagger calls in 2 batches to avoid Google Sheets quota (100 reads/min/user)
+      const [sched, brks] = await Promise.all([
         safe(N.GET_SCHEDULE),
         safe(N.GET_BREAKS),
-        safe(N.GET_LEAVES),
-        safe(N.GET_SWAPS),
-        safe(N.GET_ATTENDANCE),
-        safe(N.GET_KPI),
-        safe(N.GET_NOTIF),
-        safe(N.GET_SCHEDREQUESTS),
       ]);
+      // Small delay between batches
+      await new Promise(r => setTimeout(r, 800));
+      // Batch 2: secondary data (staggered to avoid quota)
+      const [lvs, swps]     = await Promise.all([safe(N.GET_LEAVES), safe(N.GET_SWAPS)]);
+      await new Promise(r => setTimeout(r, 500));
+      const [att, kpi]      = await Promise.all([safe(N.GET_ATTENDANCE), safe(N.GET_KPI)]);
+      await new Promise(r => setTimeout(r, 500));
+      const [notif, sr]     = await Promise.all([safe(N.GET_NOTIF), safe(N.GET_SCHEDREQUESTS)]);
 
       // Require at least schedule data — if completely empty, throw so retry shows
       if (!sched.ok && !sched.agents) {
