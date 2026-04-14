@@ -350,6 +350,13 @@ async function bookBreak(){
   if(activeBreak)return U.toast('You already have an active break','warn');
   const used=myBreaksToday().reduce((s,b)=>s+(parseInt(b.duration||b.Duration)||0),0);
   if(used+selDurVal>DAILY_MIN)return U.toast(`Only ${DAILY_MIN-used} min remaining`,'warn');
+  // Max 2 pending breaks per agent (booked + active) — can't hog slots
+  const pendingCount = (data?.breakLog||[]).filter(b =>
+    b.agent === user.name &&
+    U.normDate(b.date||b['Date']) === today &&
+    (b.status === 'booked' || b.status === 'active')
+  ).length;
+  if (pendingCount >= 2) return U.toast('Max 2 breaks queued — complete one first','warn');
   const btn=document.getElementById('book-btn');
   btn.disabled=true;btn.textContent='Booking…';
   const bk={id:U.uid(),agent:user.name,Agent:user.name,date:today,Date:today,
