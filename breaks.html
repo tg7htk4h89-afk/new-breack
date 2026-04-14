@@ -153,6 +153,71 @@ Nav.init('breaks');
 document.getElementById('user-strip-wrap').innerHTML=Nav.renderUserStrip();
 document.getElementById('date-lbl').textContent=U.fmtDisplay(today);
 
+/* ── Swap Break (from booked state) ──────────────────── */
+function showSwapForBreak(breakId) {
+  const bk = getBreaks(today, user.name).find(b => (b.id||b.ID) === breakId);
+  if (!bk) return;
+
+  // Build swap modal
+  const slot = (bk.breakStart||bk['Break Start']||'');
+  const slotDisp = U.fmt12 ? U.fmt12(slot.slice(0,5)) : slot;
+  const colleagues = (data?.agents||[])
+    .filter(a => (a.n||a.name) !== user.name)
+    .sort((a,b) => (a.n||a.name).localeCompare(b.n||b.name));
+
+  const opts = colleagues.map(a =>
+    `<option value="${a.n||a.name}">${a.n||a.name} (${a.t||a.team||''})</option>`
+  ).join('');
+
+  // Show inline swap UI in the banner
+  const banner = document.getElementById('live-banner');
+  banner.innerHTML = `
+    <div style="width:100%;">
+      <div style="font-size:10px;color:rgba(255,255,255,.5);margin-bottom:8px;text-transform:uppercase;letter-spacing:.6px;">
+        Swap Break · ${slotDisp}
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select id="swap-inline-coll" style="flex:1;padding:9px 12px;border-radius:10px;border:1.5px solid rgba(255,255,255,.2);
+          background:rgba(255,255,255,.1);color:#fff;font-size:13px;font-weight:600;">
+          <option value="">— Select colleague —</option>
+          ${opts}
+        </select>
+        <button onclick="submitSwapForBreak('${breakId}')"
+          style="padding:9px 14px;border-radius:10px;border:none;background:#00BEAE;
+                 color:#fff;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;">
+          Send ✓
+        </button>
+        <button onclick="renderBookedBanner()"
+          style="padding:9px 12px;border-radius:10px;border:1.5px solid rgba(255,255,255,.2);
+                 background:transparent;color:rgba(255,255,255,.6);font-size:13px;cursor:pointer;">
+          ✕
+        </button>
+      </div>
+    </div>`;
+}
+
+async function submitSwapForBreak(breakId) {
+  const coll = document.getElementById('swap-inline-coll')?.value;
+  if (!coll) return U.toast('Select a colleague', 'warn');
+  const bk = getBreaks(today, user.name).find(b => (b.id||b.ID) === breakId);
+  if (!bk) return;
+  const slot = bk.breakStart||bk['Break Start']||'';
+  try {
+    await API.submitSwap({
+      from:      user.name,
+      to:        coll,
+      date:      today,
+      shiftFrom: slot,
+      shiftTo:   '',
+      reason:    'Break swap request'
+    });
+    U.toast('Swap request sent to ' + coll + ' ✓', 'ok');
+    renderBookedBanner();
+  } catch(e) {
+    U.toast('Failed to send swap', 'err');
+  }
+}
+
 function renderBookedBanner() {
   // Get next upcoming booked break (earliest by breakStart time)
   const booked = getBreaks(today, user.name)
@@ -184,17 +249,23 @@ function renderBookedBanner() {
         ${next.duration||next.Duration||15} min · ${slotDisp}
       </div>
     </div>
-    <div style="display:flex;gap:8px;">
+    <div style="display:flex;gap:6px;">
       <button onclick="startBookedBreak('${next.id||next.ID}')"
-        style="padding:10px 18px;border-radius:10px;border:2px solid rgba(0,190,174,.6);
-               background:rgba(0,190,174,.2);color:#00BEAE;font-size:14px;font-weight:800;
+        style="padding:10px 16px;border-radius:10px;border:2px solid rgba(0,190,174,.6);
+               background:rgba(0,190,174,.2);color:#00BEAE;font-size:13px;font-weight:800;
                cursor:pointer;-webkit-tap-highlight-color:transparent;">
         ▶ Start
       </button>
+      <button onclick="showSwapForBreak('${next.id||next.ID}')"
+        style="padding:10px 12px;border-radius:10px;border:2px solid rgba(255,255,255,.2);
+               background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);font-size:13px;font-weight:700;
+               cursor:pointer;-webkit-tap-highlight-color:transparent;" title="Swap break">
+        🔄
+      </button>
       <button onclick="cancelBookedBreak('${next.id||next.ID}')"
-        style="padding:10px 12px;border-radius:10px;border:2px solid rgba(255,255,255,.15);
-               background:rgba(255,255,255,.08);color:rgba(255,255,255,.55);font-size:13px;font-weight:700;
-               cursor:pointer;-webkit-tap-highlight-color:transparent;">
+        style="padding:10px 12px;border-radius:10px;border:2px solid rgba(255,100,100,.3);
+               background:rgba(255,100,100,.1);color:rgba(255,150,150,.9);font-size:13px;font-weight:700;
+               cursor:pointer;-webkit-tap-highlight-color:transparent;" title="Cancel break">
         ✕
       </button>
     </div>`;
