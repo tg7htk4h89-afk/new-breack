@@ -148,10 +148,46 @@
 <script>
 if(!Auth.guard())throw 0;
 const user=Auth.user(),today=U.today(),isMgmt=Auth.isManagement();
-let data=null,selSlot=null,selDurVal=15,activeBreak=null,timerInt=null,DAILY_MIN=60,MAX_CON=2;
+let data=null,selSlot=null,selDurVal=15,activeBreak=null,bookedBreak=null,timerInt=null,DAILY_MIN=60,MAX_CON=2;
 Nav.init('breaks');
 document.getElementById('user-strip-wrap').innerHTML=Nav.renderUserStrip();
 document.getElementById('date-lbl').textContent=U.fmtDisplay(today);
+
+function renderBookedBanner(bk) {
+  if (!bk) { document.getElementById('live-banner').classList.remove('show'); return; }
+  const banner = document.getElementById('live-banner');
+  const slotDisp = U.fmt12 ? U.fmt12(bk.breakStart) : bk.breakStart;
+  banner.innerHTML = `
+    <div style="flex:1;">
+      <div style="font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;">Break Booked</div>
+      <div style="font-size:15px;font-weight:800;color:#fff;">${bk.duration} min break · ${slotDisp}</div>
+    </div>
+    <button onclick="startBookedBreak()"
+      style="padding:10px 18px;border-radius:10px;border:2px solid rgba(0,190,174,.6);
+             background:rgba(0,190,174,.2);color:#00BEAE;font-size:13px;font-weight:800;
+             cursor:pointer;-webkit-tap-highlight-color:transparent;">
+      ▶ Start
+    </button>`;
+  banner.classList.add('show');
+}
+
+async function startBookedBreak() {
+  if (!bookedBreak) return;
+  const bk = bookedBreak;
+  try {
+    bk.status    = 'active';
+    bk.startedAt = new Date().toISOString();
+    await API.saveBreaks({ action: 'startBreak', break: bk, ...bk, agent: bk.agent });
+    activeBreak  = bk;
+    bookedBreak  = null;
+    startLiveBanner(bk);
+    data = await API.getAll(true);
+    Nav.setSyncStatus(true); renderBalance(); buildSlotGrid();
+    U.toast('Break started ✓', 'ok');
+  } catch(e) {
+    U.toast('Failed to start break', 'err');
+  }
+}
 
 async function init(){
   try{
@@ -289,14 +325,16 @@ async function bookBreak(){
   btn.disabled=true;btn.textContent='Booking…';
   const bk={id:U.uid(),agent:user.name,Agent:user.name,date:today,Date:today,
     breakStart:selSlot,'Break Start':selSlot,duration:selDurVal,Duration:selDurVal,
-    status:'active',Status:'active',startedAt:new Date().toISOString(),
+    status:'booked',Status:'booked',startedAt:'',
     'Booked At':new Date().toISOString(),voicemailOverride:document.getElementById('vm-cb').checked,dept:user.dept||''};
   try{
     await API.saveBreaks({action:'saveBreak', break:bk, ...bk, agent:bk.agent||user.name});
-    activeBreak=bk;startLiveBanner(bk);
+    // Break is BOOKED — show Start Break button, not live banner yet
+    bookedBreak=bk;
+    renderBookedBanner(bk);
     data=await API.getAll(true);
     Nav.setSyncStatus(true);renderBalance();buildSlotGrid();
-    U.toast('Break booked ✓','ok');
+    U.toast('Break booked ✓ — tap Start when ready','ok');
   }catch(e){U.toast('Failed to book break','err');btn.disabled=false;btn.textContent='Book Break';}
 }
 
