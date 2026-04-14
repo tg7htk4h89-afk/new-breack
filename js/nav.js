@@ -95,13 +95,20 @@ const Nav = (() => {
       const cnt      = _badges[item.id];
       const badge    = cnt ? `<span class="nb-badge">${cnt > 99 ? '99+' : cnt}</span>` : '';
       return `<a href="${item.page}"
-                 class="nb${isActive ? ' active' : ''}"
                  id="nav-${item.id}"
-                 aria-label="${item.label}">
-        <div class="nb-icon-wrap">
-          <span aria-hidden="true">${item.icon}</span>
+                 aria-label="${item.label}"
+                 style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+                        padding:8px 2px 10px;text-decoration:none;cursor:pointer;position:relative;
+                        -webkit-tap-highlight-color:transparent;gap:3px;border-top:3px solid ${isActive ? '#0A4A8A' : 'transparent'};">
+        <div style="width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+                    font-size:20px;line-height:1;background:${isActive ? 'rgba(10,74,138,.1)' : 'transparent'};">
+          <span>${item.icon}</span>
         </div>
-        <span class="nb-label">${item.label}</span>
+        <span style="font-size:10px;font-weight:${isActive ? '800' : '600'};
+                     color:${isActive ? '#0A4A8A' : '#64748B'};
+                     white-space:nowrap;line-height:1;display:block;">
+          ${item.label}
+        </span>
         ${badge}
       </a>`;
     }).join('');
