@@ -37,81 +37,39 @@ const API = (() => {
 
     /** Full initial load — parallel calls, resilient with timeout */
     async getAll(force = false) {
-      // Debounce forced refresh — never hit API more than once per 10s
-      const now = Date.now();
-      if (force && window._lastGetAll && (now - window._lastGetAll) < 10000) {
-        const cached = fromCache('getAll', 999999);
+      if (!force) {
+        const cached = fromCache('getAll', 120000); // 2min cache
         if (cached) return cached;
       }
-      if (!force) {
-        const cached = fromCache('getAll', 180000); // 3 min cache
+      // Debounce: max 1 forced call per 8s
+      const now = Date.now();
+      if (force && window._lastGetAll && (now - window._lastGetAll) < 8000) {
+        const cached = fromCache('getAll', 999999);
         if (cached) return cached;
       }
       window._lastGetAll = now;
 
-      const N = CFG.N8N || {};
-
-      // Fetch with timeout — never crash even if one endpoint is down
-      const safe = async (url) => {
-        if (!url) return {};
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout
-        try {
-          const r = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({}),
-            signal: controller.signal
-          });
-          clearTimeout(timeout);
-          return r.ok ? await r.json() : {};
-        } catch(e) {
-          clearTimeout(timeout);
-          return {};
-        }
-      };
-
-      // Run in parallel — if some fail, we still get what we can
-      // Stagger calls in 2 batches to avoid Google Sheets quota (100 reads/min/user)
-      const [sched, brks] = await Promise.all([
-        safe(N.GET_SCHEDULE),
-        safe(N.GET_BREAKS),
-      ]);
-      // Small delay between batches
-      await new Promise(r => setTimeout(r, 800));
-      // Batch 2: secondary data (staggered to avoid quota)
-      const [lvs, swps]     = await Promise.all([safe(N.GET_LEAVES), safe(N.GET_SWAPS)]);
-      await new Promise(r => setTimeout(r, 500));
-      const [att, kpi]      = await Promise.all([safe(N.GET_ATTENDANCE), safe(N.GET_KPI)]);
-      await new Promise(r => setTimeout(r, 500));
-      const [notif, sr]     = await Promise.all([safe(N.GET_NOTIF), safe(N.GET_SCHEDREQUESTS)]);
-
-      // Require at least schedule data — if completely empty, throw so retry shows
-      if (!sched.ok && !sched.agents) {
-        throw new Error('Schedule data unavailable');
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 12000);
+      try {
+        const r = await fetch(CFG.N8N.GET_SCHEDULE, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'getAll' }),
+          signal: controller.signal
+        });
+        clearTimeout(timer);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const d = await r.json();
+        if (!d || !d.ok) throw new Error('Invalid response');
+        toCache('getAll', d);
+        return d;
+      } catch(e) {
+        clearTimeout(timer);
+        throw e;
       }
-
-      const data = {
-        ok:               true,
-        agents:           sched.agents   || [],
-        dates:            sched.dates    || [],
-        wknd:             sched.wknd     || [],
-        breaks:           [],
-        breakLog:         brks.breakLog  || [],
-        leaves:           lvs.leaves     || [],
-        swaps:            swps.swaps     || [],
-        attendance:       att.attendance || [],
-        activityLog:      [],
-        scheduleRequests: sr.scheduleRequests  || [],
-        kpi:    kpi.kpi  || { extra:[], meeting:[], permission:[], issue:[] },
-        notifications:    notif.notifications || [],
-        settings:         {},
-        _meta:            sched._meta    || {},
-      };
-
-      toCache('getAll', data);
-      return data;
     },
+ },
 
     /** Single agent's schedule */
     async getAgentSchedule(agentName, force = false) {
