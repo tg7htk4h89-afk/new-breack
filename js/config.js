@@ -10,7 +10,7 @@ const CFG = {
   N8N_BASE: 'https://n8n.kib-cc-wfm.com/webhook',
 
   N8N: {
-    GET:        'https://n8n.kib-cc-wfm.com/webhook/kib-wfm-get',
+    GET:        'https://n8n.kib-cc-wfm.com/webhook/kib-sched-test',
     BREAKS:     'https://n8n.kib-cc-wfm.com/webhook/kib-breaks',
     ATTENDANCE: 'https://n8n.kib-cc-wfm.com/webhook/kib-attendance',
     SCHEDULE:   'https://n8n.kib-cc-wfm.com/webhook/kib-schedule',
