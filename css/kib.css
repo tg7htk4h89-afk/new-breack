@@ -203,25 +203,27 @@ h3 { font-size: 15px; font-weight: 700; }
 .nb {
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  padding: 6px 2px 8px;
+  padding: 4px 2px 6px;
   text-decoration: none; cursor: pointer;
-  position: relative; overflow: visible;
+  position: relative; overflow: hidden;
   -webkit-tap-highlight-color: transparent;
   -webkit-user-select: none; user-select: none;
   transition: transform .12s;
   min-height: var(--nav-h);
-  gap: 2px;
+  min-width: 0;
+  gap: 3px;
 }
 .nb:active { transform: scale(.9); }
 
 /* Active: pill background on icon */
 .nb-icon-wrap {
-  width: 46px; height: 30px;
+  width: 44px; height: 28px;
   border-radius: 20px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 20px; line-height: 1;
+  font-size: 19px; line-height: 1;
   transition: background .2s, transform .25s cubic-bezier(.34,1.56,.64,1);
   position: relative;
+  flex-shrink: 0;
 }
 .nb.active .nb-icon-wrap {
   background: linear-gradient(135deg, rgba(10,74,138,.15), rgba(10,127,174,.1));
@@ -230,11 +232,15 @@ h3 { font-size: 15px; font-weight: 700; }
 }
 
 .nb-label {
-  font-size: 9px; font-weight: 600;
-  color: #B0BAC9;
-  letter-spacing: .2px;
+  font-size: 9px; font-weight: 700;
+  color: #8896A8;
+  letter-spacing: .1px;
   transition: color .15s, font-weight .15s;
   white-space: nowrap; line-height: 1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
 }
 .nb.active .nb-label {
   color: var(--navy);
