@@ -87,7 +87,7 @@ const Auth = (() => {
     /* ── Login ─────────────────────────────────────────── */
     async login(password) {
       try {
-        const data = await _post(CFG.N8N.GET, {
+        const data = await _post(CFG.N8N.AUTH || CFG.N8N.GET, {
           action:   'authenticate',
           password: password.trim(),
         });
@@ -145,7 +145,7 @@ const Auth = (() => {
        Usage: Auth.ping().then(console.log)
     ────────────────────────────────────────────────────── */
     async ping() {
-      const url = CFG.N8N.GET;
+      const url = CFG.N8N.AUTH || CFG.N8N.GET;
       console.log('Pinging:', url);
       try {
         const r = await fetch(url, {

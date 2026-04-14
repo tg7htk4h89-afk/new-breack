@@ -7,17 +7,34 @@
 const CFG = {
 
   /* ── n8n Webhook Endpoints (self-hosted) ───────────── */
-  N8N_BASE: 'https://n8n.kib-cc-wfm.com/webhook',
+    N8N_BASE: 'https://n8n.kib-cc-wfm.com/webhook',
 
   N8N: {
-    GET:        'https://n8n.kib-cc-wfm.com/webhook/kib-wfm-get',
-    BREAKS:     'https://n8n.kib-cc-wfm.com/webhook/kib-breaks',
-    ATTENDANCE: 'https://n8n.kib-cc-wfm.com/webhook/kib-attendance',
-    SCHEDULE:   'https://n8n.kib-cc-wfm.com/webhook/kib-schedule',
-    REQUESTS:   'https://n8n.kib-cc-wfm.com/webhook/kib-requests',
-    KPI:        'https://n8n.kib-cc-wfm.com/webhook/kib-kpi',
-    NOTIFY:     'https://n8n.kib-cc-wfm.com/webhook/kib-notify',
-  },
+    // ── Authentication ─────────────────────────────
+    AUTH:              'https://n8n.kib-cc-wfm.com/webhook/kib-auth',
+
+    // ── GET (reads) ────────────────────────────────
+    GET_SCHEDULE:      'https://n8n.kib-cc-wfm.com/webhook/kib-get-schedule',
+    GET_BREAKS:        'https://n8n.kib-cc-wfm.com/webhook/kib-get-breaks',
+    GET_LEAVES:        'https://n8n.kib-cc-wfm.com/webhook/kib-get-leaves',
+    GET_SWAPS:         'https://n8n.kib-cc-wfm.com/webhook/kib-get-swaps',
+    GET_ATTENDANCE:    'https://n8n.kib-cc-wfm.com/webhook/kib-get-attendance',
+    GET_KPI:           'https://n8n.kib-cc-wfm.com/webhook/kib-get-kpi',
+    GET_NOTIF:         'https://n8n.kib-cc-wfm.com/webhook/kib-get-notif',
+    GET_SCHEDREQUESTS: 'https://n8n.kib-cc-wfm.com/webhook/kib-get-schedrequests',
+
+    // ── POST (writes) ──────────────────────────────
+    BREAKS:            'https://n8n.kib-cc-wfm.com/webhook/kib-breaks',
+    ATTENDANCE:        'https://n8n.kib-cc-wfm.com/webhook/kib-attendance',
+    SUBMIT_LEAVE:      'https://n8n.kib-cc-wfm.com/webhook/kib-submit-leave',
+    APPROVE_LEAVE:     'https://n8n.kib-cc-wfm.com/webhook/kib-approve-leave',
+    SUBMIT_SWAP:       'https://n8n.kib-cc-wfm.com/webhook/kib-submit-swap',
+    RESPOND_SWAP:      'https://n8n.kib-cc-wfm.com/webhook/kib-respond-swap',
+    SUBMIT_KPI:        'https://n8n.kib-cc-wfm.com/webhook/kib-submit-kpi',
+    UPDATE_SHIFT:      'https://n8n.kib-cc-wfm.com/webhook/kib-update-shift',
+    SUBMIT_SCHEDREQ:   'https://n8n.kib-cc-wfm.com/webhook/kib-submit-schedrequest',
+    NOTIFY:            'https://n8n.kib-cc-wfm.com/webhook/kib-notify',
+  },,
 
   /* ── Google Sheet ID ───────────────────────────────── */
   SHEET_ID: '1j0So-QvjT10NtSfx8avDMob1bK4gem8FLJLs5yiEgi4',

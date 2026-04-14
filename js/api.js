@@ -35,26 +35,47 @@ const API = (() => {
        READ — GET workflow  (action-based routing)
     ────────────────────────────────────────────────── */
 
-    /** Full initial load — all data */
+    /** Full initial load — parallel calls to all GET endpoints */
     async getAll(force = false) {
       if (!force) {
         const cached = fromCache('getAll', 15000);
         if (cached) return cached;
       }
-      const data = await post(CFG.N8N.GET, { action: 'getAll' });
+      const N = CFG.N8N;
+      const safe = async (url) => {
+        try {
+          const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({})});
+          return r.ok ? await r.json() : {};
+        } catch(e) { return {}; }
+      };
+      const [sched, brks, lvs, swps, att, kpi, notif, sr] = await Promise.all([
+        safe(N.GET_SCHEDULE),
+        safe(N.GET_BREAKS),
+        safe(N.GET_LEAVES),
+        safe(N.GET_SWAPS),
+        safe(N.GET_ATTENDANCE),
+        safe(N.GET_KPI),
+        safe(N.GET_NOTIF),
+        safe(N.GET_SCHEDREQUESTS),
+      ]);
+      const data = {
+        ok:    true,
+        agents: sched.agents   || [],
+        dates:  sched.dates    || [],
+        wknd:   sched.wknd     || [],
+        breaks: [],
+        breakLog:         brks.breakLog   || [],
+        leaves:           lvs.leaves      || [],
+        swaps:            swps.swaps      || [],
+        attendance:       att.attendance  || [],
+        activityLog:      [],
+        scheduleRequests: sr.scheduleRequests || [],
+        kpi:    kpi.kpi || {extra:[],meeting:[],permission:[],issue:[]},
+        notifications:    notif.notifications || [],
+        settings: {},
+        _meta:  sched._meta || {},
+      };
       toCache('getAll', data);
-      return data;
-    },
-
-    /** Schedule grid for a date range */
-    async getSchedule(startDate, endDate, force = false) {
-      const key = `sched_${startDate}_${endDate}`;
-      if (!force) {
-        const cached = fromCache(key, 60000);
-        if (cached) return cached;
-      }
-      const data = await post(CFG.N8N.GET, { action: 'getSchedule', startDate, endDate });
-      toCache(key, data);
       return data;
     },
 
@@ -143,7 +164,7 @@ const API = (() => {
       clearCache('getAll');
       const days = startDate && endDate
         ? Math.max(1, Math.round((new Date(endDate) - new Date(startDate)) / 86400000) + 1) : 1;
-      return post(CFG.N8N.REQUESTS, {
+      return post(CFG.N8N.SUBMIT_LEAVE || CFG.N8N.REQUESTS, {
         action:    'submitLeave',
         ID:        'L' + Date.now(),
         Agent:     agent,
@@ -162,7 +183,7 @@ const API = (() => {
     // SwapRequests sheet columns: ID,From,To,Date,FromShift,ToShift,Reason,Status,ActionedBy,Timestamp
     async submitSwap({ from, to, date, shiftFrom, shiftTo, reason }) {
       clearCache('getAll');
-      return post(CFG.N8N.REQUESTS, {
+      return post(CFG.N8N.SUBMIT_LEAVE || CFG.N8N.REQUESTS, {
         action:    'submitSwap',
         ID:        Date.now().toString(36) + Math.random().toString(36).slice(2,5),
         From:      from,
@@ -179,7 +200,7 @@ const API = (() => {
 
     async respondSwap({ swapId, action, respondedBy }) {
       clearCache('getAll');
-      return post(CFG.N8N.REQUESTS, {
+      return post(CFG.N8N.SUBMIT_LEAVE || CFG.N8N.REQUESTS, {
         action: 'respondSwap', swapId, response: action, respondedBy,
         Status: action === 'approve' ? 'approved' : 'rejected',
         ActionedBy: respondedBy,
@@ -190,7 +211,7 @@ const API = (() => {
 
     async approveLeave({ leaveId, action, approvedBy, note }) {
       clearCache('getAll');
-      return post(CFG.N8N.REQUESTS, {
+      return post(CFG.N8N.SUBMIT_LEAVE || CFG.N8N.REQUESTS, {
         action: 'approveLeave', leaveId, response: action, approvedBy, note,
         Status: action === 'approve' ? 'approved' : 'rejected',
         ActionedBy: approvedBy,
@@ -202,7 +223,7 @@ const API = (() => {
     // ScheduleRequests sheet columns: Ref,Agent,Team,Role,SubmitDate,PeriodFrom,PeriodTo,...,Status,Timestamp
     async submitScheduleRequest({ agent, team, date, currentShift, requestedShift, reason }) {
       clearCache('getAll');
-      return post(CFG.N8N.REQUESTS, {
+      return post(CFG.N8N.SUBMIT_LEAVE || CFG.N8N.REQUESTS, {
         action:         'scheduleRequest',
         Ref:            'SR-' + Math.random().toString(36).slice(2,8).toUpperCase(),
         Agent:          agent,
@@ -223,7 +244,7 @@ const API = (() => {
     ────────────────────────────────────────────────── */
 
     async saveKPI(type, entry) {
-      return post(CFG.N8N.KPI, { action: 'saveKPI', type, entry, ts: new Date().toISOString() });
+      return post(CFG.N8N.SUBMIT_KPI || CFG.N8N.KPI, { action: 'saveKPI', type, entry, ts: new Date().toISOString() });
     },
 
     /* ──────────────────────────────────────────────────
