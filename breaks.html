@@ -147,7 +147,7 @@
 <script src="js/api.js"></script>
 <script src="js/utils.js"></script>
 <script src="js/nav.js"></script>
-<script>
+<script>/* v20260414-2135 */
 if(!Auth.guard())throw 0;
 const user=Auth.user(),today=U.today(),isMgmt=Auth.isManagement();
 let data=null,selSlot=null,selDurVal=15,activeBreak=null,bookedBreak=null,timerInt=null,DAILY_MIN=60,MAX_CON=2;
@@ -279,6 +279,60 @@ function pickSlot(t,el){
   el.classList.add('sel');selSlot=t;
   if(!activeBreak)document.getElementById('book-btn').disabled=false;
   checkBalWarn();
+}
+
+
+async function bookBreak(){
+  if(!selSlot) return U.toast('Select a time slot','warn');
+  if(activeBreak) return U.toast('You have an active break','warn');
+
+  const used = myBreaksToday().reduce((s,b)=>s+(parseInt(b.duration||b.Duration)||0),0);
+  if(used+selDurVal>DAILY_MIN) return U.toast(`Only ${DAILY_MIN-used} min remaining`,'warn');
+
+  // Max 2 pending breaks
+  const pending = (data?.breakLog||[]).filter(b=>
+    b.agent===user.name && U.normDate(b.date||b['Date'])===today &&
+    (b.status==='booked'||b.status==='active')
+  ).length;
+  if(pending>=2) return U.toast('Max 2 breaks queued — complete one first','warn');
+
+  // Voicemail/capacity check
+  const _vmChecked = document.getElementById('vm-cb')?.checked;
+  const _slotLog = (data?.breakLog||[]).filter(b=>
+    U.normDate(b.date||b['Date'])===today &&
+    (b.status==='booked'||b.status==='active') &&
+    String(b.breakStart||b['Break Start']||'').slice(0,5)===selSlot
+  );
+  const _regNow = _slotLog.filter(b=>!b.voicemailOverride).length;
+  const _vmNow  = _slotLog.filter(b=> b.voicemailOverride).length;
+  if(_vmChecked && _vmNow>=1) return U.toast('Voicemail slot already taken','warn');
+  if(!_vmChecked && _regNow>=MAX_CON) return U.toast('Slot full — max '+MAX_CON+' breaks','warn');
+
+  const btn = document.getElementById('book-btn');
+  btn.disabled=true; btn.textContent='Booking…';
+
+  const bk = {
+    id: U.uid(), agent: user.name, Agent: user.name,
+    date: today, Date: today,
+    breakStart: selSlot, 'Break Start': selSlot,
+    duration: selDurVal, Duration: selDurVal,
+    status: 'booked', Status: 'booked',
+    startedAt: '', 'Booked At': new Date().toISOString(),
+    voicemailOverride: _vmChecked, dept: user.dept||''
+  };
+  try{
+    await API.saveBreaks({action:'saveBreak', break:bk, ...bk});
+    if(!data.breakLog) data.breakLog=[];
+    data.breakLog.push(bk);
+    bookedBreak=bk;
+    renderBookedBanner();
+    renderBalance(); buildSlotGrid();
+    btn.disabled=false; btn.textContent='Book Break';
+    U.toast('Break booked ✓ — tap Start when ready','ok');
+  }catch(e){
+    U.toast('Failed to book break','err');
+    btn.disabled=false; btn.textContent='Book Break';
+  }
 }
 
 
@@ -669,37 +723,6 @@ async function respondToSwap(swapId, fromBreakId, toBreakId, fromSlot, toSlot, a
   }
 }
 
-function fillSwapColleagues(myBreakId) {
-  const sel = document.getElementById('swap-coll');
-  if (!sel) return;
-
-  // Get all agents who have a BOOKED break today (not active, not done)
-  const todayBooked = (data?.breakLog || []).filter(b =>
-    U.normDate(b.date||b['Date']) === today &&
-    (b.status||b.Status||'').toLowerCase() === 'booked' &&
-    (b.agent||b.Agent) !== user.name   // exclude self
-  );
-
-  sel.innerHTML = '<option value="">— Select colleague & slot —</option>';
-
-  if (!todayBooked.length) {
-    sel.innerHTML = '<option value="">No colleagues have booked breaks</option>';
-    return;
-  }
-
-  todayBooked
-    .sort((a,b) => (a.breakStart||a['Break Start']||'').localeCompare(b.breakStart||b['Break Start']||''))
-    .forEach(b => {
-      const agentName = b.agent || b.Agent || '';
-      const slot      = (b.breakStart||b['Break Start']||'').slice(0,5);
-      const slotDisp  = U.fmt12 ? U.fmt12(slot) : slot;
-      const dur       = b.duration || b.Duration || 15;
-      const o = document.createElement('option');
-      o.value = JSON.stringify({ agent: agentName, breakId: b.id||b.ID, slot });
-      o.textContent = `${agentName} — ${slotDisp} (${dur} min)`;
-      sel.appendChild(o);
-    });
-}
 
 async function swapBreak() {
   const sel = document.getElementById('swap-coll');
