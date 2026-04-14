@@ -17,6 +17,7 @@ const CFG = {
     BREAKS:            'https://n8n.kib-cc-wfm.com/webhook/kib-breaks',
     ATTENDANCE:        'https://n8n.kib-cc-wfm.com/webhook/kib-attendance',
     SUBMIT_LEAVE:      'https://n8n.kib-cc-wfm.com/webhook/kib-submit-leave',
+    APPROVE_KPI:        'https://n8n.kib-cc-wfm.com/webhook/kib-approve-kpi',
     APPROVE_LEAVE:     'https://n8n.kib-cc-wfm.com/webhook/kib-approve-leave',
     SUBMIT_SWAP:       'https://n8n.kib-cc-wfm.com/webhook/kib-submit-swap',
     RESPOND_SWAP:      'https://n8n.kib-cc-wfm.com/webhook/kib-respond-swap',
