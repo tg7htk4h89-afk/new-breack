@@ -188,12 +188,20 @@ function renderBookedBanner() {
         ${next.duration||15} min · ${slotDisp}
       </div>
     </div>
-    <button onclick="startBookedBreak('${next.id}')"
-      style="padding:10px 20px;border-radius:10px;border:2px solid rgba(0,190,174,.6);
-             background:rgba(0,190,174,.2);color:#00BEAE;font-size:14px;font-weight:800;
-             cursor:pointer;-webkit-tap-highlight-color:transparent;">
-      ▶ Start
-    </button>`;
+    <div style="display:flex;gap:8px;">
+      <button onclick="startBookedBreak('${next.id}')"
+        style="padding:10px 18px;border-radius:10px;border:2px solid rgba(0,190,174,.6);
+               background:rgba(0,190,174,.2);color:#00BEAE;font-size:14px;font-weight:800;
+               cursor:pointer;-webkit-tap-highlight-color:transparent;">
+        ▶ Start
+      </button>
+      <button onclick="cancelBookedBreak('${next.id}')"
+        style="padding:10px 12px;border-radius:10px;border:2px solid rgba(255,255,255,.15);
+               background:rgba(255,255,255,.08);color:rgba(255,255,255,.55);font-size:13px;font-weight:700;
+               cursor:pointer;-webkit-tap-highlight-color:transparent;">
+        ✕
+      </button>
+    </div>`;
 }
 
 
@@ -374,6 +382,28 @@ async function bookBreak(){
     Nav.setSyncStatus(true);renderBalance();buildSlotGrid();
     U.toast('Break booked ✓ — tap Start when ready','ok');
   }catch(e){U.toast('Failed to book break','err');btn.disabled=false;btn.textContent='Book Break';}
+}
+
+async function cancelBookedBreak(breakId) {
+  if (!confirm('Cancel this break?')) return;
+  const bk = (data?.breakLog||[]).find(b => b.id === breakId);
+  if (!bk) return;
+  // Optimistic update
+  bk.status = 'cancelled';
+  renderBookedBanner();
+  renderBalance();
+  buildSlotGrid();
+  try {
+    await API.saveBreaks({ action: 'cancelBreak', id: breakId, agent: user.name });
+    API.clearCache('getAll');
+    data = await API.getAll(true);
+    renderBalance(); buildSlotGrid(); renderBookedBanner();
+    U.toast('Break cancelled', 'ok');
+  } catch(e) {
+    bk.status = 'booked'; // rollback
+    renderBookedBanner();
+    U.toast('Failed to cancel', 'err');
+  }
 }
 
 async function endBreak(){
