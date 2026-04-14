@@ -140,7 +140,7 @@ const CFG = {
       { id:'kpi',      icon:'📊', label:'KPI',     page:'kpi.html'     },
       { id:'settings', icon:'👤', label:'Me',      page:'settings.html'},
     ],
-  },,
+  },
 
 };
 
