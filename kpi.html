@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!-- v20260415-051326-20260415-051141 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -54,6 +54,7 @@
         <div class="form-group"><label class="fld-label">Helpdesk No. (optional)</label><input class="fld" id="si-hd" placeholder="Ticket number"></div>
         <div class="form-group"><label class="fld-label">Description</label><textarea class="fld" id="si-desc" rows="3" placeholder="Describe the issue..."></textarea></div>
         <div class="form-group" onclick="event.stopPropagation()"><label class="fld-label">Approved By</label><select class="fld" id="issue-approver"><option value="">— Select Manager —</option></select></div>
+        <div class="form-group" onclick="event.stopPropagation()"><label class="fld-label">Approved By</label><select class="fld" id="si-approver"><option value="">— Select Manager —</option></select></div>
         <button class="btn btn-navy btn-block" id="btn-issue" onclick="logKPI('issue',event)">Submit Issue</button>
         
       </div>
@@ -76,6 +77,7 @@
         <div class="form-group"><label class="fld-label">Monthly Count</label><input class="fld" id="pm-count" type="number" placeholder="1" min="1"></div>
         <div class="form-group"><label class="fld-label">Reason</label><textarea class="fld" id="pm-reason" rows="2" placeholder="Reason..."></textarea></div>
         <div class="form-group" onclick="event.stopPropagation()"><label class="fld-label">Approved By</label><select class="fld" id="permission-approver"><option value="">— Select Manager —</option></select></div>
+        <div class="form-group" onclick="event.stopPropagation()"><label class="fld-label">Approved By</label><select class="fld" id="pm-approver"><option value="">— Select Manager —</option></select></div>
         <button class="btn btn-navy btn-block" id="btn-permission" onclick="logKPI('permission',event)">Submit Permission</button>
         
       </div>
@@ -95,6 +97,7 @@
         <div class="form-group"><label class="fld-label">Reason</label><textarea class="fld" id="eb-reason" rows="2" placeholder="Reason..."></textarea></div>
         <div class="form-group"><label class="fld-label">Comment (optional)</label><input class="fld" id="eb-comment" placeholder="Additional notes"></div>
         <div class="form-group" onclick="event.stopPropagation()"><label class="fld-label">Approved By</label><select class="fld" id="extra-approver"><option value="">— Select Manager —</option></select></div>
+        <div class="form-group" onclick="event.stopPropagation()"><label class="fld-label">Approved By</label><select class="fld" id="eb-approver"><option value="">— Select Manager —</option></select></div>
         <button class="btn btn-navy btn-block" id="btn-extra" onclick="logKPI('extra',event)">Submit Extra Break</button>
         
       </div>
