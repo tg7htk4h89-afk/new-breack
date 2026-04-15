@@ -38,11 +38,12 @@ const API = (() => {
 
     /** Full initial load — parallel calls, resilient with timeout */
     async getAll(force = false) {
+      // Cache for entire shift — only force=true or manual sync bypasses this
       if (!force) {
-        const cached = fromCache('getAll', 300000); // 5min cache
+        const cached = fromCache('getAll', 8 * 60 * 60 * 1000); // 8 hours = full shift
         if (cached) return cached;
       }
-      // Debounce: max 1 forced call per 8s
+      // Debounce manual refresh — max once per 30s
       const now = Date.now();
       if (force && window._lastGetAll && (now - window._lastGetAll) < 30000) {
         const cached = fromCache('getAll', 999999);
@@ -53,7 +54,6 @@ const API = (() => {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 12000);
       try {
-        // Call all GET endpoints in parallel
         const N = CFG.N8N;
         const safe = async (url) => {
           try {
@@ -62,19 +62,19 @@ const API = (() => {
           } catch(e) { return {}; }
         };
 
-        // Fetch schedule first (critical), then others with delay to avoid quota
-        const sched = await safe(N.GET_SCHEDULE);
+        const [sched, brks, lvs, swps, att, kpi, notif, sr] = await Promise.all([
+          safe(N.GET_SCHEDULE),
+          safe(N.GET_BREAKS),
+          safe(N.GET_LEAVES),
+          safe(N.GET_SWAPS),
+          safe(N.GET_ATTENDANCE),
+          safe(N.GET_KPI),
+          safe(N.GET_NOTIF),
+          safe(N.GET_SCHEDREQUESTS),
+        ]);
         clearTimeout(timer);
 
         if (!sched.agents?.length) throw new Error('Schedule unavailable');
-
-        // Fetch secondary data with staggering to avoid quota
-        await new Promise(r => setTimeout(r, 500));
-        const [brks, lvs] = await Promise.all([safe(N.GET_BREAKS), safe(N.GET_LEAVES)]);
-        await new Promise(r => setTimeout(r, 500));
-        const [swps, att] = await Promise.all([safe(N.GET_SWAPS), safe(N.GET_ATTENDANCE)]);
-        await new Promise(r => setTimeout(r, 500));
-        const [kpi, notif, sr] = await Promise.all([safe(N.GET_KPI), safe(N.GET_NOTIF), safe(N.GET_SCHEDREQUESTS)]);
 
         const d = {
           ok: true,
@@ -100,6 +100,27 @@ const API = (() => {
         throw e;
       }
     },
+
+    /** Refresh only break data — called from breaks page */
+    async refreshBreaks() {
+      try {
+        const r = await fetch(CFG.N8N.GET_BREAKS, {
+          method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'
+        });
+        if (!r.ok) return null;
+        const d = await r.json();
+        // Merge fresh break data into cached getAll
+        const cached = fromCache('getAll', 999999);
+        if (cached && d.breakLog) {
+          cached.breakLog = d.breakLog;
+          toCache('getAll', cached);
+        }
+        return d.breakLog || [];
+      } catch(e) { return null; }
+    },
+ },
+ },
+ },
 
     /** Single agent's schedule */
     async getAgentSchedule(agentName, force = false) {
