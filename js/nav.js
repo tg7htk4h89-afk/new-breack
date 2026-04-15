@@ -1,11 +1,10 @@
-'use strict';
 /* ═══════════════════════════════════════════════════════
    KIB WFM Portal v2 — Nav v2
    Top bar: logo · page subtitle · Kuwait clock · sync dot · avatar menu · logout
    Bottom nav: role-aware, badges, active pill, iOS safe area
    ═══════════════════════════════════════════════════════ */
 
-const Nav = (() => {
+var Nav = (() => {
 
   /* ── Internal state ─────────────────────────────────── */
   let _badges   = {};

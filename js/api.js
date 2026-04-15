@@ -1,12 +1,10 @@
-/* KIB api.js v070852 */
 /* KIB WFM api.js v2.1 - 20260414-2042 */
-'use strict';
 /* ═══════════════════════════════════════════════════════
    KIB WFM Portal v2 — API
    All n8n fetch calls — requires config.js
    ═══════════════════════════════════════════════════════ */
 
-const API = (() => {
+var API = (() => {
 
   /* ── Generic POST helper ──────────────────────────── */
   async function post(url, body, signal) {
@@ -176,7 +174,7 @@ const API = (() => {
     async bulkUpdateShifts(changes, updatedBy) {
       clearCache('getAll');
       clearCache(`sched_`);
-      return post(CFG.N8N.SCHEDULE, {
+      return post(CFG.N8N.UPDATE_SHIFT, {
         action: 'bulkUpdateShifts',
         changes,
         updatedBy,

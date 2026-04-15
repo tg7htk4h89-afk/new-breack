@@ -1,10 +1,9 @@
-'use strict';
 /* ═══════════════════════════════════════════════════════
    KIB WFM Portal v2 — Utils
    Date helpers, formatting, UI utilities
    ═══════════════════════════════════════════════════════ */
 
-const U = {
+var U = {
 
   /* ── Kuwait time ──────────────────────────────────── */
   kuwaitNow() {
