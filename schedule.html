@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#0A4A8A">
-<title>KIB WFM — My Schedule</title>
+<title>KIB WFM — My Schedule</title><!-- v20260415-074209 -->
 <link rel="stylesheet" href="css/kib.css">
 
 <style>
@@ -503,6 +503,7 @@ async function init(force = false) {
            || _agents.find(a => (a.n||'').trim() === user.name.trim())
            || _agents.find(a => (a.n||'').trim().toLowerCase() === _uname)
            || _agents.find(a => (a.n||'').trim().toLowerCase().includes(_uname) || _uname.includes((a.n||'').trim().toLowerCase()));
+    console.log('Schedule debug: agents='+_agents.length+' dates='+allDates.length+' myAgent='+JSON.stringify(myAgent?.n)+' today='+today+' weekAnchor='+weekAnchor);
     renderWeek();
     fillColleagues();
     setDefaultDates();
