@@ -28,7 +28,7 @@
   <div class="page-content">
 
     <!-- PENDING APPROVALS (management only) -->
-    <div id="pending-section" style="display:none;">
+    <div id="pending-section" style="display:none;" class="mgmt-only">
       <div class="section-hdr">
         <div class="section-title">Pending Approvals <span id="pending-badge" style="background:#EF4444;color:#fff;border-radius:8px;padding:1px 6px;font-size:10px;margin-left:4px;display:none;"></span></div>
       </div>
@@ -159,7 +159,13 @@ const isMgmt = Auth.isManagement();
 let data = null;
 
 Nav.init('kpi');
+// Show management sections immediately
+if (isMgmt) {
+  document.getElementById('pending-section').style.display = '';
+  document.getElementById('mgmt-section').style.display    = '';
+}
 document.getElementById('user-strip-wrap').innerHTML = Nav.renderUserStrip();
+console.log('KPI page: user=', user.name, 'access=', user.access, 'isMgmt=', isMgmt);
 
 /* ── Helpers ── */
 function toggleCard(id) {
@@ -344,22 +350,29 @@ function renderMySubmissions() {
 /* ── Pending Approvals (management) ── */
 function renderPending() {
   if (!isMgmt) return;
+  // DEBUG
+  const allKpi = data?.kpi||{};
+  const totalAll = (allKpi.issue||[]).length+(allKpi.permission||[]).length+(allKpi.extra||[]).length+(allKpi.meeting||[]).length;
+  const totalPending = [...(allKpi.issue||[]),...(allKpi.permission||[]),...(allKpi.extra||[]),...(allKpi.meeting||[])].filter(k=>!String(k.ApprovedBy||'').trim()).length;
+  console.log(`KPI debug: total=${totalAll}, pending=${totalPending}, user=${user.name}`);
   const kpi = data?.kpi||{};
-  const isPendingForMe = k => {
-    const ab  = k.ApprovedBy || k.approvedBy || '';
-    const cmt = k.Comment    || k.comment    || '';
-    // Pending = no ApprovedBy set yet
-    // Show to: the requested manager OR any manager if no specific one set
-    if (ab) return false; // already actioned
-    if (!cmt) return true; // no specific manager = show to all managers
-    return cmt.includes(user.name); // show only to the requested manager
+  // Show pending KPIs: ApprovedBy is empty/null
+  const isPending = k => {
+    const ab = String(k.ApprovedBy || k.approvedBy || '').trim();
+    return !ab; // pending = no ApprovedBy set
+  };
+  // Filter by requested manager — check Comment field (stored as "Requested to: Name")
+  const isForMe = k => {
+    const cmt = String(k.Comment || k.comment || '').trim();
+    if (!cmt || !cmt.includes('Requested to:')) return true; // no specific manager = show to all
+    return cmt.toLowerCase().includes(user.name.toLowerCase());
   };
   const pending = [
-    ...(kpi.issue     ||[]).filter(isPendingForMe).map(k=>({...k,_t:'issue'})),
-    ...(kpi.permission||[]).filter(isPendingForMe).map(k=>({...k,_t:'permission'})),
-    ...(kpi.extra     ||[]).filter(isPendingForMe).map(k=>({...k,_t:'extra'})),
-    ...(kpi.meeting   ||[]).filter(isPendingForMe).map(k=>({...k,_t:'meeting'})),
-  ].sort((a,b)=>(b.Timestamp||'').localeCompare(a.Timestamp||''));
+    ...(kpi.issue     ||[]).filter(k=>isPending(k)&&isForMe(k)).map(k=>({...k,_t:'issue'})),
+    ...(kpi.permission||[]).filter(k=>isPending(k)&&isForMe(k)).map(k=>({...k,_t:'permission'})),
+    ...(kpi.extra     ||[]).filter(k=>isPending(k)&&isForMe(k)).map(k=>({...k,_t:'extra'})),
+    ...(kpi.meeting   ||[]).filter(k=>isPending(k)&&isForMe(k)).map(k=>({...k,_t:'meeting'})),
+  ].sort((a,b)=>(b.Timestamp||b.Date||'').localeCompare(a.Timestamp||a.Date||''));
 
   const badge = document.getElementById('pending-badge');
   badge.textContent = pending.length;
