@@ -9,39 +9,75 @@
 <title>KIB WFM — Schedule Editor</title>
 <link rel="stylesheet" href="css/kib.css">
 <style>
-body { background:#F0F5FB; }
+* { box-sizing: border-box; }
+body { background: #F0F4FA; }
 
-/* toolbar */
-.ed-bar {
+/* ── TOOLBAR ── */
+.ed-toolbar {
   position: sticky;
   top: var(--topbar-h, 56px);
   z-index: 50;
   background: #fff;
-  border-bottom: 2px solid #E0EAF8;
-  padding: 8px 12px;
+  border-bottom: 1px solid #E0EAF8;
+  box-shadow: 0 2px 12px rgba(10,46,90,.06);
+}
+.ed-toolbar-top {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 14px;
 }
-.wk-btn {
-  width: 32px; height: 32px;
+.ed-toolbar-teams {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0 14px 9px;
+}
+.ed-toolbar-teams::-webkit-scrollbar { display: none; }
+
+.wk-nav { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.wk-arrow {
+  width: 30px; height: 30px;
   border: 1.5px solid #D1DCF0;
   border-radius: 8px;
-  background: #fff;
-  font-size: 16px;
+  background: #F8FAFF;
+  font-size: 15px; font-weight: 800;
+  color: #0A2E5A;
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  font-weight: 800; color: #0A2E5A;
+  transition: background .1s;
+}
+.wk-arrow:hover { background: #E8F0FF; }
+.wk-label {
+  font-size: 12px; font-weight: 800; color: #0A2E5A;
+  padding: 0 10px; min-width: 130px; text-align: center;
+}
+.today-btn {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1.5px solid #0A2E5A;
+  background: #0A2E5A;
+  color: #fff;
+  font-size: 11px; font-weight: 700;
+  cursor: pointer; flex-shrink: 0;
+  transition: opacity .1s;
+}
+.today-btn:hover { opacity: .85; }
+.changes-badge {
+  display: none;
+  padding: 4px 10px;
+  background: #FEF3C7;
+  border: 1.5px solid #F59E0B;
+  border-radius: 20px;
+  font-size: 11px; font-weight: 700;
+  color: #92400E;
   flex-shrink: 0;
 }
-.wk-btn:hover { background: #EEF4FC; }
-.wk-lbl {
-  font-size: 12px; font-weight: 800; color: #0A2E5A;
-  min-width: 120px; text-align: center; flex-shrink: 0;
-}
+.changes-badge.show { display: block; }
+
 .tc {
-  padding: 5px 10px;
+  padding: 4px 12px;
   border-radius: 20px;
   border: 1.5px solid #D1DCF0;
   background: #fff;
@@ -50,17 +86,15 @@ body { background:#F0F5FB; }
   transition: .12s; flex-shrink: 0;
 }
 .tc.on { background: #0A2E5A; border-color: #0A2E5A; color: #fff; }
-.tc-wrap { display:flex; gap:5px; overflow-x:auto; scrollbar-width:none; flex:1; }
-.tc-wrap::-webkit-scrollbar { display:none; }
 
-/* grid */
-.g-wrap {
+/* ── GRID ── */
+.g-scroll {
   overflow: auto;
-  margin: 10px 10px 80px;
-  border-radius: 12px;
+  margin: 10px 12px 90px;
+  border-radius: 14px;
   border: 1.5px solid #D8E5F5;
   background: #fff;
-  box-shadow: 0 4px 20px rgba(10,46,90,.08);
+  box-shadow: 0 4px 24px rgba(10,46,90,.07);
 }
 .g-tbl {
   border-collapse: separate;
@@ -68,141 +102,211 @@ body { background:#F0F5FB; }
   width: max-content;
   min-width: 100%;
 }
+
+/* Header */
 .g-tbl thead th {
   position: sticky; top: 0; z-index: 12;
   background: #0A2E5A;
-  color: rgba(255,255,255,.65);
-  padding: 6px 4px;
+  padding: 7px 3px;
   font-size: 9px; font-weight: 700;
-  text-align: center; white-space: nowrap;
-  border-right: 1px solid rgba(255,255,255,.06);
-  min-width: 90px;
-  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+  border-right: 1px solid rgba(255,255,255,.07);
+  min-width: 110px;
+  line-height: 1.35;
+  color: rgba(255,255,255,.6);
 }
 .g-tbl thead th.th-name {
   position: sticky; left: 0; z-index: 22;
-  text-align: left; padding-left: 12px;
-  min-width: 160px; width: 160px;
-  border-right: 2px solid rgba(255,255,255,.12);
+  text-align: left;
+  padding: 7px 10px 7px 14px;
+  min-width: 190px; width: 190px;
+  border-right: 2px solid rgba(255,255,255,.1);
+  background: #082550;
+  font-size: 9.5px;
+  color: rgba(255,255,255,.45);
+  letter-spacing: .4px;
+  text-transform: uppercase;
 }
-.g-tbl thead th.th-today { background: #00A89A; color: #fff; }
-.g-tbl thead th.th-wknd  { background: #0C2345; color: rgba(255,255,255,.3); }
+.th-today-col { background: #007F74 !important; color: #fff !important; }
+.th-wknd-col  { background: #061B3B !important; color: rgba(255,255,255,.3) !important; }
+.th-date-num  { font-size: 14px; font-weight: 900; color: inherit; }
 
+/* Rows */
 .g-tbl td {
   border-right: 1px solid #EDF2FA;
   border-bottom: 1px solid #EDF2FA;
-  height: 44px; padding: 0;
+  height: 46px;
+  padding: 0;
 }
 .g-tbl .td-name {
   position: sticky; left: 0; z-index: 5;
   background: #fff;
   border-right: 2px solid #E0EAF8;
-  padding: 5px 10px;
+  padding: 6px 10px;
+  min-width: 190px; width: 190px;
   white-space: nowrap;
-  min-width: 160px; width: 160px;
 }
-.g-tbl tr:hover td { background: rgba(10,46,90,.02); }
-.g-tbl tr:hover .td-name { background: #F5F9FF; }
+.g-tbl tr:hover td             { background: rgba(10,46,90,.018); }
+.g-tbl tr:hover .td-name       { background: #F4F8FF; }
+.g-tbl td.today-col            { background: rgba(0,127,116,.04); }
+.g-tbl .td-name.today-col      { background: rgba(0,127,116,.06) !important; }
+.g-tbl td.wknd-col             { background: #FAFBFD; }
+
+/* Group separator */
 .grp-row td {
-  background: #EEF4FC !important;
-  font-size: 10px; font-weight: 800; color: #1A3F70;
-  text-transform: uppercase; letter-spacing: .6px;
-  padding: 3px 12px; height: 26px !important;
-  border-bottom: 1px solid #D8E5F5;
+  background: #E8F0FB !important;
+  font-size: 10px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .7px;
+  padding: 0 14px;
+  height: 28px !important;
+  border-bottom: 1px solid #D0DFF5;
+  vertical-align: middle;
 }
 
-/* THE KEY: inline select inside each cell */
-.cell-wrap {
+/* Agent cell */
+.ag-info { display: flex; align-items: center; gap: 7px; }
+.ag-av {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 900; color: #fff;
+  flex-shrink: 0;
+}
+.ag-nm { font-size: 11.5px; font-weight: 700; color: #0D1F3C; line-height: 1.2; }
+.ag-role {
+  display: inline-block;
+  font-size: 8px; font-weight: 700;
+  color: #fff; padding: 1px 5px;
+  border-radius: 3px; margin-top: 2px;
+}
+
+/* Cell select — the edit control */
+.cell-sel-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 44px;
-  padding: 3px;
-}
-.cell-sel {
-  width: 86px;
-  height: 34px;
-  border: none;
-  border-radius: 8px;
-  font-size: 10px;
-  font-weight: 800;
-  text-align: center;
-  cursor: pointer;
-  outline: none;
-  -webkit-appearance: none;
-  appearance: none;
-  padding: 0 4px;
-  transition: box-shadow .15s, transform .1s;
-}
-.cell-sel:focus {
-  box-shadow: 0 0 0 2.5px #0A2E5A;
-  transform: scale(1.05);
-  z-index: 10;
+  height: 46px;
+  padding: 3px 4px;
   position: relative;
 }
-.cell-sel.changed {
-  box-shadow: 0 0 0 2.5px #F59E0B;
+.cell-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 104px;
+  height: 36px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  position: relative;
+  transition: filter .1s, transform .1s;
+  letter-spacing: .2px;
 }
-.cell-sel.today-bg { background: rgba(0,168,154,.08) !important; }
+.cell-chip:hover { filter: brightness(.92); transform: scale(1.04); }
+.edited-dot {
+  position: absolute;
+  top: -3px; right: -3px;
+  width: 7px; height: 7px;
+  background: #F59E0B;
+  border-radius: 50%;
+  border: 1.5px solid #fff;
+}
+.cell-sel-hidden {
+  position: absolute;
+  opacity: 0;
+  width: 104px; height: 36px;
+  cursor: pointer;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+}
+.cell-sel-hidden { border: none; background: transparent; }
 
-/* save bar */
+/* ── SAVE BAR ── */
 .save-bar {
   position: fixed;
-  bottom: calc(var(--nav-h, 64px) + env(safe-area-inset-bottom,0px) + 4px);
+  bottom: calc(var(--nav-h, 64px) + env(safe-area-inset-bottom,0px) + 6px);
   left: 50%;
-  transform: translateX(-50%) translateY(120px);
-  background: #0A2E5A;
+  transform: translateX(-50%) translateY(100px);
+  background: linear-gradient(135deg, #0A2E5A, #0D3A70);
   color: #fff;
-  padding: 12px 18px;
-  border-radius: 14px;
-  display: flex; align-items: center; gap: 12px;
-  z-index: 200;
-  box-shadow: 0 8px 32px rgba(10,46,90,.35);
+  padding: 13px 20px;
+  border-radius: 16px;
+  display: flex; align-items: center; gap: 10px;
+  z-index: 300;
+  box-shadow: 0 8px 40px rgba(10,46,90,.4);
   transition: transform .3s cubic-bezier(.34,1.56,.64,1);
   white-space: nowrap;
+  min-width: 280px;
 }
 .save-bar.show { transform: translateX(-50%) translateY(0); }
-
-/* agent name */
-.av {
-  width: 24px; height: 24px; border-radius: 6px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 8px; font-weight: 900; color: #fff;
-  flex-shrink: 0;
+.save-bar-left { flex: 1; }
+.save-bar-count { font-size: 15px; font-weight: 800; }
+.save-bar-hint  { font-size: 10px; opacity: .65; margin-top: 1px; }
+.save-bar-actions { display: flex; gap: 8px; }
+.sb-discard {
+  padding: 8px 14px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  color: #fff; border-radius: 9px;
+  font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: background .1s;
 }
-.an { font-size: 11px; font-weight: 700; color: #1A2F4E; }
-.at {
-  font-size: 8px; font-weight: 700; color: #fff;
-  padding: 1px 4px; border-radius: 3px; display: inline-block; margin-top: 1px;
+.sb-discard:hover { background: rgba(255,255,255,.2); }
+.sb-save {
+  padding: 8px 16px;
+  background: #00A89A;
+  border: none;
+  color: #fff; border-radius: 9px;
+  font-size: 12px; font-weight: 800;
+  cursor: pointer; transition: background .1s;
 }
+.sb-save:hover { background: #008F82; }
+.sb-save:disabled { background: #5A8AAA; cursor: not-allowed; }
 </style>
 </head>
 <body>
 <div id="kib-topbar"></div>
 
-<div class="ed-bar" style="margin-top:var(--topbar-h,56px);">
-  <button class="wk-btn" onclick="prevWeek()">‹</button>
-  <div class="wk-lbl" id="wk-lbl">Loading…</div>
-  <button class="wk-btn" onclick="nextWeek()">›</button>
-  <button class="tc on" onclick="goToday()" style="flex-shrink:0;">Today</button>
-  <div class="tc-wrap" id="tc-wrap"></div>
+<!-- TOOLBAR -->
+<div class="ed-toolbar" style="margin-top:var(--topbar-h,56px);">
+  <div class="ed-toolbar-top">
+    <div class="wk-nav">
+      <button class="wk-arrow" onclick="prevWeek()">‹</button>
+      <div class="wk-label" id="wk-label">Loading…</div>
+      <button class="wk-arrow" onclick="nextWeek()">›</button>
+    </div>
+    <button class="today-btn" onclick="goToday()">Today</button>
+    <div class="changes-badge" id="changes-badge">● 0 changes</div>
+    <div style="flex:1;"></div>
+    <button onclick="saveAll()" id="save-btn-top" style="display:none;padding:6px 14px;background:#00A89A;border:none;color:#fff;border-radius:9px;font-size:12px;font-weight:800;cursor:pointer;">✓ Save</button>
+  </div>
+  <div class="ed-toolbar-teams" id="tc-wrap"></div>
 </div>
 
+<!-- GRID -->
 <div id="kib-app" style="padding-top:0;">
-  <div class="g-wrap" id="g-wrap">
-    <div id="g-container" style="padding:40px;text-align:center;color:#7A8FAA;">
-      <div class="kib-spin" style="margin:0 auto 10px;"></div>
-      Loading schedule…
+  <div class="g-scroll" id="g-scroll">
+    <div id="g-container" style="padding:48px;text-align:center;color:#7A8FAA;">
+      <div class="kib-spin" style="margin:0 auto 12px;"></div>
+      <div style="font-size:13px;">Loading schedule…</div>
     </div>
   </div>
 </div>
 
 <div id="kib-bottomnav"></div>
 
+<!-- SAVE BAR (floating) -->
 <div class="save-bar" id="save-bar">
-  <span id="save-msg" style="font-size:13px;font-weight:700;">0 changes</span>
-  <button onclick="discardAll()" style="background:rgba(255,255,255,.15);border:none;color:#fff;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">✕ Discard</button>
-  <button onclick="saveAll()" id="save-btn" style="background:#00A89A;border:none;color:#fff;padding:7px 16px;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;">✓ Save All</button>
+  <div class="save-bar-left">
+    <div class="save-bar-count" id="save-bar-count">0 changes</div>
+    <div class="save-bar-hint">Tap Save to update Google Sheets</div>
+  </div>
+  <div class="save-bar-actions">
+    <button class="sb-discard" onclick="discardAll()">✕ Discard</button>
+    <button class="sb-save"    onclick="saveAll()" id="save-btn">✓ Save All</button>
+  </div>
 </div>
 
 <script src="js/config.js"></script>
@@ -222,38 +326,40 @@ Nav.init('schedule-edit');
 
 let allData=null, allAgents=[], allDates=[];
 let weekAnchor=U.today(), teamFilter='All';
-let pending={};  // key:"agent|date" val:{agent,date,shift,orig}
+let pending={};
 
-/* ── ALL SHIFTS OPTION HTML ── */
-function buildOptions(current) {
-  const shifts = CFG.SHIFT_OPTIONS || [];
-  const types  = CFG.DAY_TYPES    || [];
-  let html = `<option value="">—</option>`;
-  html += `<optgroup label="── Shifts ──">`;
+/* ── SHIFT OPTIONS ── */
+function buildOptions(cur) {
+  const shifts = CFG.SHIFT_OPTIONS||[];
+  const types  = CFG.DAY_TYPES||[];
+  let h = '<option value="">— select —</option>';
+  h += '<optgroup label="─ Shifts ─">';
   shifts.forEach(s => {
-    html += `<option value="${s}" ${s===current?'selected':''}>${s}</option>`;
+    // Short label: "09-17" from "09:00-17:00"
+    const parts = s.split('-');
+    const short = parts.length>=2
+      ? `${parseInt(parts[0])}-${parseInt(parts[1].split(':')[0])||parseInt(parts[1])}`
+      : s;
+    h += `<option value="${s}" ${s===cur?'selected':''}>${short}</option>`;
   });
-  html += `</optgroup><optgroup label="── Off / Leave ──">`;
-  types.forEach(t => {
-    html += `<option value="${t.code}" ${t.code===current?'selected':''}>${t.code} — ${t.label}</option>`;
-  });
-  html += `</optgroup>`;
-  return html;
+  h += '</optgroup><optgroup label="─ Off / Leave ─">';
+  types.forEach(t => { h += `<option value="${t.code}" ${t.code===cur?'selected':''}>${t.code}</option>`; });
+  h += '</optgroup>';
+  return h;
 }
 
-/* ── GET COLORS ── */
-function getStyle(code) {
-  if (!code || code === 'OFF') return {bg:'#F1F5F9', color:'#6B7280'};
+/* ── COLORS ── */
+function clr(code) {
+  if (!code||code==='OFF') return {bg:'#F1F5F9',c:'#64748B'};
   const dt = (CFG.DAY_TYPES||[]).find(d=>d.code===code);
-  if (dt) return {bg:dt.bg, color:dt.color};
-  const def = CFG.getShiftDisplay && CFG.getShiftDisplay(code);
-  if (def) return {bg:def.bg, color:def.color};
-  // fallback by hour
-  const h = parseInt(code.split(':')[0]||0);
-  if (h < 10) return {bg:'#DBEAFE',color:'#1D4ED8'};
-  if (h < 14) return {bg:'#CCFBF1',color:'#0F766E'};
-  if (h < 17) return {bg:'#FEF3C7',color:'#B45309'};
-  return {bg:'#EDE9FE',color:'#6D28D9'};
+  if (dt) return {bg:dt.bg,c:dt.color};
+  const def = CFG.getShiftDisplay&&CFG.getShiftDisplay(code);
+  if (def?.bg) return {bg:def.bg,c:def.color};
+  const h=parseInt(code)||0;
+  if(h<9)  return {bg:'#DBEAFE',c:'#1D4ED8'};
+  if(h<13) return {bg:'#D1FAE5',c:'#065F46'};
+  if(h<17) return {bg:'#FEF3C7',c:'#92400E'};
+  return {bg:'#EDE9FE',c:'#5B21B6'};
 }
 
 /* ── INIT ── */
@@ -268,17 +374,18 @@ async function init() {
   } catch(e) {
     Nav.setSyncStatus(false);
     document.getElementById('g-container').innerHTML =
-      `<div style="color:#EF4444;padding:40px;text-align:center;">
-        ⚠ Failed to load<br>
-        <button onclick="init()" style="margin-top:12px;padding:8px 16px;border-radius:8px;
-          border:1.5px solid #EF4444;background:#fff;color:#EF4444;font-weight:700;cursor:pointer;">Retry</button>
+      `<div style="color:#EF4444;padding:48px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:10px;">⚠️</div>
+        <div style="font-weight:700;margin-bottom:14px;">Failed to load schedule</div>
+        <button onclick="init()" style="padding:9px 20px;border-radius:9px;border:2px solid #EF4444;
+          background:#fff;color:#EF4444;font-weight:800;font-size:13px;cursor:pointer;">Retry</button>
       </div>`;
   }
 }
 
 /* ── TEAM CHIPS ── */
 function buildTeamChips() {
-  const teams = ['All', ...CFG.TEAMS.filter(t=>allAgents.some(a=>a.t===t))];
+  const teams = ['All',...CFG.TEAMS.filter(t=>allAgents.some(a=>a.t===t))];
   document.getElementById('tc-wrap').innerHTML = teams.map(t=>
     `<div class="tc ${t===teamFilter?'on':''}" onclick="setTeam('${t}',this)">${t}</div>`
   ).join('');
@@ -290,168 +397,201 @@ function setTeam(t,el) {
   renderGrid();
 }
 
-/* ── WEEK NAV ── */
+/* ── WEEK ── */
 function prevWeek() { weekAnchor=U.addDays(weekAnchor,-7); renderGrid(); }
 function nextWeek() { weekAnchor=U.addDays(weekAnchor, 7); renderGrid(); }
 function goToday()  { weekAnchor=U.today(); renderGrid(); }
 
-function getWeekDates() {
-  const w = U.getWeekDates(weekAnchor);
+function weekDates() {
+  const w=U.getWeekDates(weekAnchor);
   if (!allDates.length) return w;
   return w.filter(d=>d>=allDates[0]&&d<=allDates[allDates.length-1]);
 }
 
-/* ── RENDER GRID ── */
+/* ── RENDER ── */
 function renderGrid() {
-  const wd = getWeekDates();
+  const wd = weekDates();
   if (!wd.length) {
-    document.getElementById('g-container').innerHTML =
-      `<div style="padding:40px;text-align:center;color:#7A8FAA;">No schedule data for this week.</div>`;
-    updateWkLbl(wd); return;
+    document.getElementById('g-container').innerHTML=
+      `<div style="padding:48px;text-align:center;color:#94A3B8;font-size:13px;">No schedule data for this period.</div>`;
+    setWkLabel(wd); return;
   }
-  updateWkLbl(wd);
+  setWkLabel(wd);
 
-  let agents = allAgents;
-  if (teamFilter!=='All') agents = agents.filter(a=>a.t===teamFilter);
-  const today = U.today();
-  const teams = [...new Set(agents.map(a=>a.t))];
+  let agents=allAgents.filter(a=>teamFilter==='All'||a.t===teamFilter);
+  const today=U.today();
+  const teams=[...new Set(agents.map(a=>a.t))];
+  const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MONS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-  // Header
-  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const mons = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  let thead = `<thead><tr><th class="th-name">Agent</th>`;
-  wd.forEach(d => {
-    const dn = new Date(d+'T00:00:00');
-    const isT=d===today, isW=U.isWeekend(d);
-    thead += `<th class="${isT?'th-today':isW?'th-wknd':''}">
-      <div>${days[dn.getDay()]}</div>
-      <div style="font-size:13px;font-weight:900;color:${isT?'#fff':'rgba(255,255,255,.9)'};">${dn.getDate()}</div>
-      <div style="font-size:8px;">${mons[dn.getMonth()]}</div>
+  /* thead */
+  let th=`<thead><tr><th class="th-name">👤 ${agents.length} Agents</th>`;
+  wd.forEach(d=>{
+    const dn=new Date(d+'T00:00:00');
+    const isT=d===today,isW=U.isWeekend(d);
+    th+=`<th class="${isT?'th-today-col':isW?'th-wknd-col':''}">
+      <div style="opacity:.7;font-size:8.5px;">${DAYS[dn.getDay()]}</div>
+      <div class="th-date-num">${dn.getDate()}</div>
+      <div style="font-size:8px;opacity:.6;">${MONS[dn.getMonth()]}</div>
     </th>`;
   });
-  thead += `</tr></thead>`;
+  th+=`</tr></thead>`;
 
-  // Body
-  let tbody = '<tbody>';
-  teams.forEach(team => {
-    const members = agents.filter(a=>a.t===team);
+  /* tbody */
+  let tb='<tbody>';
+  teams.forEach(team=>{
+    const members=agents.filter(a=>a.t===team);
     if (!members.length) return;
-    const tc = CFG.TEAM_COLORS[team]||'#6B7280';
-    tbody += `<tr class="grp-row"><td colspan="${wd.length+1}" style="color:${tc};">${team} · ${members.length}</td></tr>`;
-    members.forEach(ag => {
-      const name = ag.n||ag.name;
-      const ac = U.avatarColor(name);
-      tbody += `<tr>
-        <td class="td-name">
-          <div style="display:flex;align-items:center;gap:6px;">
-            <div class="av" style="background:${ac};">${U.initials(name)}</div>
+    const tc=CFG.TEAM_COLORS[team]||'#6B7280';
+
+    // Team separator row with mini stats
+    const todayIdx=allDates.indexOf(today);
+    const onToday=members.filter(ag=>{
+      const raw=todayIdx>=0&&ag.sch?ag.sch[todayIdx]:'OFF';
+      return raw&&raw!=='OFF';
+    }).length;
+    tb+=`<tr class="grp-row">
+      <td colspan="${wd.length+1}" style="color:${tc};">
+        ${team}
+        <span style="color:#5A7AAA;font-weight:600;text-transform:none;letter-spacing:0;font-size:9.5px;margin-left:6px;">
+          ${members.length} agents · ${onToday} scheduled today
+        </span>
+      </td>
+    </tr>`;
+
+    members.forEach(ag=>{
+      const name=ag.n||ag.name;
+      const ac=U.avatarColor(name);
+      tb+=`<tr>
+        <td class="td-name ${wd.includes(today)?'today-col':''}">
+          <div class="ag-info">
+            <div class="ag-av" style="background:${ac};">${U.initials(name)}</div>
             <div>
-              <div class="an">${name}</div>
-              <div class="at" style="background:${tc};">${team}</div>
+              <div class="ag-nm">${name}</div>
+              <span class="ag-role" style="background:${tc};">${ag.role||team}</span>
             </div>
           </div>
         </td>`;
-      wd.forEach(d => {
-        const di = allDates.indexOf(d);
-        const raw = (di>=0&&ag.sch ? ag.sch[di] : '')||'OFF';
-        const pKey = `${name}|${d}`;
-        const cur = pending[pKey] ? pending[pKey].shift : CFG.normalizeShiftCode(raw);
-        const s = getStyle(cur);
-        const isT = d===today, isW = U.isWeekend(d);
-        const changed = !!pending[pKey];
-        const ename = name.replace(/'/g,'\\x27').replace(/"/g,'\\x22');
-
-        tbody += `<td style="${isW?'background:rgba(240,245,251,.5)':''}">
-          <div class="cell-wrap">
-            <select class="cell-sel ${changed?'changed':''} ${isT?'today-bg':''}"
-              style="background:${s.bg};color:${s.color};"
-              data-agent="${ename.replace(/"/g,'&quot;')}"
-              data-date="${d}"
-              data-orig="${CFG.normalizeShiftCode(raw)}"
+      wd.forEach(d=>{
+        const di=allDates.indexOf(d);
+        const raw=(di>=0&&ag.sch?ag.sch[di]:'')||'OFF';
+        const pKey=`${name}|${d}`;
+        const cur=pending[pKey]?pending[pKey].shift:CFG.normalizeShiftCode(raw);
+        const {bg,c}=clr(cur);
+        const isT=d===today,isW=U.isWeekend(d);
+        const edited=!!pending[pKey];
+        // Escape for HTML attribute
+        const eAgnt=name.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        const eOrig=CFG.normalizeShiftCode(raw);
+        // Short display label
+        const dispParts = cur.split('-');
+        const shortLbl = (!cur||cur==='OFF') ? 'OFF'
+          : (CFG.DAY_TYPES||[]).find(dt=>dt.code===cur)
+            ? ((CFG.DAY_TYPES||[]).find(dt=>dt.code===cur).short||cur)
+            : dispParts.length>=2
+              ? dispParts[0].split(':')[0]+'–'+dispParts[1].split(':')[0]
+              : cur;
+        tb+=`<td class="${isT?'today-col':''} ${isW?'wknd-col':''}">
+          <div class="cell-sel-wrap">
+            <div class="cell-chip" style="background:${bg};color:${c};${edited?'outline:2px solid #F59E0B;outline-offset:2px;':''}" onclick="this.nextElementSibling.focus()">
+              ${shortLbl}${edited?'<span class="edited-dot"></span>':''}
+            </div>
+            <select class="cell-sel-hidden"
+              data-agent="${eAgnt}" data-date="${d}" data-orig="${eOrig}"
               onchange="onCellChange(this)">
               ${buildOptions(cur)}
             </select>
           </div>
         </td>`;
       });
-      tbody += '</tr>';
+      tb+='</tr>';
     });
   });
-  tbody += '</tbody>';
+  tb+='</tbody>';
 
-  document.getElementById('g-container').innerHTML = `<table class="g-tbl">${thead}${tbody}</table>`;
+  document.getElementById('g-container').innerHTML=`<table class="g-tbl">${th}${tb}</table>`;
 }
 
-function updateWkLbl(wd) {
-  if (!wd||!wd.length) { document.getElementById('wk-lbl').textContent='No data'; return; }
+function setWkLabel(wd) {
   const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const f=new Date(wd[0]+'T00:00:00'), l=new Date(wd[wd.length-1]+'T00:00:00');
-  document.getElementById('wk-lbl').textContent = `${f.getDate()} ${m[f.getMonth()]} – ${l.getDate()} ${m[l.getMonth()]}`;
+  if (!wd||!wd.length) { document.getElementById('wk-label').textContent='No data'; return; }
+  const f=new Date(wd[0]+'T00:00:00'),l=new Date(wd[wd.length-1]+'T00:00:00');
+  document.getElementById('wk-label').textContent=`${f.getDate()} ${m[f.getMonth()]} – ${l.getDate()} ${m[l.getMonth()]}`;
 }
 
 /* ── CELL CHANGE ── */
 function onCellChange(sel) {
-  const agentName = sel.dataset.agent;
-  const date      = sel.dataset.date;
-  const orig      = sel.dataset.orig;
-  const newCode   = sel.value;
-  if (!newCode) return;
-
-  const pKey = `${agentName}|${date}`;
-  if (newCode === orig) {
+  const {agent:agentName,date,orig}=sel.dataset;
+  const code=sel.value;
+  if (!code) return;
+  const pKey=`${agentName}|${date}`;
+  if (code===orig) {
     delete pending[pKey];
-    sel.classList.remove('changed');
   } else {
-    pending[pKey] = { agent:agentName, date, shift:newCode, orig };
-    sel.classList.add('changed');
+    pending[pKey]={agent:agentName,date,shift:code,orig};
   }
-
-  // Update cell colors
-  const s = getStyle(newCode);
-  sel.style.background = s.bg;
-  sel.style.color      = s.color;
-
-  updateSaveBar();
+  const edited = pKey in pending;
+  const {bg,c}=clr(code);
+  // Update chip
+  const chip=sel.previousElementSibling;
+  if (chip) {
+    chip.style.background=bg; chip.style.color=c;
+    // Short label
+    const parts=code.split('-');
+    const dt=(CFG.DAY_TYPES||[]).find(d=>d.code===code);
+    const short=(!code||code==='OFF')?'OFF'
+      :dt?(dt.short||code)
+      :parts.length>=2?parts[0].split(':')[0]+'–'+parts[1].split(':')[0]
+      :code;
+    chip.innerHTML=short+(edited?'<span class="edited-dot"></span>':'');
+    chip.style.outline=edited?'2px solid #F59E0B':'none';
+  }
+  updatePending();
 }
 
-/* ── SAVE BAR ── */
-function updateSaveBar() {
-  const n = Object.keys(pending).length;
-  document.getElementById('save-msg').textContent = `${n} unsaved change${n!==1?'s':''}`;
-  document.getElementById('save-bar').classList.toggle('show', n>0);
+function updatePending() {
+  const n=Object.keys(pending).length;
+  const badge=document.getElementById('changes-badge');
+  const bar=document.getElementById('save-bar');
+  const topBtn=document.getElementById('save-btn-top');
+  document.getElementById('save-bar-count').textContent=`${n} unsaved change${n!==1?'s':''}`;
+  badge.textContent=`● ${n} change${n!==1?'s':''}`;
+  badge.classList.toggle('show',n>0);
+  bar.classList.toggle('show',n>0);
+  topBtn.style.display=n>0?'':'none';
 }
 
 function discardAll() {
   if (!Object.keys(pending).length) return;
   if (!confirm('Discard all unsaved changes?')) return;
-  pending = {};
-  updateSaveBar();
+  pending={};
+  updatePending();
   renderGrid();
 }
 
 async function saveAll() {
-  const changes = Object.values(pending);
+  const changes=Object.values(pending);
   if (!changes.length) return;
-  const btn = document.getElementById('save-btn');
-  btn.disabled=true; btn.textContent='Saving…';
+  const btns=[document.getElementById('save-btn'),document.getElementById('save-btn-top')];
+  btns.forEach(b=>{if(b){b.disabled=true;b.textContent='Saving…';}});
   try {
-    await API.bulkUpdateShifts(changes, user.name);
-    // Update local cache
-    changes.forEach(ch => {
-      const ag  = allAgents.find(a=>(a.n||a.name)===ch.agent);
-      const idx = allDates.indexOf(ch.date);
-      if (ag&&idx>=0&&ag.sch) ag.sch[idx] = ch.shift;
+    await API.bulkUpdateShifts(changes,user.name);
+    changes.forEach(ch=>{
+      const ag=allAgents.find(a=>(a.n||a.name)===ch.agent);
+      const idx=allDates.indexOf(ch.date);
+      if (ag&&idx>=0&&ag.sch) ag.sch[idx]=ch.shift;
     });
-    pending = {};
-    updateSaveBar();
+    const n=changes.length;
+    pending={};
+    updatePending();
     renderGrid();
     API.clearCache('getAll');
-    U.toast(`${changes.length} change${changes.length>1?'s':''} saved ✓`, 'ok');
+    U.toast(`✓ ${n} change${n>1?'s':''} saved to schedule`,'ok');
   } catch(e) {
     Nav.setSyncStatus(false);
-    U.toast('Save failed — check n8n', 'err');
+    U.toast('Save failed — check n8n workflow','err');
   } finally {
-    btn.disabled=false; btn.textContent='✓ Save All';
+    btns.forEach(b=>{if(b){b.disabled=false;b.textContent=b.id==='save-btn'?'✓ Save All':'✓ Save';}});
   }
 }
 
