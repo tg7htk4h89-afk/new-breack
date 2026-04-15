@@ -612,9 +612,9 @@ function exportKPI() {
   U.downloadCSV(rows,`KIB_KPI_${sel}.csv`);
 }
 
-async function init() {
+async function init(force = false) {
   try {
-    data = await API.getAll();
+    data = await API.getAll(force);
     Nav.setSyncStatus(true);
     fillAgents();
     renderMySubmissions();
