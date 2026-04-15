@@ -113,7 +113,7 @@ document.getElementById('att-date').max   = U.today();
 
 const isMgmt = Auth.isManagement();
 
-async function init() {
+async function init(force = false) {
   try {
     allData = await API.getAll();
     if (isMgmt) {
@@ -183,14 +183,18 @@ function renderMgmtView() {
 
   // Stats
   let present=0, late=0, absent=0, leave=0;
+  const dateIdxStat = (allData?.dates||[]).map(d=>U.normDate(d)).indexOf(selDate);
   agents.forEach(ag => {
-    const name = ag.n||ag.name;
-    const rec  = att.find(a => a.agent===name);
-    if (!rec)                         return;
-    if (rec.status==='present')       present++;
-    else if (rec.status==='late')     late++;
-    else if (rec.status==='absent')   absent++;
-    else if (rec.status==='leave'||rec.status==='sick') leave++;
+    const name  = ag.n||ag.name;
+    const rec   = att.find(a => a.agent===name);
+    const shift = dateIdxStat>=0&&ag.sch ? ag.sch[dateIdxStat] : '';
+    const isLv  = ['AL','SL','PH','UL','PL'].includes(shift);
+    if (rec) {
+      if (['present','on_time'].includes(rec.status))    present++;
+      else if (rec.status==='late')                      late++;
+      else if (['absent','noshow','sick'].includes(rec.status)) absent++;
+      else if (['permission','al','sl','ph'].includes(rec.status)||isLv) leave++;
+    } else if (isLv) leave++;
   });
   U.se('s-present', present);
   U.se('s-late',    late);
@@ -199,23 +203,48 @@ function renderMgmtView() {
 
   document.getElementById('att-table-title').textContent = `${teamFilt === 'All' ? 'All Teams' : teamFilt} (${agents.length})`;
 
+  // Get date index for today's schedule
+  const dateIdx = (allData?.dates||[]).map(d=>U.normDate(d)).indexOf(selDate);
+
   const html = agents.map(ag => {
     const name  = ag.n||ag.name;
     const color = U.avatarColor(name);
     const rec   = att.find(a => a.agent===name);
-    const status= rec?.status || 'unknown';
+
+    // Read today's shift from schedule
+    const todayShift = dateIdx >= 0 && ag.sch ? ag.sch[dateIdx] : '';
+    const isOff      = !todayShift || todayShift === 'OFF' ||
+                       ['AL','SL','PH','UL','PL'].includes(todayShift);
+    const isLeave    = ['AL','SL','PH','UL','PL'].includes(todayShift);
+
+    // Determine status: attendance record > schedule-derived > unknown
+    let status;
+    if (rec?.status)          status = rec.status;
+    else if (isLeave)         status = todayShift.toLowerCase(); // al/sl/ph
+    else if (isOff)           status = 'off';
+    else                      status = 'unknown'; // scheduled but not marked
+
     const statusMap = {
-      on_time:'att-present', late:'att-late', sick:'att-absent',
-      permission:'att-leave', noshow:'att-absent', unknown:'att-unknown'
+      on_time:'att-present', present:'att-present',
+      late:'att-late',
+      sick:'att-absent', absent:'att-absent', noshow:'att-absent',
+      permission:'att-leave', al:'att-leave', sl:'att-leave', ph:'att-leave', ul:'att-leave', pl:'att-leave',
+      off:'att-off',
+      unknown:'att-unknown'
     };
     const chipCls = statusMap[status] || 'att-unknown';
-    const label   = status.charAt(0).toUpperCase()+status.slice(1);
+    const label   = rec?.status
+      ? status.charAt(0).toUpperCase()+status.slice(1).replace('_',' ')
+      : isLeave ? todayShift
+      : isOff   ? 'OFF'
+      : 'Unknown';
+    const shiftLbl = todayShift || '—';
 
     return `<div class="mgmt-row">
       <div class="mgmt-av" style="background:${color}">${U.initials(name)}</div>
       <div class="flex-1">
         <div class="row-title">${name}</div>
-        <div class="row-meta">${ag.t||'—'} · ${rec?.time||'—'}</div>
+        <div class="row-meta">${ag.t||'—'} · ${shiftLbl} ${rec?.time?'· '+rec.time:''}</div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <span class="att-chip ${chipCls}">${label}</span>
