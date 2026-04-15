@@ -342,7 +342,7 @@ Nav.init('home');
 document.getElementById('user-strip-wrap').innerHTML = Nav.renderUserStrip();
 
 
-async function init() {
+async function init(force = false) {
   // Show role-specific section immediately
   if (isMgmt) {
     document.getElementById('agent-section').style.display = 'none';
@@ -351,7 +351,7 @@ async function init() {
   }
 
   try {
-    data = await API.getAll();
+    data = await API.getAll(force);
     Nav.setSyncStatus(true);
     renderHero();
     renderAnn();
@@ -375,7 +375,7 @@ async function init() {
     if (!window._homeRetried) {
       window._homeRetried = true;
       U.toast('Reconnecting…','');
-      setTimeout(() => { window._homeRetried = false; init(); }, 4000);
+      setTimeout(() => { window._homeRetried = false; init(true); }, 4000);
     } else {
       U.toast('Connection error — tap retry','err');
     }
