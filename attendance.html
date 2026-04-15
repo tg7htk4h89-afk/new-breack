@@ -211,8 +211,10 @@ function renderMgmtView() {
     const color = U.avatarColor(name);
     const rec   = att.find(a => a.agent===name);
 
-    // Read today's shift from schedule
-    const todayShift = dateIdx >= 0 && ag.sch ? ag.sch[dateIdx] : '';
+    // Read today's shift from schedule data
+    const agDates = (allData?.dates||[]).map(d=>U.normDate(d));
+    const agDateIdx = agDates.indexOf(selDate);
+    const todayShift = agDateIdx >= 0 && ag.sch ? (ag.sch[agDateIdx]||'') : '';
     const isOff      = !todayShift || todayShift === 'OFF' ||
                        ['AL','SL','PH','UL','PL'].includes(todayShift);
     const isLeave    = ['AL','SL','PH','UL','PL'].includes(todayShift);
