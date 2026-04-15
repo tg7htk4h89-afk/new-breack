@@ -24,7 +24,12 @@ var CFG = {
     SUBMIT_KPI:        'https://n8n.kib-cc-wfm.com/webhook/kib-submit-kpi',
     UPDATE_SHIFT:      'https://n8n.kib-cc-wfm.com/webhook/kib-update-shift',
     SUBMIT_SCHEDREQ:   'https://n8n.kib-cc-wfm.com/webhook/kib-submit-schedrequest',
-    NOTIFY:            'https://n8n.kib-cc-wfm.com/webhook/kib-notify'
+    NOTIFY:            'https://n8n.kib-cc-wfm.com/webhook/kib-notify',
+    MOOD_USERS:        'https://n8n.kib-cc-wfm.com/webhook/kib-mood-get-users',
+    MOOD_POSTS:        'https://n8n.kib-cc-wfm.com/webhook/kib-mood-get-posts',
+    MOOD_CREATE:       'https://n8n.kib-cc-wfm.com/webhook/kib-mood-create-post',
+    MOOD_COMMENT:      'https://n8n.kib-cc-wfm.com/webhook/kib-mood-add-comment',
+    MOOD_LIKE:         'https://n8n.kib-cc-wfm.com/webhook/kib-mood-toggle-like'
   },
 
   SHEET_ID: '1j0So-QvjT10NtSfx8avDMob1bK4gem8FLJLs5yiEgi4',
@@ -95,21 +100,21 @@ var CFG = {
       { id: 'schedule', icon: '🗓', label: 'Schedule', page: 'schedule.html' },
       { id: 'breaks',   icon: '☕', label: 'Breaks',   page: 'breaks.html'   },
       { id: 'kpi',      icon: '📊', label: 'KPI',      page: 'kpi.html'      },
-      { id: 'settings', icon: '👤', label: 'Me',       page: 'settings.html' }
+      { id: 'mood',     icon: '😊', label: 'Mood',     page: 'mood.html'     }
     ],
     management: [
       { id: 'home',          icon: '🏠', label: 'Home',     page: 'home.html'          },
       { id: 'schedule',      icon: '🗓', label: 'Schedule', page: 'schedule.html'      },
       { id: 'schedule-edit', icon: '📝', label: 'Editor',   page: 'schedule-edit.html' },
       { id: 'requests',      icon: '📋', label: 'Requests', page: 'requests.html'      },
-      { id: 'kpi',           icon: '📊', label: 'KPI',      page: 'kpi.html'           }
+      { id: 'mood',          icon: '😊', label: 'Mood',     page: 'mood.html'          }
     ],
     wfm: [
       { id: 'home',          icon: '🏠', label: 'Home',    page: 'home.html'          },
       { id: 'schedule-edit', icon: '📅', label: 'Editor',  page: 'schedule-edit.html' },
       { id: 'attendance',    icon: '✅', label: 'Attend',  page: 'attendance.html'    },
       { id: 'requests',      icon: '📋', label: 'Requests',page: 'requests.html'      },
-      { id: 'admin',         icon: '⚙', label: 'Admin',   page: 'admin.html'         }
+      { id: 'mood',          icon: '😊', label: 'Mood',    page: 'mood.html'          }
     ],
     admin: [
       { id: 'home',     icon: '🏠', label: 'Home',     page: 'home.html'    },
