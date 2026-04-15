@@ -420,9 +420,10 @@ if (!Auth.guard()) throw 0;
 const _role = (Auth.user()?.role||'').toLowerCase();
 const _dept = (Auth.user()?.dept||'').toLowerCase();
 const _access = Auth.user()?.access||'';
-const canEditSchedule = _dept === 'quality' || _access === 'wfm' || _access === 'admin';
+// All management, wfm and admin can edit schedule
+const canEditSchedule = ['management','wfm','admin'].includes(_access);
 if (!canEditSchedule) {
-  alert('Schedule editing is restricted to QA team and WFM Manager.');
+  alert('Schedule editing requires management access.');
   window.history.back();
   throw 0;
 }
