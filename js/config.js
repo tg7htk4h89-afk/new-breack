@@ -1,3 +1,5 @@
+/* KIB config v20260415-145609 */
+/* KIB config.js v20260415-145509 */
 'use strict';
 
 const CFG = {
