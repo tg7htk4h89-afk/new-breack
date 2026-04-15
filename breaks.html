@@ -251,7 +251,7 @@ function renderTeam(){
 
 async function mgmtEnd(id,name){
   if(!confirm(`End ${name}'s break?`))return;
-  try{await API.saveBreaks({action:'endBreak',id,agent:name});data=await API.getAll(true);
+  try{await API.saveBreaks({action:'endBreak',id,agent:name});const freshBreaks=await API.refreshBreaks(); if(freshBreaks)data.breakLog=freshBreaks;
     Nav.setSyncStatus(true);renderTeam();U.toast(`${name}'s break ended ✓`,'ok');}
   catch(e){U.toast('Failed','err');}
 }
@@ -346,7 +346,7 @@ async function endBreak(){
     document.getElementById('swap-sec').style.display='none';
     document.getElementById('book-btn').disabled=false;
     document.getElementById('book-btn').textContent='Book Break';
-    data=await API.getAll(true);
+    const freshBreaks=await API.refreshBreaks(); if(freshBreaks)data.breakLog=freshBreaks;
     Nav.setSyncStatus(true);renderBalance();buildSlotGrid();
     U.toast('Break ended ✓','ok');
   }catch(e){U.toast('Failed to end break','err');}
@@ -371,7 +371,7 @@ async function cancelBookedBreak(breakId) {
   buildSlotGrid();
   try {
     await API.saveBreaks({ action: 'cancelBreak', id: breakId, agent: user.name });
-    API.clearCache('getAll');
+    // cache preserved - breaks use refreshBreaks()
     data = await API.getAll(true);
     renderBalance(); buildSlotGrid(); renderBookedBanner();
     U.toast('Break cancelled', 'ok');
@@ -715,7 +715,7 @@ async function respondToSwap(swapId, fromBreakId, toBreakId, fromSlot, toSlot, a
       });
       U.toast('Swap rejected', 'ok');
     }
-    API.clearCache('getAll');
+    // cache preserved - breaks use refreshBreaks()
     data = await API.getAll(true);
     renderBalance(); buildSlotGrid(); renderBookedBanner(); renderSwapRequests();
   } catch(e) {
@@ -772,7 +772,7 @@ async function swapBreak() {
     await API.saveBreaks({ action: 'cancelBreak', id: myBreak.id||myBreak.ID });
 
     U.toast(`Swap request sent to ${target.agent} ✓`, 'ok');
-    API.clearCache('getAll');
+    // cache preserved - breaks use refreshBreaks()
     data = await API.getAll(true);
     renderBalance(); buildSlotGrid(); renderBookedBanner();
 
