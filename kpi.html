@@ -126,34 +126,42 @@
         </div>
       </div>
 
-      <!-- Search / Filter bar -->
+      <div id="pending-list"><div class="skel" style="height:80px;border-radius:12px;"></div></div>
+    </div>
+
+    <!-- Management stats -->
+    <div id="mgmt-section" style="display:none;">
+      <div class="section-hdr" style="margin-top:8px;">
+        <div class="section-title">Team KPI</div>
+        <button class="btn btn-xs btn-outline" onclick="exportKPI()">Export CSV</button>
+      </div>
+
+      <!-- Search & Filter for KPI records -->
       <div style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
           <div>
             <label class="fld-label">Agent</label>
-            <input class="fld" id="pf-agent" placeholder="Agent name..." oninput="renderPending()" style="padding:8px 10px;font-size:12px;">
+            <select class="fld" id="df-agent" onchange="renderDash()" style="font-size:12px;padding:8px 10px;">
+              <option value="">All Agents</option>
+            </select>
           </div>
           <div>
             <label class="fld-label">Date</label>
-            <input class="fld" id="pf-date" type="date" oninput="renderPending()" style="padding:8px 10px;font-size:12px;">
+            <input type="date" class="fld" id="kpi-date" onchange="renderDash()" style="font-size:12px;padding:8px 10px;">
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
           <div>
-            <label class="fld-label">Team / Dept</label>
-            <select class="fld" id="pf-team" onchange="renderPending()" style="padding:8px 10px;font-size:12px;">
+            <label class="fld-label">Team</label>
+            <select class="fld" id="df-team" onchange="renderDash()" style="font-size:12px;padding:8px 10px;">
               <option value="">All Teams</option>
-              <option>Inbound</option>
-              <option>Outbound</option>
-              <option>ITM</option>
-              <option>Wage</option>
-              <option>Back Office</option>
-              <option>Quality</option>
+              <option>Inbound</option><option>Outbound</option><option>ITM</option>
+              <option>Wage</option><option>Back Office</option><option>Quality</option>
             </select>
           </div>
           <div>
             <label class="fld-label">Type</label>
-            <select class="fld" id="pf-type" onchange="renderPending()" style="padding:8px 10px;font-size:12px;">
+            <select class="fld" id="df-type" onchange="renderDash()" style="font-size:12px;padding:8px 10px;">
               <option value="">All Types</option>
               <option value="issue">System Issue</option>
               <option value="permission">Permission</option>
@@ -162,23 +170,8 @@
             </select>
           </div>
         </div>
-        <div style="margin-top:8px;display:flex;gap:6px;">
-          <button class="btn btn-xs btn-outline" onclick="clearPendingFilters()">Clear Filters</button>
-          <span id="pending-count" style="font-size:11px;color:var(--t2);align-self:center;"></span>
-        </div>
-      </div>
-
-      <div id="pending-list"><div class="skel" style="height:80px;border-radius:12px;"></div></div>
-    </div>
-
-    <!-- Management stats -->
-    <div id="mgmt-section" style="display:none;">
-      <div class="section-hdr" style="margin-top:8px;">
-        <div class="section-title">Team KPI</div>
-        <div style="display:flex;gap:6px;">
-          <input type="date" class="fld" id="kpi-date" style="width:130px;font-size:12px;padding:6px 8px;">
-          <button class="btn btn-xs btn-outline" onclick="renderDash()">View</button>
-          <button class="btn btn-xs btn-outline" onclick="exportKPI()">CSV</button>
+        <div style="margin-top:8px;">
+          <button class="btn btn-xs btn-outline" onclick="clearDashFilters()">Clear</button>
         </div>
       </div>
       <div class="stat-grid" style="grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;">
@@ -405,10 +398,7 @@ function clearPendingFilters() {
 
 function renderPending() {
   if (!isMgmt) return;
-  const filterAgent = (document.getElementById('pf-agent')?.value||'').toLowerCase().trim();
-  const filterDate  = document.getElementById('pf-date')?.value||'';
-  const filterTeam  = document.getElementById('pf-team')?.value||'';
-  const filterType  = document.getElementById('pf-type')?.value||'';
+
   const kpi = data?.kpi||{};
   const isPending = k => !String(k.ApprovedBy||k.approvedBy||'').trim();
   const isForMe   = k => {
@@ -416,19 +406,13 @@ function renderPending() {
     if (!cmt || !cmt.includes('Requested to:')) return true;
     return cmt.toLowerCase().includes(user.name.toLowerCase());
   };
-  const matchFilters = k => {
-    if (filterAgent && !(k.Agent||k.agent||'').toLowerCase().includes(filterAgent)) return false;
-    if (filterDate  && U.normDate(k.Date||k.date||'') !== filterDate) return false;
-    if (filterTeam  && (k.Team||k.Dept||k.dept||'') !== filterTeam) return false;
-    if (filterType  && k._t !== filterType) return false;
-    return true;
-  };
+  const matchFilters = () => true; // pending shows all
   const pending = [
     ...(kpi.issue     ||[]).filter(k=>isPending(k)&&isForMe(k)).map(k=>({...k,_t:'issue'})),
     ...(kpi.permission||[]).filter(k=>isPending(k)&&isForMe(k)).map(k=>({...k,_t:'permission'})),
     ...(kpi.extra     ||[]).filter(k=>isPending(k)&&isForMe(k)).map(k=>({...k,_t:'extra'})),
     ...(kpi.meeting   ||[]).filter(k=>isPending(k)&&isForMe(k)).map(k=>({...k,_t:'meeting'})),
-  ].filter(matchFilters)
+  ].filter(k => matchFilters())
    .sort((a,b)=>(b.Timestamp||b.Date||'').localeCompare(a.Timestamp||a.Date||''));
 
   const badge = document.getElementById('pending-badge');
@@ -500,15 +484,43 @@ async function approveKPI(id, kpiType, approved) {
 }
 
 /* ── Management Dashboard ── */
+function clearDashFilters() {
+  ['df-agent','df-team','df-type'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const dateEl = document.getElementById('kpi-date');
+  if (dateEl) dateEl.value = today;
+  renderDash();
+}
+
+function fillDashAgents() {
+  const sel = document.getElementById('df-agent');
+  if (!sel) return;
+  const agents = (data?.agents||[]).map(a=>a.n||a.name).filter(Boolean).sort();
+  sel.innerHTML = '<option value="">All Agents</option>' +
+    agents.map(n=>`<option value="${n}">${n}</option>`).join('');
+}
+
 function renderDash() {
   if (!isMgmt) return;
-  const sel  = document.getElementById('kpi-date')?.value || today;
+  const sel       = document.getElementById('kpi-date')?.value || today;
+  const fAgent    = document.getElementById('df-agent')?.value || '';
+  const fTeam     = document.getElementById('df-team')?.value  || '';
+  const fType     = document.getElementById('df-type')?.value  || '';
   const kpi  = data?.kpi||{};
   const norm = v=>U.normDate(v?.Date||v?.date||'');
   const icons= {extra:'☕',meeting:'📋',permission:'🚪',issue:'💻'};
   const bgs  = {extra:'#FFFBEB',meeting:'#EFF6FF',permission:'#F0FDF4',issue:'#FEF2F2'};
 
-  const f = t => (kpi[t]||[]).filter(k=>norm(k)===sel);
+  const matchDash = (k,t) => {
+    if (norm(k) !== sel) return false;
+    if (fAgent && (k.Agent||k.agent||'') !== fAgent) return false;
+    if (fTeam  && (k.Team||k.Dept||k.dept||'') !== fTeam) return false;
+    if (fType  && t !== fType) return false;
+    return true;
+  };
+  const f = t => (kpi[t]||[]).filter(k=>matchDash(k,t));
   U.se('kd-issue', f('issue').length);
   U.se('kd-perm',  f('permission').length);
   U.se('kd-extra', f('extra').length);
@@ -562,6 +574,7 @@ async function init() {
       document.getElementById('pending-section').style.display='';
       document.getElementById('mgmt-section').style.display='';
       document.getElementById('kpi-date').value=today;
+      fillDashAgents();
       renderPending();
       renderDash();
     }
