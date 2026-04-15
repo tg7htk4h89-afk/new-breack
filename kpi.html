@@ -27,14 +27,6 @@
   <div id="user-strip-wrap"></div>
   <div class="page-content">
 
-    <!-- PENDING APPROVALS (management only) -->
-    <div id="pending-section" style="display:none;" class="mgmt-only">
-      <div class="section-hdr">
-        <div class="section-title">Pending Approvals <span id="pending-badge" style="background:#EF4444;color:#fff;border-radius:8px;padding:1px 6px;font-size:10px;margin-left:4px;display:none;"></span></div>
-      </div>
-      <div id="pending-list"><div class="skel" style="height:80px;border-radius:12px;"></div></div>
-    </div>
-
     <!-- SUBMIT CARDS -->
     <div class="section-hdr"><div class="section-title">Submit KPI Event</div></div>
 
@@ -123,6 +115,61 @@
       <div class="section-title">My Submissions</div>
     </div>
     <div id="my-submissions"><div class="skel" style="height:80px;border-radius:12px;"></div></div>
+
+
+    <!-- PENDING APPROVALS (management only) - shown at bottom -->
+    <div id="pending-section" style="display:none;">
+      <div class="section-hdr" style="margin-top:8px;">
+        <div class="section-title">
+          Pending Approvals
+          <span id="pending-badge" style="background:#EF4444;color:#fff;border-radius:8px;padding:1px 6px;font-size:10px;margin-left:6px;vertical-align:middle;display:none;"></span>
+        </div>
+      </div>
+
+      <!-- Search / Filter bar -->
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+          <div>
+            <label class="fld-label">Agent</label>
+            <input class="fld" id="pf-agent" placeholder="Agent name..." oninput="renderPending()" style="padding:8px 10px;font-size:12px;">
+          </div>
+          <div>
+            <label class="fld-label">Date</label>
+            <input class="fld" id="pf-date" type="date" oninput="renderPending()" style="padding:8px 10px;font-size:12px;">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div>
+            <label class="fld-label">Team / Dept</label>
+            <select class="fld" id="pf-team" onchange="renderPending()" style="padding:8px 10px;font-size:12px;">
+              <option value="">All Teams</option>
+              <option>Inbound</option>
+              <option>Outbound</option>
+              <option>ITM</option>
+              <option>Wage</option>
+              <option>Back Office</option>
+              <option>Quality</option>
+            </select>
+          </div>
+          <div>
+            <label class="fld-label">Type</label>
+            <select class="fld" id="pf-type" onchange="renderPending()" style="padding:8px 10px;font-size:12px;">
+              <option value="">All Types</option>
+              <option value="issue">System Issue</option>
+              <option value="permission">Permission</option>
+              <option value="extra">Extra Break</option>
+              <option value="meeting">Meeting</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:6px;">
+          <button class="btn btn-xs btn-outline" onclick="clearPendingFilters()">Clear Filters</button>
+          <span id="pending-count" style="font-size:11px;color:var(--t2);align-self:center;"></span>
+        </div>
+      </div>
+
+      <div id="pending-list"><div class="skel" style="height:80px;border-radius:12px;"></div></div>
+    </div>
 
     <!-- Management stats -->
     <div id="mgmt-section" style="display:none;">
@@ -348,35 +395,54 @@ function renderMySubmissions() {
 }
 
 /* ── Pending Approvals (management) ── */
+function clearPendingFilters() {
+  ['pf-agent','pf-date','pf-team','pf-type'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  renderPending();
+}
+
 function renderPending() {
   if (!isMgmt) return;
-  // DEBUG
-  const allKpi = data?.kpi||{};
-  const totalAll = (allKpi.issue||[]).length+(allKpi.permission||[]).length+(allKpi.extra||[]).length+(allKpi.meeting||[]).length;
-  const totalPending = [...(allKpi.issue||[]),...(allKpi.permission||[]),...(allKpi.extra||[]),...(allKpi.meeting||[])].filter(k=>!String(k.ApprovedBy||'').trim()).length;
-  console.log(`KPI debug: total=${totalAll}, pending=${totalPending}, user=${user.name}`);
+  const filterAgent = (document.getElementById('pf-agent')?.value||'').toLowerCase().trim();
+  const filterDate  = document.getElementById('pf-date')?.value||'';
+  const filterTeam  = document.getElementById('pf-team')?.value||'';
+  const filterType  = document.getElementById('pf-type')?.value||'';
   const kpi = data?.kpi||{};
-  // Show pending KPIs: ApprovedBy is empty/null
-  const isPending = k => {
-    const ab = String(k.ApprovedBy || k.approvedBy || '').trim();
-    return !ab; // pending = no ApprovedBy set
-  };
-  // Filter by requested manager — check Comment field (stored as "Requested to: Name")
-  const isForMe = k => {
-    const cmt = String(k.Comment || k.comment || '').trim();
-    if (!cmt || !cmt.includes('Requested to:')) return true; // no specific manager = show to all
+  const isPending = k => !String(k.ApprovedBy||k.approvedBy||'').trim();
+  const isForMe   = k => {
+    const cmt = String(k.Comment||k.comment||'').trim();
+    if (!cmt || !cmt.includes('Requested to:')) return true;
     return cmt.toLowerCase().includes(user.name.toLowerCase());
+  };
+  const matchFilters = k => {
+    if (filterAgent && !(k.Agent||k.agent||'').toLowerCase().includes(filterAgent)) return false;
+    if (filterDate  && U.normDate(k.Date||k.date||'') !== filterDate) return false;
+    if (filterTeam  && (k.Team||k.Dept||k.dept||'') !== filterTeam) return false;
+    if (filterType  && k._t !== filterType) return false;
+    return true;
   };
   const pending = [
     ...(kpi.issue     ||[]).filter(k=>isPending(k)&&isForMe(k)).map(k=>({...k,_t:'issue'})),
     ...(kpi.permission||[]).filter(k=>isPending(k)&&isForMe(k)).map(k=>({...k,_t:'permission'})),
     ...(kpi.extra     ||[]).filter(k=>isPending(k)&&isForMe(k)).map(k=>({...k,_t:'extra'})),
     ...(kpi.meeting   ||[]).filter(k=>isPending(k)&&isForMe(k)).map(k=>({...k,_t:'meeting'})),
-  ].sort((a,b)=>(b.Timestamp||b.Date||'').localeCompare(a.Timestamp||a.Date||''));
+  ].filter(matchFilters)
+   .sort((a,b)=>(b.Timestamp||b.Date||'').localeCompare(a.Timestamp||a.Date||''));
 
   const badge = document.getElementById('pending-badge');
-  badge.textContent = pending.length;
-  badge.style.display = pending.length ? '' : 'none';
+  // Total unfiltered pending count
+  const kpiAll = data?.kpi||{};
+  const totalPending = [
+    ...(kpiAll.issue||[]),...(kpiAll.permission||[]),...(kpiAll.extra||[]),...(kpiAll.meeting||[])
+  ].filter(k=>isPending(k)&&isForMe(k)).length;
+  badge.textContent = totalPending;
+  badge.style.display = totalPending ? '' : 'none';
+  const countEl = document.getElementById('pending-count');
+  if (countEl) countEl.textContent = pending.length !== totalPending
+    ? `Showing ${pending.length} of ${totalPending} pending`
+    : `${totalPending} pending`;
 
   const icons = {issue:'💻',permission:'🚪',extra:'☕',meeting:'📋'};
   const labels= {issue:'System Issue',permission:'Permission',extra:'Extra Break',meeting:'Meeting'};
