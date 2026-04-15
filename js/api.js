@@ -75,7 +75,11 @@ var API = (() => {
         const safe = async (url) => {
           try {
             const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:'{}' });
-            return r.ok ? await r.json() : {};
+            if (!r.ok) return {};
+            const raw = await r.text();
+            let parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) parsed = parsed[0] || {};
+            return parsed;
           } catch(e) { return {}; }
         };
 
