@@ -45,7 +45,7 @@ const Nav = (() => {
       </div>
       <div class="tb-right">
         <div class="tb-clock" id="tb-clock">--:--</div>
-        <div class="tb-sync-dot" id="tb-sync" title="Sync"></div>
+        <div class="tb-sync-dot" id="tb-sync" title="Tap to sync" onclick="Nav.manualSync()" style="cursor:pointer;"></div>
         <div class="tb-avatar"
              style="background:${color}"
              title="${user.name}"
@@ -132,6 +132,22 @@ const Nav = (() => {
     },
 
     /* Sync dot — call after every API response */
+    manualSync() {
+      // Force full data refresh — clears cache and reloads
+      if (typeof API !== 'undefined') {
+        API.clearCache('getAll');
+        window._lastGetAll = 0;
+        const syncing = document.getElementById('tb-sync');
+        if (syncing) { syncing.style.background = '#F59E0B'; syncing.title = 'Syncing...'; }
+        API.getAll(true).then(() => {
+          Nav.setSyncStatus(true);
+          if (syncing) syncing.title = 'Tap to sync';
+          // Reload current page data
+          if (typeof init === 'function') init();
+        }).catch(() => Nav.setSyncStatus(false));
+      }
+    },
+
     setSyncStatus(ok) {
       const dot = document.getElementById('tb-sync');
       if (!dot) return;
