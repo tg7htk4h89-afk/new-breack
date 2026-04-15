@@ -305,7 +305,7 @@ async function reject(id, kind) {
   await actOnRequest(id, kind, 'reject', note);
 }
 
-async async function actOnRequest(id, kind, action, note='') {
+async function actOnRequest(id, kind, action, note='') {
   if (!id) return;
   try {
     if (kind === 'leave') {
