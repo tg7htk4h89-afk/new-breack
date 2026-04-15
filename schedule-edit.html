@@ -415,7 +415,17 @@ body { background: #F0F5FB; }
 <script src="js/utils.js"></script>
 <script src="js/nav.js"></script>
 <script>
-if (!Auth.guard('management')) throw 0; // TL/ATL/QA/BackOffice/WFM/Admin can edit schedule
+if (!Auth.guard()) throw 0;
+// Only QA team, WFM Manager, and Admin can edit the schedule
+const _role = (Auth.user()?.role||'').toLowerCase();
+const _dept = (Auth.user()?.dept||'').toLowerCase();
+const _access = Auth.user()?.access||'';
+const canEditSchedule = _dept === 'quality' || _access === 'wfm' || _access === 'admin';
+if (!canEditSchedule) {
+  alert('Schedule editing is restricted to QA team and WFM Manager.');
+  window.history.back();
+  throw 0;
+}
 
 const user = Auth.user();
 Nav.init('schedule-edit');
