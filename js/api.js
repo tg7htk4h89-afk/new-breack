@@ -118,9 +118,6 @@ const API = (() => {
         return d.breakLog || [];
       } catch(e) { return null; }
     },
- },
- },
- },
 
     /** Single agent's schedule */
     async getAgentSchedule(agentName, force = false) {
