@@ -68,6 +68,8 @@
       </div>
     </div>
 
+    <div id="agent-only-section">
+    <div id="agent-only-section">
     <!-- Agent KPI counts today -->
     <div id="my-kpi-counts" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
       <div class="stat-card" style="background:#FEF2F2;border:none;border-radius:14px;padding:12px;text-align:center;">
@@ -175,6 +177,8 @@
       </div>
     </div>
 
+    </div>
+
     <!-- My submissions today -->
     <div class="section-hdr" style="margin-top:4px;">
       <div class="section-title">My Submissions</div>
@@ -182,16 +186,6 @@
     <div id="my-submissions"><div class="skel" style="height:80px;border-radius:12px;"></div></div>
 
 
-    <!-- PENDING APPROVALS (management only) - shown at bottom -->
-    <div id="pending-section" style="display:none;">
-      <div class="section-hdr" style="margin-top:8px;">
-        <div class="section-title">
-          Pending Approvals
-          <span id="pending-badge" style="background:#EF4444;color:#fff;border-radius:8px;padding:1px 6px;font-size:10px;margin-left:6px;vertical-align:middle;display:none;"></span>
-        </div>
-      </div>
-
-      <div id="pending-list"><div class="skel" style="height:80px;border-radius:12px;"></div></div>
     </div>
 
     <!-- Management stats -->
@@ -209,6 +203,19 @@
       <div id="kpi-entries"></div>
     </div>
 
+    <!-- PENDING APPROVALS (management only) - shown at bottom -->
+    <div id="pending-section" style="display:none;">
+      <div class="section-hdr" style="margin-top:8px;">
+        <div class="section-title">
+          Pending Approvals
+          <span id="pending-badge" style="background:#EF4444;color:#fff;border-radius:8px;padding:1px 6px;font-size:10px;margin-left:6px;vertical-align:middle;display:none;"></span>
+        </div>
+      </div>
+
+      <div id="pending-list"><div class="skel" style="height:80px;border-radius:12px;"></div></div>
+    </div>
+
+
   </div>
 </div>
 <div id="kib-bottomnav"></div>
@@ -225,11 +232,12 @@ const isMgmt = Auth.isManagement();
 let data = null;
 
 Nav.init('kpi');
-// Show management sections immediately
+// Show/hide sections based on role
 if (isMgmt) {
-  document.getElementById('mgmt-search-top').style.display = '';
-  document.getElementById('pending-section').style.display = '';
-  document.getElementById('mgmt-section').style.display    = '';
+  document.getElementById('mgmt-search-top').style.display  = '';
+  document.getElementById('pending-section').style.display  = '';
+  document.getElementById('mgmt-section').style.display     = '';
+  document.getElementById('agent-only-section').style.display = 'none';
 }
 document.getElementById('user-strip-wrap').innerHTML = Nav.renderUserStrip();
 console.log('KPI page: user=', user.name, 'access=', user.access, 'isMgmt=', isMgmt);
