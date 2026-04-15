@@ -191,36 +191,36 @@ function statusPill(k) {
 /* ── Fill agents dropdown ── */
 function fillAgents() {
   const agents = (data?.agents||[]).map(a=>a.n||a.name).filter(Boolean).sort();
-  ['si-agent','pm-agent','eb-agent','mt-agent'].forEach(id => {
-    const sel = document.getElementById(id);
-    if (!sel) return;
-    sel.innerHTML = '<option value="">— Select Agent —</option>' +
-      agents.map(n=>`<option value="${n}"${n===user.name?' selected':''}>${n}</option>`).join('');
+  ['si','pm','eb','mt'].forEach(kid => {
+    const wrap  = document.getElementById(kid+'-agent-wrap');
+    const el    = document.getElementById(kid+'-agent');
+    if (!el) return;
+    if (isMgmt) {
+      // Management: show full agent dropdown
+      const sel = document.createElement('select');
+      sel.className = 'fld'; sel.id = kid+'-agent';
+      sel.innerHTML = '<option value="">— Select Agent —</option>' +
+        agents.map(n=>`<option value="${n}">${n}</option>`).join('');
+      if (wrap) wrap.innerHTML = '';
+      if (wrap) wrap.appendChild(sel);
+    } else {
+      // Agent: locked to own name
+      el.value    = user.name;
+      el.readOnly = true;
+      el.style.background = '#F8FAFF';
+    }
   });
 
   // Fill management dropdowns (ApprovedBy / Organizer)
-  const mgmtUsers = (data?.agents||[])
-    .filter(a => {
-      // Get access level from UserLogins via agent role name
-      const role = (a.r||a.role||'').toLowerCase();
-      return role.includes('tl') || role.includes('leader') || role.includes('assist') ||
-             role.includes('supervisor') || role.includes('manager') || role.includes('head') ||
-             role.includes('qa') || role.includes('back office');
-    })
-    .map(a=>a.n||a.name).filter(Boolean).sort();
+  
+  const approvers = ["Naser Bandar", "Hasan Alajmi", "Athoub Alnoufal", "Shouq Alkandari", "Alanoud Alotaibi", "Mohammad Alothman", "Abdulrahman Alahmad", "Nourah Alhazzani", "Fatmah Alhamar", "Badreyah BoRubayea", "Mohammad Abdulraheem", "Talal Al Jarki", "Taher Al Baghli"];
 
-  // Also hardcode known management users as fallback
-  const knownMgmt = ['Naser Bandar','Hasan Alajmi','Athoub Alnoufal','Shouq Alkandari',
-    'Alanoud Alotaibi','Mohammad Alothman','Abdulrahman Alahmad','Nourah Alhazzani',
-    'Fatmah Alhamar','Badreyah BoRubayea','Mohammad Abdulraheem','Talal Al Jarki','Taher Al Baghli'];
-  const approvers = [...new Set([...mgmtUsers, ...knownMgmt])].sort();
-
+    const mgmtOpts = '<option value="">— Select Manager —</option>' +
+    approvers.map(n=>`<option value="${n}">${n}</option>`).join('');
   ['si-approver','pm-approver','eb-approver','mt-organizer'].forEach(id => {
     const sel = document.getElementById(id);
-    if (sel) sel.innerHTML = '<option value="">— Select Manager —</option>' +
-      approvers.map(n=>`<option value="${n}">${n}</option>`).join('');
+    if (sel) sel.innerHTML = mgmtOpts;
   });
-  // legacy - keep mt-organizer fill
 
   // Pre-fill shift
   const me = (data?.agents||[]).find(a=>a.n===user.name);
