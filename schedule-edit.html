@@ -595,6 +595,31 @@ async function saveAll() {
   }
 }
 
+async function refreshData() {
+  if (Object.keys(pending).length) {
+    if (!confirm('Refresh will discard unsaved changes. Continue?')) return;
+    pending = {};
+    updatePending();
+  }
+  const btn = document.getElementById('refresh-btn');
+  const icon = document.getElementById('refresh-icon');
+  btn.disabled = true;
+  icon.style.display = 'inline-block';
+  icon.style.animation = 'spin .6s linear infinite';
+  // Add spin animation
+  if (!document.getElementById('spin-style')) {
+    const s = document.createElement('style');
+    s.id = 'spin-style';
+    s.textContent = '@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
+    document.head.appendChild(s);
+  }
+  API.clearCache('getAll');
+  await init(true);
+  btn.disabled = false;
+  icon.style.animation = '';
+  U.toast('Schedule refreshed ✓', 'ok');
+}
+
 init();
 </script>
 </body>
