@@ -1,3 +1,4 @@
+/* KIB utils.js v20260415-204047 */
 /* ═══════════════════════════════════════════════════════
    KIB WFM Portal v2 — Utils
    Date helpers, formatting, UI utilities
