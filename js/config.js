@@ -1,166 +1,796 @@
-/* KIB config v20260415-145609 */
-/* KIB config.js v20260415-145509 */
-'use strict';
-
-const CFG = {
-
-  N8N_BASE: 'https://n8n.kib-cc-wfm.com/webhook',
-
-  N8N: {
-    AUTH:              'https://n8n.kib-cc-wfm.com/webhook/kib-auth',
-    GET_SCHEDULE:      'https://n8n.kib-cc-wfm.com/webhook/kib-get-schedule',
-    GET_BREAKS:        'https://n8n.kib-cc-wfm.com/webhook/kib-get-breaks',
-    GET_LEAVES:        'https://n8n.kib-cc-wfm.com/webhook/kib-get-leaves',
-    GET_SWAPS:         'https://n8n.kib-cc-wfm.com/webhook/kib-get-swaps',
-    GET_ATTENDANCE:    'https://n8n.kib-cc-wfm.com/webhook/kib-get-attendance',
-    GET_KPI:           'https://n8n.kib-cc-wfm.com/webhook/kib-get-kpi',
-    GET_NOTIF:         'https://n8n.kib-cc-wfm.com/webhook/kib-get-notif',
-    GET_SCHEDREQUESTS: 'https://n8n.kib-cc-wfm.com/webhook/kib-get-schedrequests',
-    BREAKS:            'https://n8n.kib-cc-wfm.com/webhook/kib-breaks',
-    ATTENDANCE:        'https://n8n.kib-cc-wfm.com/webhook/kib-attendance',
-    SUBMIT_LEAVE:      'https://n8n.kib-cc-wfm.com/webhook/kib-submit-leave',
-    APPROVE_SWAP:       'https://n8n.kib-cc-wfm.com/webhook/kib-approve-swap',
-    APPROVE_KPI:        'https://n8n.kib-cc-wfm.com/webhook/kib-approve-kpi',
-    APPROVE_LEAVE:     'https://n8n.kib-cc-wfm.com/webhook/kib-approve-leave',
-    SUBMIT_SWAP:       'https://n8n.kib-cc-wfm.com/webhook/kib-submit-swap',
-    RESPOND_SWAP:      'https://n8n.kib-cc-wfm.com/webhook/kib-respond-swap',
-    SUBMIT_KPI:        'https://n8n.kib-cc-wfm.com/webhook/kib-submit-kpi',
-    UPDATE_SHIFT:      'https://n8n.kib-cc-wfm.com/webhook/kib-update-shift',
-    SUBMIT_SCHEDREQ:   'https://n8n.kib-cc-wfm.com/webhook/kib-submit-schedrequest',
-    NOTIFY:            'https://n8n.kib-cc-wfm.com/webhook/kib-notify'
-  },
-
-  SHEET_ID: '1j0So-QvjT10NtSfx8avDMob1bK4gem8FLJLs5yiEgi4',
-
-  SESSION_KEY: 'kib_wfm_v2_session',
-  SESSION_TTL: 10 * 60 * 60 * 1000,
-
-  SHIFT_THEME: [
-    { from: 0,  to: 6,  color: '#1E293B', bg: 'rgba(30,41,59,.12)',   label: 'Night',     short: 'NGT' },
-    { from: 6,  to: 9,  color: '#0D5CA6', bg: 'rgba(13,92,166,.12)',  label: 'Morning',   short: 'MRN' },
-    { from: 9,  to: 12, color: '#0A7FAE', bg: 'rgba(10,127,174,.12)', label: 'Mid-Morn',  short: 'MID' },
-    { from: 12, to: 15, color: '#00A89A', bg: 'rgba(0,168,154,.12)',  label: 'Afternoon', short: 'AFT' },
-    { from: 15, to: 18, color: '#B45309', bg: 'rgba(180,83,9,.12)',   label: 'Evening',   short: 'EVN' },
-    { from: 18, to: 22, color: '#7C3AED', bg: 'rgba(124,58,237,.12)', label: 'Late Eve',  short: 'LAT' },
-    { from: 22, to: 24, color: '#1E293B', bg: 'rgba(30,41,59,.12)',   label: 'Night',     short: 'NGT' }
-  ],
-
-  DAY_TYPES: [
-    { code: 'OFF', label: 'Day Off',        color: '#6B7280', bg: '#F3F4F6', short: 'OFF' },
-    { code: 'AL',  label: 'Annual Leave',   color: '#92400E', bg: '#FEF3CD', short: 'AL'  },
-    { code: 'SL',  label: 'Sick Leave',     color: '#DC2626', bg: '#FEE2E2', short: 'SL'  },
-    { code: 'PH',  label: 'Public Holiday', color: '#16A34A', bg: '#DCFCE7', short: 'PH'  },
-    { code: 'UL',  label: 'Unpaid Leave',   color: '#9333EA', bg: '#F3E8FF', short: 'UL'  },
-    { code: 'PL',  label: 'Partial Leave',  color: '#D97706', bg: '#FEF9C3', short: 'PL'  }
-  ],
-
-  ATT_STATUSES: [
-    { code: 'on_time',    label: 'On Time',    pill: 'pill-green',  icon: 'check' },
-    { code: 'late',       label: 'Late',       pill: 'pill-amber',  icon: 'clock' },
-    { code: 'sick',       label: 'Sick',       pill: 'pill-red',    icon: 'sick'  },
-    { code: 'noshow',     label: 'No Show',    pill: 'pill-red',    icon: 'x'     },
-    { code: 'permission', label: 'Permission', pill: 'pill-navy',   icon: 'door'  },
-    { code: 'change',     label: 'Day Change', pill: 'pill-purple', icon: 'swap'  }
-  ],
-
-  SHIFT_OPTIONS: [
-    '07:00-15:00', '08:00-16:00', '09:00-17:00',
-    '10:00-18:00', '11:00-19:00', '12:00-20:00',
-    '13:00-21:00', '15:00-23:00', '16:00-00:00',
-    '17:00-01:00', '18:00-02:00', '19:00-03:00',
-    '21:00-05:00', '23:00-07:00', 'OFF'
-  ],
-
-  TEAMS: ['Inbound', 'Outbound', 'ITM', 'Wage', 'Back Office', 'Quality', 'Supervisors', 'Management', 'OP'],
-
-  TEAM_COLORS: {
-    'Inbound':     '#0D5CA6',
-    'Outbound':    '#7C3AED',
-    'ITM':         '#00A89A',
-    'Wage':        '#B45309',
-    'Back Office': '#6B7280',
-    'Quality':     '#DC2626',
-    'Supervisors': '#0A4A8A',
-    'Management':  '#1E293B',
-    'OP':          '#0A7FAE'
-  },
-
-  ACCESS: {
-    agent:      { level: 1, label: 'Agent'        },
-    management: { level: 2, label: 'Management'   },
-    wfm:        { level: 3, label: 'WFM Manager'  },
-    admin:      { level: 4, label: 'System Admin' }
-  },
-
-  NAV: {
-    agent: [
-      { id: 'home',     icon: '🏠', label: 'Home',     page: 'home.html'     },
-      { id: 'schedule', icon: '🗓', label: 'Schedule', page: 'schedule.html' },
-      { id: 'breaks',   icon: '☕', label: 'Breaks',   page: 'breaks.html'   },
-      { id: 'kpi',      icon: '📊', label: 'KPI',      page: 'kpi.html'      },
-      { id: 'settings', icon: '👤', label: 'Me',       page: 'settings.html' }
-    ],
-    management: [
-      { id: 'home',          icon: '🏠', label: 'Home',     page: 'home.html'          },
-      { id: 'schedule',      icon: '🗓', label: 'Schedule', page: 'schedule.html'      },
-      { id: 'schedule-edit', icon: '📝', label: 'Editor',   page: 'schedule-edit.html' },
-      { id: 'requests',      icon: '📋', label: 'Requests', page: 'requests.html'      },
-      { id: 'kpi',           icon: '📊', label: 'KPI',      page: 'kpi.html'           }
-    ],
-    wfm: [
-      { id: 'home',          icon: '🏠', label: 'Home',    page: 'home.html'          },
-      { id: 'schedule-edit', icon: '📅', label: 'Editor',  page: 'schedule-edit.html' },
-      { id: 'attendance',    icon: '✅', label: 'Attend',  page: 'attendance.html'    },
-      { id: 'requests',      icon: '📋', label: 'Requests',page: 'requests.html'      },
-      { id: 'admin',         icon: '⚙', label: 'Admin',   page: 'admin.html'         }
-    ],
-    admin: [
-      { id: 'home',     icon: '🏠', label: 'Home',     page: 'home.html'    },
-      { id: 'admin',    icon: '⚙', label: 'Admin',    page: 'admin.html'   },
-      { id: 'requests', icon: '📋', label: 'Requests', page: 'requests.html'},
-      { id: 'kpi',      icon: '📊', label: 'KPI',      page: 'kpi.html'     },
-      { id: 'settings', icon: '👤', label: 'Me',       page: 'settings.html'}
-    ]
-  }
-
-};
-
-/* ── Shift helpers ──────────────────────────────────────── */
-CFG.getShiftDisplay = function(raw) {
-  if (!raw) return CFG.getShiftDisplay('OFF');
-  const s = String(raw).trim().toUpperCase();
-  const dt = CFG.DAY_TYPES.find(d => s === d.code || s.startsWith(d.code));
-  if (dt) return { ...dt, isOff: true };
-  const m = raw.match(/^(\d{1,2}):(\d{2})\s*[-]\s*(\d{1,2}):(\d{2})/);
-  if (m) {
-    const startH = parseInt(m[1]);
-    const theme  = CFG.SHIFT_THEME.find(t => startH >= t.from && startH < t.to) || CFG.SHIFT_THEME[0];
-    const startStr = String(parseInt(m[1])).padStart(2,'0') + ':' + m[2];
-    const endStr   = String(parseInt(m[3])).padStart(2,'0') + ':' + m[4];
-    return {
-      code: raw, isOff: false,
-      label: _fmt12(startStr) + ' - ' + _fmt12(endStr),
-      short: startStr,
-      start: startStr,
-      end:   endStr,
-      color: theme.color,
-      bg:    theme.bg
-    };
-  }
-  return { code: s, label: s, short: s.substring(0,3), color:'#6B7280', bg:'#F3F4F6', isOff: true };
-};
-
-function _fmt12(hhmm) {
-  if (!hhmm) return '';
-  const parts = hhmm.split(':');
-  const n = parseInt(parts[0]) % 24;
-  return (n % 12 || 12) + ':' + parts[1] + ' ' + (n < 12 ? 'AM' : 'PM');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0A2E5A">
+<title>KIB WFM — Schedule Editor</title>
+<link rel="stylesheet" href="css/kib.css">
+<style>
+:root {
+  --ed-navy: #0A2E5A;
+  --ed-teal: #00A89A;
+  --ed-amber: #F59E0B;
+  --ed-red: #EF4444;
+  --ed-green: #10B981;
 }
 
-CFG.isOff             = function(raw) { return !raw || CFG.getShiftDisplay(raw).isOff; };
-CFG.isShift           = function(raw) { return raw && !CFG.isOff(raw); };
-CFG.getShift          = CFG.getShiftDisplay;
-CFG.normalizeShiftCode = function(raw) { return raw ? String(raw).trim() : 'OFF'; };
-CFG.getAttStatus      = function(code) {
-  return CFG.ATT_STATUSES.find(s => s.code === code) || { code: code, label: code, pill: 'pill-gray', icon: '-' };
-};
+/* ── TOOLBAR ── */
+.ed-toolbar {
+  position: sticky;
+  top: var(--topbar-h, 56px);
+  z-index: 50;
+  background: #fff;
+  border-bottom: 2px solid #E8EEF7;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.week-nav-ed {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: #F0F5FB;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.week-nav-ed button {
+  border: none;
+  background: none;
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  color: var(--ed-navy);
+  cursor: pointer;
+  font-weight: 800;
+  transition: background .12s;
+}
+.week-nav-ed button:hover { background: #DDE8F5; }
+.wk-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ed-navy);
+  padding: 0 8px;
+  white-space: nowrap;
+  min-width: 130px;
+  text-align: center;
+}
+.team-chips-ed {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex: 1;
+}
+.team-chips-ed::-webkit-scrollbar { display: none; }
+.tc {
+  padding: 5px 11px;
+  border-radius: 20px;
+  border: 1.5px solid #D1DCF0;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  color: #5A6E8A;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: .12s;
+  flex-shrink: 0;
+}
+.tc.on { background: var(--ed-navy); border-color: var(--ed-navy); color: #fff; }
+.search-ed {
+  padding: 7px 10px 7px 30px;
+  border: 1.5px solid #D1DCF0;
+  border-radius: 20px;
+  font-size: 12px;
+  color: #1A2F4E;
+  background: #F8FAFF;
+  outline: none;
+  width: 150px;
+  transition: .2s;
+}
+.search-ed:focus { border-color: var(--ed-navy); width: 190px; }
+.search-wrap { position: relative; flex-shrink: 0; }
+.search-wrap::before {
+  content: '🔍';
+  position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
+  font-size: 11px; pointer-events: none;
+}
+.save-bar {
+  position: fixed;
+  bottom: calc(var(--nav-h, 64px) + env(safe-area-inset-bottom, 0px));
+  left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--ed-navy);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 200;
+  box-shadow: 0 8px 32px rgba(10,46,90,.35);
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+  white-space: nowrap;
+}
+.save-bar.show { transform: translateX(-50%) translateY(0); }
+.save-bar-msg { font-size: 13px; font-weight: 700; }
+
+/* ── GRID ── */
+.grid-wrap {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 10px 12px;
+  border-radius: 14px;
+  border: 1.5px solid #D8E5F5;
+  background: #fff;
+  box-shadow: 0 4px 24px rgba(10,46,90,.08);
+}
+.sch-tbl {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: max-content;
+  min-width: 100%;
+}
+
+/* Header */
+.sch-tbl thead th {
+  position: sticky;
+  top: 0;
+  z-index: 12;
+  background: var(--ed-navy);
+  color: rgba(255,255,255,.65);
+  padding: 8px 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  border-right: 1px solid rgba(255,255,255,.06);
+  min-width: 62px;
+  line-height: 1.4;
+}
+.sch-tbl thead th.th-name {
+  position: sticky;
+  left: 0;
+  z-index: 22;
+  text-align: left;
+  padding-left: 14px;
+  min-width: 180px;
+  width: 180px;
+  background: #0A2E5A;
+  border-right: 2px solid rgba(255,255,255,.12);
+  font-size: 10px;
+  color: rgba(255,255,255,.5);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.sch-tbl thead th.th-today {
+  background: var(--ed-teal);
+  color: #fff;
+}
+.sch-tbl thead th.th-wknd {
+  background: #0C2345;
+  color: rgba(255,255,255,.35);
+}
+
+/* Cells */
+.sch-tbl td {
+  border-right: 1px solid #EDF2FA;
+  border-bottom: 1px solid #EDF2FA;
+  height: 46px;
+  padding: 0;
+}
+.sch-tbl .td-name {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  background: #fff;
+  border-right: 2px solid #E0EAF8;
+  padding: 6px 10px;
+  white-space: nowrap;
+  min-width: 180px;
+  width: 180px;
+}
+.sch-tbl tr:hover td { background: rgba(10,46,90,.022); }
+.sch-tbl tr:hover .td-name { background: #F3F8FF; }
+
+/* Group separator */
+.grp-row td {
+  background: #EEF4FC !important;
+  font-size: 10px;
+  font-weight: 800;
+  color: #1A3F70;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  padding: 4px 14px;
+  border-bottom: 1px solid #DAE7F8;
+  height: 28px !important;
+}
+
+/* Shift cell */
+.sh-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  cursor: pointer;
+  transition: filter .1s;
+  min-width: 62px;
+}
+.sh-cell:hover { filter: brightness(.93); }
+.sh-cell.today-col { background: rgba(0,168,154,.06); }
+.sh-cell.wknd-col  { background: rgba(240,245,251,.7); }
+
+/* Shift chip */
+.sh-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px;
+  border-radius: 7px;
+  font-size: 9.5px;
+  font-weight: 800;
+  width: 54px;
+  letter-spacing: .2px;
+  transition: transform .1s, box-shadow .1s;
+  position: relative;
+}
+.sh-cell:hover .sh-chip {
+  transform: scale(1.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+.sh-chip.edited {
+  outline: 2.5px solid var(--ed-amber);
+  outline-offset: 2px;
+}
+
+/* POPUP */
+.sh-popup {
+  position: fixed;
+  background: #fff;
+  border: 1.5px solid #D1DCF0;
+  border-radius: 16px;
+  box-shadow: 0 12px 48px rgba(10,46,90,.22);
+  z-index: 600;
+  width: 280px;
+  overflow: hidden;
+  animation: popIn .15s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes popIn { from { opacity:0; transform:scale(.88); } }
+
+.sh-popup-hdr {
+  background: var(--ed-navy);
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.sh-popup-hdr-info .agent-nm {
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+}
+.sh-popup-hdr-info .date-nm {
+  font-size: 11px;
+  color: rgba(255,255,255,.6);
+  margin-top: 1px;
+}
+.sh-popup-close {
+  background: rgba(255,255,255,.12);
+  border: none;
+  color: #fff;
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.sh-popup-close:hover { background: rgba(255,255,255,.2); }
+
+.popup-body { padding: 12px 14px; }
+
+.popup-section-lbl {
+  font-size: 9px;
+  font-weight: 800;
+  color: #7A8FAA;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  margin-bottom: 6px;
+  margin-top: 10px;
+}
+.popup-section-lbl:first-child { margin-top: 0; }
+
+.shift-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin-bottom: 4px;
+}
+.shift-opt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 4px;
+  border-radius: 10px;
+  border: 1.5px solid #E0EAF8;
+  cursor: pointer;
+  transition: .12s;
+  text-align: center;
+  gap: 2px;
+  background: #F8FAFF;
+}
+.shift-opt:hover { border-color: var(--ed-navy); background: #EEF4FC; }
+.shift-opt.selected { border-color: var(--ed-navy); background: var(--ed-navy); }
+.shift-opt.selected .so-label,
+.shift-opt.selected .so-time { color: #fff !important; }
+.so-label { font-size: 10px; font-weight: 800; color: #1A2F4E; }
+.so-time  { font-size: 8.5px; color: #7A8FAA; }
+
+.daytype-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+}
+.daytype-opt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 4px;
+  border-radius: 10px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: .12s;
+  text-align: center;
+  gap: 2px;
+}
+.daytype-opt:hover { filter: brightness(.92); }
+.daytype-opt.selected { outline: 2.5px solid var(--ed-navy); outline-offset: 1px; }
+.dt-icon { font-size: 16px; }
+.dt-label { font-size: 9px; font-weight: 800; }
+
+.popup-apply-btn {
+  width: 100%;
+  padding: 11px;
+  border-radius: 11px;
+  border: none;
+  background: var(--ed-navy);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: background .12s;
+}
+.popup-apply-btn:hover { background: #0D3A70; }
+.popup-apply-btn:disabled { background: #A0B0C8; cursor: not-allowed; }
+
+/* Legend */
+.legend-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #F8FAFF;
+  border-top: 1px solid #E8EEF7;
+  margin: 0 12px 80px;
+  border-radius: 0 0 14px 14px;
+}
+.leg-item {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 600; color: #5A6E8A;
+}
+.leg-dot {
+  width: 22px; height: 13px;
+  border-radius: 4px;
+}
+
+/* Agent name cell */
+.ag-av {
+  width: 26px; height: 26px;
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 900;
+  color: #fff;
+  flex-shrink: 0;
+}
+.ag-nm { font-size: 11.5px; font-weight: 700; color: #1A2F4E; line-height: 1.2; }
+.ag-team {
+  font-size: 8px; font-weight: 700;
+  color: #fff;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-top: 2px;
+  display: inline-block;
+}
+</style>
+</head>
+<body>
+<div id="kib-topbar"></div>
+
+<!-- TOOLBAR -->
+<div class="ed-toolbar" style="margin-top:var(--topbar-h,56px);">
+  <div class="week-nav-ed">
+    <button onclick="prevWeek()">‹</button>
+    <div class="wk-label" id="wk-lbl">Loading…</div>
+    <button onclick="nextWeek()">›</button>
+  </div>
+  <button class="btn btn-xs btn-outline" onclick="goToday()">Today</button>
+  <div class="team-chips-ed" id="team-chips"></div>
+  <div class="search-wrap">
+    <input class="search-ed" id="agent-search" type="text" placeholder="Search agent…" oninput="onSearch()">
+  </div>
+</div>
+
+<!-- GRID -->
+<div id="kib-app" style="padding-top:0;padding-bottom:10px;">
+  <div class="grid-wrap" id="grid-wrap">
+    <div id="grid-container" style="min-height:200px;display:flex;align-items:center;justify-content:center;padding:40px;">
+      <div style="text-align:center;">
+        <div class="kib-spin" style="margin:0 auto 12px;"></div>
+        <div style="font-size:13px;color:#7A8FAA;">Loading schedule…</div>
+      </div>
+    </div>
+  </div>
+  <div class="legend-strip" id="legend-strip"></div>
+</div>
+
+<div id="kib-bottomnav"></div>
+
+<!-- SAVE BAR -->
+<div class="save-bar" id="save-bar">
+  <div class="save-bar-msg" id="save-bar-msg">0 changes</div>
+  <button onclick="discardChanges()" style="background:rgba(255,255,255,.15);border:none;color:#fff;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">✕ Discard</button>
+  <button onclick="saveAllChanges()" id="save-btn" style="background:#00A89A;border:none;color:#fff;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;">✓ Save All</button>
+</div>
+
+<!-- POPUP -->
+<div class="sh-popup" id="sh-popup" style="display:none;">
+  <div class="sh-popup-hdr">
+    <div class="sh-popup-hdr-info">
+      <div class="agent-nm" id="pop-agent">—</div>
+      <div class="date-nm"  id="pop-date">—</div>
+    </div>
+    <button class="sh-popup-close" onclick="closePopup()">✕</button>
+  </div>
+  <div class="popup-body">
+    <div class="popup-section-lbl">Shift</div>
+    <div class="shift-grid" id="pop-shifts"></div>
+    <div class="popup-section-lbl">Day Type</div>
+    <div class="daytype-grid" id="pop-daytypes"></div>
+    <button class="popup-apply-btn" id="pop-apply-btn" onclick="applySelected()">Apply Change</button>
+  </div>
+</div>
+<div id="pop-backdrop" style="display:none;position:fixed;inset:0;z-index:599;" onclick="closePopup()"></div>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/nav.js"></script>
+<script>
+if (!Auth.guard()) throw 0;
+const _access = Auth.user()?.access||'';
+if (!['management','wfm','admin'].includes(_access)) {
+  alert('Schedule editing requires management access.');
+  window.history.back(); throw 0;
+}
+
+const user = Auth.user();
+Nav.init('schedule-edit');
+
+let allData = null, allAgents = [], allDates = [];
+let weekAnchor = U.today(), teamFilter = 'All', searchQuery = '';
+let pendingChanges = {}; // key: "agent|date"
+let selectedShift = null; // currently selected in popup
+let popAgent = null, popDate = null, popOrig = null;
+
+/* ── Init ── */
+async function init(force = false) {
+  try {
+    allData   = await API.getAll(force);
+    Nav.setSyncStatus(true);
+    allAgents = (allData.agents||[]).filter(a => a.t !== 'Management');
+    allDates  = (allData.dates||[]).map(d => U.normDate(d));
+    buildTeamChips();
+    buildLegend();
+    renderGrid();
+  } catch(e) {
+    Nav.setSyncStatus(false);
+    document.getElementById('grid-container').innerHTML =
+      `<div style="text-align:center;padding:40px;color:#EF4444;">
+        ⚠ Failed to load<br>
+        <button onclick="init(true)" style="margin-top:12px;padding:8px 16px;border-radius:8px;border:1.5px solid #EF4444;background:#fff;color:#EF4444;font-weight:700;cursor:pointer;">Retry</button>
+      </div>`;
+  }
+}
+
+/* ── Team chips ── */
+function buildTeamChips() {
+  const teams = ['All', ...CFG.TEAMS.filter(t => allAgents.some(a => a.t===t))];
+  document.getElementById('team-chips').innerHTML = teams.map(t =>
+    `<div class="tc ${t==='All'?'on':''}" onclick="setTeam('${t}',this)">${t}</div>`
+  ).join('');
+}
+function setTeam(t, el) {
+  teamFilter = t;
+  document.querySelectorAll('.tc').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  renderGrid();
+}
+function onSearch() {
+  searchQuery = document.getElementById('agent-search').value.toLowerCase();
+  renderGrid();
+}
+
+/* ── Legend ── */
+function buildLegend() {
+  const items = [
+    {bg:'#DBEAFE',color:'#1D4ED8',label:'Morning'},
+    {bg:'#CCFBF1',color:'#0F766E',label:'Midday'},
+    {bg:'#FEF3C7',color:'#B45309',label:'Evening'},
+    {bg:'#F3E8FF',color:'#7C3AED',label:'Night'},
+    {bg:'#F1F5F9',color:'#475569',label:'OFF'},
+    {bg:'#FEF9C3',color:'#CA8A04',label:'Leave'},
+    {bg:'#FEE2E2',color:'#DC2626',label:'Sick (SL)'},
+    {bg:'#DCFCE7',color:'#16A34A',label:'Holiday (PH)'},
+  ];
+  document.getElementById('legend-strip').innerHTML =
+    items.map(i=>`<div class="leg-item"><div class="leg-dot" style="background:${i.bg};border:1px solid ${i.color};"></div>${i.label}</div>`).join('');
+}
+
+/* ── Week navigation ── */
+function prevWeek() { weekAnchor = U.addDays(weekAnchor,-7); renderGrid(); }
+function nextWeek() { weekAnchor = U.addDays(weekAnchor, 7); renderGrid(); }
+function goToday()  { weekAnchor = U.today(); renderGrid(); }
+
+function getWeekDates() {
+  const week = U.getWeekDates(weekAnchor);
+  if (!allDates.length) return week;
+  return week.filter(d => d >= allDates[0] && d <= allDates[allDates.length-1]);
+}
+
+/* ── Render Grid ── */
+function renderGrid() {
+  const weekDates = getWeekDates();
+  if (!weekDates.length) {
+    document.getElementById('grid-container').innerHTML =
+      `<div style="padding:40px;text-align:center;color:#7A8FAA;">No schedule data for this week.</div>`;
+    updateWeekLabel(weekDates); return;
+  }
+  updateWeekLabel(weekDates);
+
+  let agents = allAgents;
+  if (teamFilter !== 'All') agents = agents.filter(a => a.t===teamFilter);
+  if (searchQuery)          agents = agents.filter(a => (a.n||'').toLowerCase().includes(searchQuery));
+
+  const today = U.today();
+  const teams = [...new Set(agents.map(a=>a.t))];
+
+  // Header
+  let thead = `<thead><tr><th class="th-name">Agent</th>`;
+  weekDates.forEach(d => {
+    const isT = d===today, isW = U.isWeekend(d);
+    const dn = new Date(d+'T00:00:00');
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    thead += `<th class="${isT?'th-today':isW?'th-wknd':''}">
+      <div style="font-size:8.5px;opacity:.7;">${days[dn.getDay()]}</div>
+      <div style="font-size:13px;font-weight:900;color:${isT?'#fff':'rgba(255,255,255,.9)'};">${dn.getDate()}</div>
+      <div style="font-size:8px;opacity:.6;">${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][dn.getMonth()]}</div>
+    </th>`;
+  });
+  thead += `</tr></thead>`;
+
+  // Body
+  let tbody = '<tbody>';
+  teams.forEach(team => {
+    const members = agents.filter(a=>a.t===team);
+    if (!members.length) return;
+    const tc = CFG.TEAM_COLORS[team]||'#6B7280';
+    tbody += `<tr class="grp-row"><td colspan="${weekDates.length+1}" style="color:${tc};">${team} · ${members.length} agents</td></tr>`;
+    members.forEach(ag => {
+      const name = ag.n||ag.name;
+      const ac = U.avatarColor(name);
+      tbody += `<tr>
+        <td class="td-name">
+          <div style="display:flex;align-items:center;gap:7px;">
+            <div class="ag-av" style="background:${ac};">${U.initials(name)}</div>
+            <div>
+              <div class="ag-nm">${name.split(' ')[0]}<span style="font-weight:500;color:#7A8FAA;"> ${name.split(' ').slice(1).join(' ')}</span></div>
+              <div class="ag-team" style="background:${tc};">${team}</div>
+            </div>
+          </div>
+        </td>`;
+      weekDates.forEach(d => {
+        const di = allDates.indexOf(d);
+        let raw = di>=0&&ag.sch ? ag.sch[di] : 'OFF';
+        raw = raw||'OFF';
+        const pKey = `${name}|${d}`;
+        const changed = !!pendingChanges[pKey];
+        const dispCode = changed ? pendingChanges[pKey].shift : CFG.normalizeShiftCode(raw);
+        const def = CFG.getShiftDisplay(dispCode);
+        const isT = d===today, isW = U.isWeekend(d);
+        const chipBg  = def?.bg  || '#F1F5F9';
+        const chipClr = def?.color || '#6B7280';
+        const lbl = def?.short || def?.code || dispCode.slice(0,5);
+        const ename = name.replace(/'/g,"&apos;").replace(/"/g,'&quot;');
+        tbody += `<td>
+          <div class="sh-cell ${isT?'today-col':''} ${isW?'wknd-col':''}"
+               data-agent="${ename}" data-date="${d}" data-shift="${dispCode}"
+               onclick="openPopup(event,'${ename}','${d}','${dispCode}')">
+            <div class="sh-chip ${changed?'edited':''}" style="background:${chipBg};color:${chipClr};">
+              ${lbl}${changed?'<span style="position:absolute;top:-3px;right:-3px;width:6px;height:6px;background:#F59E0B;border-radius:50%;border:1px solid #fff;"></span>':''}
+            </div>
+          </div>
+        </td>`;
+      });
+      tbody += '</tr>';
+    });
+  });
+  tbody += '</tbody>';
+
+  document.getElementById('grid-container').innerHTML = `<table class="sch-tbl">${thead}${tbody}</table>`;
+}
+
+function updateWeekLabel(weekDates) {
+  if (!weekDates||!weekDates.length) { U.se('wk-lbl','No data'); return; }
+  const f=new Date(weekDates[0]+'T00:00:00'), l=new Date(weekDates[weekDates.length-1]+'T00:00:00');
+  const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  U.se('wk-lbl',`${f.getDate()} ${m[f.getMonth()]} – ${l.getDate()} ${m[l.getMonth()]}`);
+}
+
+/* ── Popup ── */
+function openPopup(evt, agentName, date, currentCode) {
+  evt.stopPropagation();
+  popAgent = agentName; popDate = date; popOrig = currentCode;
+  selectedShift = currentCode;
+
+  document.getElementById('pop-agent').textContent = agentName;
+  document.getElementById('pop-date').textContent  = U.fmtDisplay(date);
+
+  // Build shift grid
+  const shifts = CFG.SHIFT_OPTIONS.filter(c=>c!=='OFF');
+  document.getElementById('pop-shifts').innerHTML = shifts.map(code => {
+    const parts = code.split('-');
+    const label = parts.length>=2 ? `${parseInt(parts[0])}-${parseInt(parts[1])}` : code;
+    const isSel = code === currentCode;
+    return `<div class="shift-opt ${isSel?'selected':''}" onclick="selectShift('${code}',this)">
+      <div class="so-label">${label}</div>
+      <div class="so-time">${code}</div>
+    </div>`;
+  }).join('');
+
+  // Build day type grid
+  const types = [
+    {code:'OFF',  icon:'⚫', label:'Day Off',  bg:'#F1F5F9', color:'#475569'},
+    {code:'AL',   icon:'🏖',  label:'Annual',   bg:'#FEF9C3', color:'#CA8A04'},
+    {code:'SL',   icon:'🏥',  label:'Sick',     bg:'#FEE2E2', color:'#DC2626'},
+    {code:'PH',   icon:'🎉',  label:'Holiday',  bg:'#DCFCE7', color:'#16A34A'},
+    {code:'UL',   icon:'📋',  label:'Unpaid',   bg:'#F3E8FF', color:'#7C3AED'},
+    {code:'Leave',icon:'📅',  label:'Leave',    bg:'#FEF9C3', color:'#D97706'},
+  ];
+  document.getElementById('pop-daytypes').innerHTML = types.map(dt => {
+    const isSel = dt.code === currentCode;
+    return `<div class="daytype-opt ${isSel?'selected':''}" style="background:${dt.bg};"
+                 onclick="selectShift('${dt.code}',this)">
+      <div class="dt-icon">${dt.icon}</div>
+      <div class="dt-label" style="color:${dt.color};">${dt.label}</div>
+    </div>`;
+  }).join('');
+
+  updateApplyBtn();
+
+  document.getElementById('sh-popup').style.display = '';
+  document.getElementById('pop-backdrop').style.display = '';
+}
+
+function selectShift(code, el) {
+  selectedShift = code;
+  // Deselect all
+  document.querySelectorAll('.shift-opt, .daytype-opt').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+  updateApplyBtn();
+}
+
+function updateApplyBtn() {
+  const btn = document.getElementById('pop-apply-btn');
+  if (!btn) return;
+  const changed = selectedShift !== popOrig;
+  btn.textContent = changed ? `Apply: ${selectedShift}` : 'No Change';
+  btn.disabled = !changed;
+  btn.style.background = changed ? 'var(--ed-navy)' : '#A0B0C8';
+}
+
+function applySelected() {
+  if (!selectedShift || selectedShift === popOrig) return;
+  applyShift(popAgent, popDate, selectedShift);
+  closePopup();
+}
+
+function closePopup() {
+  document.getElementById('sh-popup').style.display = 'none';
+  document.getElementById('pop-backdrop').style.display = 'none';
+}
+
+/* ── Apply shift ── */
+function applyShift(agentName, date, newCode) {
+  const ag  = allAgents.find(a=>(a.n||a.name)===agentName);
+  const idx = allDates.indexOf(date);
+  const orig = ag&&idx>=0&&ag.sch ? (ag.sch[idx]||'OFF') : 'OFF';
+  const origCode = CFG.normalizeShiftCode(orig);
+  const pKey = `${agentName}|${date}`;
+  if (newCode === origCode) {
+    delete pendingChanges[pKey];
+  } else {
+    const def = CFG.getShiftDisplay(newCode);
+    pendingChanges[pKey] = { agent:agentName, date, shift:newCode, shiftStart:def?.start||'', shiftEnd:def?.end||'', orig:origCode };
+  }
+  updateSaveBar();
+  // Update cell
+  const cell = document.querySelector(`.sh-cell[data-agent="${agentName}"][data-date="${date}"]`);
+  if (cell) {
+    const def = CFG.getShiftDisplay(newCode);
+    const chip = cell.querySelector('.sh-chip');
+    const lbl = def?.short || def?.code || newCode.slice(0,5);
+    const isChanged = pKey in pendingChanges;
+    if (chip) {
+      chip.style.background = def?.bg||'#F1F5F9';
+      chip.style.color = def?.color||'#6B7280';
+      chip.innerHTML = lbl + (isChanged?'<span style="position:absolute;top:-3px;right:-3px;width:6px;height:6px;background:#F59E0B;border-radius:50%;border:1px solid #fff;"></span>':'');
+      chip.classList.toggle('edited', isChanged);
+    }
+    cell.dataset.shift = newCode;
+  }
+}
+
+/* ── Save bar ── */
+function updateSaveBar() {
+  const count = Object.keys(pendingChanges).length;
+  const bar = document.getElementById('save-bar');
+  document.getElementById('save-bar-msg').textContent = `${count} unsaved change${count!==1?'s':''}`;
+  bar.classList.toggle('show', count>0);
+}
+
+function discardChanges() {
+  if (!Object.keys(pendingChanges).length) return;
+  if (!confirm('Discard all unsaved changes?')) return;
+  pendingChanges = {};
+  updateSaveBar();
+  renderGrid();
+}
+
+async function saveAllChanges() {
+  const changes = Object.values(pendingChanges);
+  if (!changes.length) return;
+  const btn = document.getElementById('save-btn');
+  btn.disabled=true; btn.textContent='Saving…';
+  try {
+    await API.bulkUpdateShifts(changes, user.name);
+    // Update local data
+    changes.forEach(ch => {
+      const ag  = allAgents.find(a=>(a.n||a.name)===ch.agent);
+      const idx = allDates.indexOf(ch.date);
+      if (ag&&idx>=0&&ag.sch) ag.sch[idx] = ch.shift;
+    });
+    pendingChanges = {};
+    updateSaveBar();
+    renderGrid();
+    API.clearCache('getAll');
+    U.toast(`${changes.length} change${changes.length>1?'s':''} saved ✓`, 'ok');
+  } catch(e) {
+    Nav.setSyncStatus(false);
+    U.toast('Failed to save — check n8n workflow', 'err');
+  } finally {
+    btn.disabled=false; btn.textContent='✓ Save All';
+  }
+}
+
+document.addEventListener('keydown', e => { if (e.key==='Escape') closePopup(); });
+init();
+</script>
+</body>
+</html>
