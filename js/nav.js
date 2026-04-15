@@ -139,7 +139,7 @@ const Nav = (() => {
         window._lastGetAll = 0;
         const syncing = document.getElementById('tb-sync');
         if (syncing) { syncing.style.background = '#F59E0B'; syncing.title = 'Syncing...'; }
-        API.getAll(true).then(() => {
+        API.getAll('manual').then(() => {
           Nav.setSyncStatus(true);
           if (syncing) syncing.title = 'Tap to sync';
           // Reload current page data
