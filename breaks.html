@@ -533,7 +533,7 @@ async function init(){
     if (!window._breaksRetried) {
       window._breaksRetried = true;
       U.toast('Reconnecting…','');
-      setTimeout(() => { window._breaksRetried = false; init(); }, 4000);
+      setTimeout(() => { window._breaksRetried = false; init(true); }, 4000);
     } else {
       U.toast('Failed to load — tap retry','err');
     }
