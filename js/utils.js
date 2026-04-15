@@ -207,8 +207,8 @@ var U = {
     const sunday = new Date(d);
     sunday.setDate(d.getDate() - day); // roll to Sunday
     return Array.from({ length: 7 }, (_, i) => {
-      const nd = new Date(monday);
-      nd.setDate(monday.getDate() + i);
+      const nd = new Date(sunday);
+      nd.setDate(sunday.getDate() + i);
       return this.fmt(nd);
     });
   },
