@@ -225,7 +225,7 @@ const API = (() => {
     // SwapRequests sheet columns: ID,From,To,Date,FromShift,ToShift,Reason,Status,ActionedBy,Timestamp
     async submitSwap({ from, to, date, shiftFrom, shiftTo, reason }) {
       clearCache('getAll');
-      return post(CFG.N8N.SUBMIT_LEAVE || CFG.N8N.REQUESTS, {
+      return post(CFG.N8N.SUBMIT_SWAP, {
         action:    'submitSwap',
         ID:        Date.now().toString(36) + Math.random().toString(36).slice(2,5),
         From:      from,
