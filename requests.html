@@ -30,6 +30,10 @@
 <div id="kib-app">
   <div id="user-strip-wrap"></div>
   <div class="page-content">
+    <div id="req-loading" style="text-align:center;padding:40px;color:var(--t2);">
+      <div class="kib-spin" style="margin:0 auto 12px;"></div>
+      Loading requests…
+    </div>
 
     <!-- Tab bar -->
     <div class="tab-bar" style="margin-top:12px;">
@@ -76,13 +80,24 @@ async function init(force = false) {
   try {
     data = await API.getAll(force);
     Nav.setSyncStatus(true);
+    const ld=document.getElementById('req-loading');
+    if(ld)ld.style.display='none';
     if (isMgmt) {
       document.getElementById('filter-row').style.display = '';
       buildTeamFilters();
     }
     renderAll();
   } catch(e) {
-    Nav.setSyncStatus(false); U.toast('Failed to load requests','err'); }
+    Nav.setSyncStatus(false);
+    console.error('Load error:', e);
+    U.toast('Connection error — retrying…', 'warn');
+    if (!window._reqRetried) {
+      window._reqRetried = true;
+      setTimeout(() => { window._reqRetried = false; init(true); }, 3000);
+    } else {
+      U.toast('Failed to load — check connection', 'err');
+    }
+  }
 }
 
 function switchTab(t) {
