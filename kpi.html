@@ -27,6 +27,71 @@
   <div id="user-strip-wrap"></div>
   <div class="page-content">
 
+    <!-- Management search (top, hidden for agents) -->
+    <div id="mgmt-search-top" style="display:none;background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:14px;margin-bottom:16px;box-shadow:0 2px 12px rgba(10,74,138,.06);">
+      <div style="font-size:12px;font-weight:800;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Search KPI Records</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        <div>
+          <label class="fld-label">Agent</label>
+          <select class="fld" id="df-agent" onchange="renderDash()" style="font-size:12px;padding:8px 10px;">
+            <option value="">All Agents</option>
+          </select>
+        </div>
+        <div>
+          <label class="fld-label">Date</label>
+          <input type="date" class="fld" id="kpi-date" onchange="renderDash()" style="font-size:12px;padding:8px 10px;">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div>
+          <label class="fld-label">Team</label>
+          <select class="fld" id="df-team" onchange="renderDash()" style="font-size:12px;padding:8px 10px;">
+            <option value="">All Teams</option>
+            <option>Inbound</option><option>Outbound</option><option>ITM</option>
+            <option>Wage</option><option>Back Office</option><option>Quality</option>
+          </select>
+        </div>
+        <div>
+          <label class="fld-label">Type</label>
+          <select class="fld" id="df-type" onchange="renderDash()" style="font-size:12px;padding:8px 10px;">
+            <option value="">All Types</option>
+            <option value="issue">System Issue</option>
+            <option value="permission">Permission</option>
+            <option value="extra">Extra Break</option>
+            <option value="meeting">Meeting</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-xs btn-outline" onclick="clearDashFilters()">Clear</button>
+        <span id="dash-count" style="font-size:11px;color:var(--t2);"></span>
+      </div>
+    </div>
+
+    <!-- Agent KPI counts today -->
+    <div id="my-kpi-counts" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
+      <div class="stat-card" style="background:#FEF2F2;border:none;border-radius:14px;padding:12px;text-align:center;">
+        <div style="font-size:22px;margin-bottom:4px;">💻</div>
+        <div style="font-size:20px;font-weight:900;color:#DC2626;" id="my-cnt-issue">0</div>
+        <div style="font-size:10px;color:#DC2626;font-weight:700;">Issues</div>
+      </div>
+      <div class="stat-card" style="background:#F0FDF4;border:none;border-radius:14px;padding:12px;text-align:center;">
+        <div style="font-size:22px;margin-bottom:4px;">🚪</div>
+        <div style="font-size:20px;font-weight:900;color:#16A34A;" id="my-cnt-permission">0</div>
+        <div style="font-size:10px;color:#16A34A;font-weight:700;">Permissions</div>
+      </div>
+      <div class="stat-card" style="background:#FFFBEB;border:none;border-radius:14px;padding:12px;text-align:center;">
+        <div style="font-size:22px;margin-bottom:4px;">☕</div>
+        <div style="font-size:20px;font-weight:900;color:#B45309;" id="my-cnt-extra">0</div>
+        <div style="font-size:10px;color:#B45309;font-weight:700;">Extra Breaks</div>
+      </div>
+      <div class="stat-card" style="background:#EFF6FF;border:none;border-radius:14px;padding:12px;text-align:center;">
+        <div style="font-size:22px;margin-bottom:4px;">📋</div>
+        <div style="font-size:20px;font-weight:900;color:#1D4ED8;" id="my-cnt-meeting">0</div>
+        <div style="font-size:10px;color:#1D4ED8;font-weight:700;">Meetings</div>
+      </div>
+    </div>
+
     <!-- SUBMIT CARDS -->
     <div class="section-hdr"><div class="section-title">Submit KPI Event</div></div>
 
@@ -135,45 +200,6 @@
         <div class="section-title">Team KPI</div>
         <button class="btn btn-xs btn-outline" onclick="exportKPI()">Export CSV</button>
       </div>
-
-      <!-- Search & Filter for KPI records -->
-      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-          <div>
-            <label class="fld-label">Agent</label>
-            <select class="fld" id="df-agent" onchange="renderDash()" style="font-size:12px;padding:8px 10px;">
-              <option value="">All Agents</option>
-            </select>
-          </div>
-          <div>
-            <label class="fld-label">Date</label>
-            <input type="date" class="fld" id="kpi-date" onchange="renderDash()" style="font-size:12px;padding:8px 10px;">
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <div>
-            <label class="fld-label">Team</label>
-            <select class="fld" id="df-team" onchange="renderDash()" style="font-size:12px;padding:8px 10px;">
-              <option value="">All Teams</option>
-              <option>Inbound</option><option>Outbound</option><option>ITM</option>
-              <option>Wage</option><option>Back Office</option><option>Quality</option>
-            </select>
-          </div>
-          <div>
-            <label class="fld-label">Type</label>
-            <select class="fld" id="df-type" onchange="renderDash()" style="font-size:12px;padding:8px 10px;">
-              <option value="">All Types</option>
-              <option value="issue">System Issue</option>
-              <option value="permission">Permission</option>
-              <option value="extra">Extra Break</option>
-              <option value="meeting">Meeting</option>
-            </select>
-          </div>
-        </div>
-        <div style="margin-top:8px;">
-          <button class="btn btn-xs btn-outline" onclick="clearDashFilters()">Clear</button>
-        </div>
-      </div>
       <div class="stat-grid" style="grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;">
         <div class="stat-card c-red">  <div class="stat-num" id="kd-issue">0</div><div class="stat-label">Issues</div></div>
         <div class="stat-card c-navy"> <div class="stat-num" id="kd-perm">0</div> <div class="stat-label">Perms</div></div>
@@ -201,6 +227,7 @@ let data = null;
 Nav.init('kpi');
 // Show management sections immediately
 if (isMgmt) {
+  document.getElementById('mgmt-search-top').style.display = '';
   document.getElementById('pending-section').style.display = '';
   document.getElementById('mgmt-section').style.display    = '';
 }
@@ -484,6 +511,17 @@ async function approveKPI(id, kpiType, approved) {
 }
 
 /* ── Management Dashboard ── */
+function renderMyCounts() {
+  const kpi  = data?.kpi||{};
+  const norm = v => U.normDate(v?.Date||v?.date||'');
+  const me   = user.name;
+  const cnt  = t => (kpi[t]||[]).filter(k=>(k.Agent||k.agent||'')===me && norm(k)===today).length;
+  U.se('my-cnt-issue',      cnt('issue'));
+  U.se('my-cnt-permission', cnt('permission'));
+  U.se('my-cnt-extra',      cnt('extra'));
+  U.se('my-cnt-meeting',    cnt('meeting'));
+}
+
 function clearDashFilters() {
   ['df-agent','df-team','df-type'].forEach(id => {
     const el = document.getElementById(id);
@@ -533,6 +571,8 @@ function renderDash() {
     ...f('meeting').map(k=>({...k,_t:'meeting'})),
   ].sort((a,b)=>(b.Time||'').localeCompare(a.Time||''));
 
+  const countEl = document.getElementById('dash-count');
+  if (countEl) countEl.textContent = all.length + ' records';
   document.getElementById('kpi-entries').innerHTML = all.length ? all.map(k=>`
     <div class="approval-row">
       <div style="display:flex;align-items:center;gap:10px;">
@@ -570,6 +610,7 @@ async function init() {
     Nav.setSyncStatus(true);
     fillAgents();
     renderMySubmissions();
+    renderMyCounts();
     if (isMgmt) {
       document.getElementById('pending-section').style.display='';
       document.getElementById('mgmt-section').style.display='';
