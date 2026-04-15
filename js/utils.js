@@ -201,11 +201,11 @@ var U = {
 
   /* ── Week helpers ─────────────────────────────────── */
   getWeekDates(anchor) {
-    // Returns 7 dates (Sun-Sat or Mon-Sun) around anchor YYYY-MM-DD
+    // Returns 7 dates Sun-Sat around anchor YYYY-MM-DD
     const d = new Date(anchor + 'T00:00:00');
     const day = d.getDay(); // 0=Sun
-    const monday = new Date(d);
-    monday.setDate(d.getDate() - ((day + 6) % 7)); // roll to Monday
+    const sunday = new Date(d);
+    sunday.setDate(d.getDate() - day); // roll to Sunday
     return Array.from({ length: 7 }, (_, i) => {
       const nd = new Date(monday);
       nd.setDate(monday.getDate() + i);
