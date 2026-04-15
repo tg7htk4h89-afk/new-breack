@@ -372,7 +372,7 @@ async function cancelBookedBreak(breakId) {
   try {
     await API.saveBreaks({ action: 'cancelBreak', id: breakId, agent: user.name });
     // cache preserved - breaks use refreshBreaks()
-    data = await API.getAll(true);
+    API.clearCache('getAll'); // will refresh on next load
     renderBalance(); buildSlotGrid(); renderBookedBanner();
     U.toast('Break cancelled', 'ok');
   } catch(e) {
@@ -512,7 +512,7 @@ async function startBookedBreak(breakId) {
     activeBreak  = bk;
     bookedBreak  = null;
     startLiveBanner(bk);
-    data = await API.getAll(true);
+    API.clearCache('getAll'); // will refresh on next load
     Nav.setSyncStatus(true); renderBalance(); buildSlotGrid(); renderBookedBanner();
     U.toast('Break started ✓', 'ok');
   } catch(e) {
@@ -716,7 +716,7 @@ async function respondToSwap(swapId, fromBreakId, toBreakId, fromSlot, toSlot, a
       U.toast('Swap rejected', 'ok');
     }
     // cache preserved - breaks use refreshBreaks()
-    data = await API.getAll(true);
+    API.clearCache('getAll'); // will refresh on next load
     renderBalance(); buildSlotGrid(); renderBookedBanner(); renderSwapRequests();
   } catch(e) {
     U.toast('Failed to respond to swap', 'err');
@@ -773,7 +773,7 @@ async function swapBreak() {
 
     U.toast(`Swap request sent to ${target.agent} ✓`, 'ok');
     // cache preserved - breaks use refreshBreaks()
-    data = await API.getAll(true);
+    API.clearCache('getAll'); // will refresh on next load
     renderBalance(); buildSlotGrid(); renderBookedBanner();
 
   } catch(e) {

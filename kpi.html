@@ -372,8 +372,7 @@ async function logKPI(type, e) {
     U.toast('Submitted — pending approval ⏳','ok');
     document.querySelectorAll('#card-'+type+' input,#card-'+type+' textarea').forEach(el=>el.value='');
     toggleCard(type);
-    API.clearCache('getAll');
-    data = await API.getAll(true);
+    API.clearCache('getAll'); // cache cleared — next page load will refresh
     Nav.setSyncStatus(true);
     renderMySubmissions();
     if (isMgmt) renderPending();
@@ -542,7 +541,7 @@ async function approveKPI(id, kpiType, approved) {
     });
     U.toast(approved ? `Approved ✓` : `Rejected`, approved ? 'ok' : 'warn');
     API.clearCache('getAll');
-    data = await API.getAll(true);
+    API.clearCache('getAll'); // will refresh on next load
     renderPending();
     renderDash();
     renderMySubmissions();

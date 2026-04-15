@@ -326,8 +326,7 @@ async async function actOnRequest(id, kind, action, note='') {
       });
     }
     U.toast(`${action==='approve'?'Approved':'Rejected'} ✓`, 'ok');
-    API.clearCache();
-    data = await API.getAll(true);
+    API.clearCache('getAll'); // cache cleared — next page load will refresh
     Nav.setSyncStatus(true);
     renderAll();
   } catch(e) {

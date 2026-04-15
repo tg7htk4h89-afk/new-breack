@@ -702,7 +702,7 @@ async function submitLeave() {
       type, reason:document.getElementById('lv-reason').value, submittedBy:user.name });
     U.toast('Leave request submitted ✓','ok');
     switchTab('hist');
-    data = await API.getAll(true);
+    API.clearCache('getAll');
     Nav.setSyncStatus(true);
     renderHist();
   } catch(e) {
@@ -722,7 +722,7 @@ async function submitSwap() {
       reason:document.getElementById('sw-reason').value });
     U.toast('Swap request submitted ✓','ok');
     switchTab('hist');
-    data = await API.getAll(true);
+    API.clearCache('getAll');
     Nav.setSyncStatus(true);
     renderHist();
   } catch(e) {
@@ -750,7 +750,7 @@ async function submitPref() {
     });
     U.toast('Preference submitted ✓','ok');
     switchTab('hist');
-    data = await API.getAll(true);
+    API.clearCache('getAll');
     Nav.setSyncStatus(true);
     renderHist();
   } catch(e) {
