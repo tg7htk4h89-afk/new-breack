@@ -44,13 +44,13 @@ const API = (() => {
         const cached = fromCache('getAll', 8 * 60 * 60 * 1000); // 8 hours = full shift
         if (cached) return cached;
       }
-      // Debounce manual refresh — max once per 30s
+      // Debounce only user-triggered (manual) refresh, not auto-retries
       const now = Date.now();
-      if (force && window._lastGetAll && (now - window._lastGetAll) < 30000) {
+      if (force === 'manual' && window._lastGetAll && (now - window._lastGetAll) < 30000) {
         const cached = fromCache('getAll', 999999);
         if (cached) return cached;
       }
-      window._lastGetAll = now;
+      if (force) window._lastGetAll = now;
 
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 12000);
