@@ -99,11 +99,11 @@ const CFG = {
       { id: 'settings', icon: '👤', label: 'Me',       page: 'settings.html' }
     ],
     management: [
-      { id: 'home',       icon: '🏠', label: 'Home',      page: 'home.html'       },
-      { id: 'schedule',   icon: '🗓', label: 'Schedule',  page: 'schedule.html'   },
-      { id: 'breaks',     icon: '☕', label: 'Breaks',    page: 'breaks.html'     },
-      { id: 'requests',   icon: '📋', label: 'Requests',  page: 'requests.html'   },
-      { id: 'kpi',        icon: '📊', label: 'KPI',       page: 'kpi.html'        }
+      { id: 'home',          icon: '🏠', label: 'Home',     page: 'home.html'          },
+      { id: 'schedule',      icon: '🗓', label: 'Schedule', page: 'schedule.html'      },
+      { id: 'schedule-edit', icon: '📝', label: 'Editor',   page: 'schedule-edit.html' },
+      { id: 'requests',      icon: '📋', label: 'Requests', page: 'requests.html'      },
+      { id: 'kpi',           icon: '📊', label: 'KPI',      page: 'kpi.html'           }
     ],
     wfm: [
       { id: 'home',          icon: '🏠', label: 'Home',    page: 'home.html'          },
