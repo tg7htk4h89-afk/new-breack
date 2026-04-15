@@ -46,7 +46,7 @@
         <span id="chv-issue" style="color:var(--t3);font-size:20px;">›</span>
       </div>
       <div class="kpi-card-body" onclick="event.stopPropagation()">
-        <div class="form-group"><label class="fld-label">Agent</label><select class="fld" id="si-agent"><option value="">— Select Agent —</option></select></div>
+        <div class="form-group" onclick="event.stopPropagation()"><label class="fld-label">Agent</label><div id="si-agent-wrap"><input class="fld" id="si-agent" readonly value="" style="background:#F8FAFF;"></div></div>
         <div class="form-group"><label class="fld-label">Application / System</label><input class="fld" id="si-app" placeholder="e.g. UAGENT, PC, CRM"></div>
         <div class="form-group"><label class="fld-label">Duration</label><input class="fld" id="si-dur" placeholder="e.g. 15 minutes"></div>
         <div class="form-group"><label class="fld-label">Issue Type</label>
@@ -67,7 +67,7 @@
         <span id="chv-permission" style="color:var(--t3);font-size:20px;">›</span>
       </div>
       <div class="kpi-card-body" onclick="event.stopPropagation()">
-        <div class="form-group"><label class="fld-label">Agent</label><select class="fld" id="pm-agent"><option value="">— Select Agent —</option></select></div>
+        <div class="form-group" onclick="event.stopPropagation()"><label class="fld-label">Agent</label><div id="pm-agent-wrap"><input class="fld" id="pm-agent" readonly value="" style="background:#F8FAFF;"></div></div>
         <div class="form-group"><label class="fld-label">Permission Type</label>
           <select class="fld" id="pm-type"><option>Early Leave</option><option>Late Arrival</option><option>Personal</option><option>Medical</option><option>Other</option></select></div>
         <div class="form-group"><label class="fld-label">Duration</label><input class="fld" id="pm-dur" placeholder="e.g. 30 minutes"></div>
@@ -89,7 +89,7 @@
         <span id="chv-extra" style="color:var(--t3);font-size:20px;">›</span>
       </div>
       <div class="kpi-card-body" onclick="event.stopPropagation()">
-        <div class="form-group"><label class="fld-label">Agent</label><select class="fld" id="eb-agent"><option value="">— Select Agent —</option></select></div>
+        <div class="form-group" onclick="event.stopPropagation()"><label class="fld-label">Agent</label><div id="eb-agent-wrap"><input class="fld" id="eb-agent" readonly value="" style="background:#F8FAFF;"></div></div>
         <div class="form-group"><label class="fld-label">Duration (minutes)</label><input class="fld" id="eb-dur" type="number" placeholder="15" min="1" max="60"></div>
         <div class="form-group"><label class="fld-label">Shift</label><input class="fld" id="eb-shift" placeholder="e.g. 08:00-16:00"></div>
         <div class="form-group"><label class="fld-label">Reason</label><textarea class="fld" id="eb-reason" rows="2" placeholder="Reason..."></textarea></div>
@@ -108,7 +108,7 @@
         <span id="chv-meeting" style="color:var(--t3);font-size:20px;">›</span>
       </div>
       <div class="kpi-card-body" onclick="event.stopPropagation()">
-        <div class="form-group"><label class="fld-label">Agent</label><select class="fld" id="mt-agent"><option value="">— Select Agent —</option></select></div>
+        <div class="form-group" onclick="event.stopPropagation()"><label class="fld-label">Agent</label><div id="mt-agent-wrap"><input class="fld" id="mt-agent" readonly value="" style="background:#F8FAFF;"></div></div>
         <div class="form-group"><label class="fld-label">Duration</label><input class="fld" id="mt-dur" placeholder="e.g. 1 hour"></div>
         <div class="form-group"><label class="fld-label">Shift</label><input class="fld" id="mt-shift" placeholder="e.g. 08:00-16:00"></div>
         <div class="form-group"><label class="fld-label">Subject</label><input class="fld" id="mt-subject" placeholder="Meeting subject..."></div>
@@ -190,41 +190,34 @@ function statusPill(k) {
 
 /* ── Fill agents dropdown ── */
 function fillAgents() {
-  const agents = (data?.agents||[]).map(a=>a.n||a.name).filter(Boolean).sort();
+  const agents   = (data?.agents||[]).map(a=>a.n||a.name).filter(Boolean).sort();
+  const approvers = ["Naser Bandar","Hasan Alajmi","Athoub Alnoufal","Shouq Alkandari",
+    "Alanoud Alotaibi","Mohammad Alothman","Abdulrahman Alahmad","Nourah Alhazzani",
+    "Fatmah Alhamar","Badreyah BoRubayea","Mohammad Abdulraheem","Talal Al Jarki","Taher Al Baghli"];
+
+  const agentOpts  = '<option value="">— Select Agent —</option>'+agents.map(n=>`<option value="${n}">${n}</option>`).join('');
+  const mgmtOpts   = '<option value="">— Select Manager —</option>'+approvers.map(n=>`<option value="${n}">${n}</option>`).join('');
+
+  // Agent field: locked for agents, dropdown for management
   ['si','pm','eb','mt'].forEach(kid => {
-    const wrap  = document.getElementById(kid+'-agent-wrap');
-    const el    = document.getElementById(kid+'-agent');
-    if (!el) return;
+    const wrap = document.getElementById(kid+'-agent-wrap');
+    if (!wrap) return;
     if (isMgmt) {
-      // Management: show full agent dropdown
-      const sel = document.createElement('select');
-      sel.className = 'fld'; sel.id = kid+'-agent';
-      sel.innerHTML = '<option value="">— Select Agent —</option>' +
-        agents.map(n=>`<option value="${n}">${n}</option>`).join('');
-      if (wrap) wrap.innerHTML = '';
-      if (wrap) wrap.appendChild(sel);
+      wrap.innerHTML = `<select class="fld" id="${kid}-agent">${agentOpts}</select>`;
     } else {
-      // Agent: locked to own name
-      el.value    = user.name;
-      el.readOnly = true;
-      el.style.background = '#F8FAFF';
+      wrap.innerHTML = `<input class="fld" id="${kid}-agent" readonly value="${user.name}" style="background:#F8FAFF;color:var(--t1);font-weight:600;">`;
     }
   });
 
-  // Fill management dropdowns (ApprovedBy / Organizer)
-  
-  const approvers = ["Naser Bandar", "Hasan Alajmi", "Athoub Alnoufal", "Shouq Alkandari", "Alanoud Alotaibi", "Mohammad Alothman", "Abdulrahman Alahmad", "Nourah Alhazzani", "Fatmah Alhamar", "Badreyah BoRubayea", "Mohammad Abdulraheem", "Talal Al Jarki", "Taher Al Baghli"];
-
-    const mgmtOpts = '<option value="">— Select Manager —</option>' +
-    approvers.map(n=>`<option value="${n}">${n}</option>`).join('');
+  // Approver dropdowns
   ['si-approver','pm-approver','eb-approver','mt-organizer'].forEach(id => {
     const sel = document.getElementById(id);
     if (sel) sel.innerHTML = mgmtOpts;
   });
 
   // Pre-fill shift
-  const me = (data?.agents||[]).find(a=>a.n===user.name);
-  const di = (data?.dates||[]).indexOf(today);
+  const me    = (data?.agents||[]).find(a=>a.n===user.name);
+  const di    = (data?.dates||[]).indexOf(today);
   const shift = me&&di>=0&&me.sch ? me.sch[di] : '';
   ['eb-shift','mt-shift'].forEach(id => {
     const el = document.getElementById(id);
