@@ -11,73 +11,64 @@
 <style>
 * { box-sizing: border-box; }
 body { background: #F0F4FA; }
+@keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
 
-/* ── TOOLBAR ── */
-.ed-toolbar {
+/* TOOLBAR */
+.ed-bar {
   position: sticky;
   top: var(--topbar-h, 56px);
   z-index: 50;
   background: #fff;
   border-bottom: 1px solid #E0EAF8;
-  box-shadow: 0 2px 12px rgba(10,46,90,.06);
+  box-shadow: 0 2px 10px rgba(10,46,90,.06);
 }
-.ed-toolbar-top {
+.ed-bar-row1 {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
+  gap: 6px;
+  padding: 8px 12px;
+  flex-wrap: wrap;
 }
-.ed-toolbar-teams {
+.ed-bar-row2 {
   display: flex;
   gap: 5px;
+  padding: 0 12px 8px;
   overflow-x: auto;
   scrollbar-width: none;
-  padding: 0 14px 9px;
 }
-.ed-toolbar-teams::-webkit-scrollbar { display: none; }
+.ed-bar-row2::-webkit-scrollbar { display: none; }
 
-.wk-nav { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
 .wk-arrow {
   width: 30px; height: 30px;
   border: 1.5px solid #D1DCF0;
   border-radius: 8px;
   background: #F8FAFF;
-  font-size: 15px; font-weight: 800;
-  color: #0A2E5A;
-  cursor: pointer;
+  font-size: 16px; font-weight: 800;
+  color: #0A2E5A; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  transition: background .1s;
+  flex-shrink: 0; transition: background .1s;
 }
-.wk-arrow:hover { background: #E8F0FF; }
-.wk-label {
+.wk-arrow:hover { background: #E0EAF8; }
+.wk-lbl {
   font-size: 12px; font-weight: 800; color: #0A2E5A;
-  padding: 0 10px; min-width: 130px; text-align: center;
+  min-width: 120px; text-align: center; flex-shrink: 0;
 }
-.today-btn {
+.ed-btn {
   padding: 5px 12px;
   border-radius: 20px;
-  border: 1.5px solid #0A2E5A;
-  background: #0A2E5A;
-  color: #fff;
-  font-size: 11px; font-weight: 700;
-  cursor: pointer; flex-shrink: 0;
-  transition: opacity .1s;
+  border: 1.5px solid #D1DCF0;
+  background: #fff;
+  font-size: 11px; font-weight: 700; color: #5A6E8A;
+  cursor: pointer; white-space: nowrap;
+  transition: .12s; flex-shrink: 0;
 }
-.today-btn:hover { opacity: .85; }
-.changes-badge {
-  display: none;
-  padding: 4px 10px;
-  background: #FEF3C7;
-  border: 1.5px solid #F59E0B;
-  border-radius: 20px;
-  font-size: 11px; font-weight: 700;
-  color: #92400E;
-  flex-shrink: 0;
-}
-.changes-badge.show { display: block; }
+.ed-btn.primary { background: #0A2E5A; border-color: #0A2E5A; color: #fff; }
+.ed-btn.teal    { background: #00A89A; border-color: #00A89A; color: #fff; }
+.ed-btn.amber   { background: #FEF3C7; border-color: #F59E0B; color: #92400E; }
+.ed-btn:hover   { filter: brightness(.93); }
 
 .tc {
-  padding: 4px 12px;
+  padding: 4px 11px;
   border-radius: 20px;
   border: 1.5px solid #D1DCF0;
   background: #fff;
@@ -87,14 +78,14 @@ body { background: #F0F4FA; }
 }
 .tc.on { background: #0A2E5A; border-color: #0A2E5A; color: #fff; }
 
-/* ── GRID ── */
+/* GRID */
 .g-scroll {
   overflow: auto;
-  margin: 10px 12px 90px;
+  margin: 10px 10px 90px;
   border-radius: 14px;
   border: 1.5px solid #D8E5F5;
   background: #fff;
-  box-shadow: 0 4px 24px rgba(10,46,90,.07);
+  box-shadow: 0 4px 20px rgba(10,46,90,.07);
 }
 .g-tbl {
   border-collapse: separate;
@@ -102,187 +93,128 @@ body { background: #F0F4FA; }
   width: max-content;
   min-width: 100%;
 }
-
-/* Header */
 .g-tbl thead th {
   position: sticky; top: 0; z-index: 12;
   background: #0A2E5A;
-  padding: 7px 3px;
-  font-size: 9px; font-weight: 700;
-  text-align: center;
-  white-space: nowrap;
-  border-right: 1px solid rgba(255,255,255,.07);
-  min-width: 110px;
-  line-height: 1.35;
   color: rgba(255,255,255,.6);
+  padding: 6px 3px;
+  font-size: 9px; font-weight: 700;
+  text-align: center; white-space: nowrap;
+  border-right: 1px solid rgba(255,255,255,.07);
+  min-width: 100px;
+  line-height: 1.4;
 }
 .g-tbl thead th.th-name {
   position: sticky; left: 0; z-index: 22;
-  text-align: left;
-  padding: 7px 10px 7px 14px;
-  min-width: 190px; width: 190px;
+  text-align: left; padding: 6px 10px 6px 14px;
+  min-width: 185px; width: 185px;
   border-right: 2px solid rgba(255,255,255,.1);
-  background: #082550;
-  font-size: 9.5px;
-  color: rgba(255,255,255,.45);
-  letter-spacing: .4px;
-  text-transform: uppercase;
+  background: #07213F;
 }
-.th-today-col { background: #007F74 !important; color: #fff !important; }
-.th-wknd-col  { background: #061B3B !important; color: rgba(255,255,255,.3) !important; }
-.th-date-num  { font-size: 14px; font-weight: 900; color: inherit; }
-
-/* Rows */
+.g-tbl thead th.th-today { background: #007A70; color: #fff; }
+.g-tbl thead th.th-wknd  { background: #071A30; color: rgba(255,255,255,.3); }
 .g-tbl td {
   border-right: 1px solid #EDF2FA;
   border-bottom: 1px solid #EDF2FA;
-  height: 46px;
-  padding: 0;
+  height: 46px; padding: 0;
 }
 .g-tbl .td-name {
   position: sticky; left: 0; z-index: 5;
   background: #fff;
   border-right: 2px solid #E0EAF8;
-  padding: 6px 10px;
-  min-width: 190px; width: 190px;
-  white-space: nowrap;
+  padding: 5px 10px;
+  min-width: 185px; width: 185px;
 }
-.g-tbl tr:hover td             { background: rgba(10,46,90,.018); }
-.g-tbl tr:hover .td-name       { background: #F4F8FF; }
-.g-tbl td.today-col            { background: rgba(0,127,116,.04); }
-.g-tbl .td-name.today-col      { background: rgba(0,127,116,.06) !important; }
-.g-tbl td.wknd-col             { background: #FAFBFD; }
-
-/* Group separator */
+.g-tbl tr:hover td { background: rgba(10,46,90,.018); }
+.g-tbl tr:hover .td-name { background: #F4F8FF; }
+.g-tbl td.td-today { background: rgba(0,122,112,.05); }
+.g-tbl .td-name.td-today { background: rgba(0,122,112,.07) !important; }
+.g-tbl td.td-wknd { background: #FAFBFD; }
 .grp-row td {
   background: #E8F0FB !important;
-  font-size: 10px; font-weight: 800;
+  font-size: 10px; font-weight: 800; color: #1A3F70;
   text-transform: uppercase; letter-spacing: .7px;
-  padding: 0 14px;
-  height: 28px !important;
+  padding: 0 14px; height: 26px !important;
   border-bottom: 1px solid #D0DFF5;
   vertical-align: middle;
 }
 
-/* Agent cell */
-.ag-info { display: flex; align-items: center; gap: 7px; }
+/* Agent */
 .ag-av {
-  width: 28px; height: 28px;
-  border-radius: 8px;
+  width: 28px; height: 28px; border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 9px; font-weight: 900; color: #fff;
-  flex-shrink: 0;
+  font-size: 9px; font-weight: 900; color: #fff; flex-shrink: 0;
 }
 .ag-nm { font-size: 11.5px; font-weight: 700; color: #0D1F3C; line-height: 1.2; }
 .ag-role {
-  display: inline-block;
-  font-size: 8px; font-weight: 700;
-  color: #fff; padding: 1px 5px;
-  border-radius: 3px; margin-top: 2px;
+  display: inline-block; font-size: 8px; font-weight: 700;
+  color: #fff; padding: 1px 5px; border-radius: 3px; margin-top: 2px;
 }
 
-/* Cell select — the edit control */
-.cell-sel-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 46px;
-  padding: 3px 4px;
-  position: relative;
+/* Cell */
+.cell-wrap {
+  display: flex; align-items: center; justify-content: center;
+  height: 46px; padding: 3px 4px; position: relative;
 }
 .cell-chip {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 104px;
-  height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  width: 92px; height: 36px;
   border-radius: 9px;
-  font-size: 11px;
-  font-weight: 800;
-  cursor: pointer;
-  position: relative;
-  transition: filter .1s, transform .1s;
+  font-size: 11px; font-weight: 800;
+  cursor: pointer; position: relative;
+  transition: transform .12s, filter .12s;
+  border: 1.5px solid transparent;
   letter-spacing: .2px;
 }
-.cell-chip:hover { filter: brightness(.92); transform: scale(1.04); }
+.cell-chip:hover { transform: scale(1.06); filter: brightness(.92); }
+.cell-chip.edited { border-color: #F59E0B; box-shadow: 0 0 0 2px rgba(245,158,11,.2); }
 .edited-dot {
-  position: absolute;
-  top: -3px; right: -3px;
+  position: absolute; top: -3px; right: -3px;
   width: 7px; height: 7px;
-  background: #F59E0B;
-  border-radius: 50%;
-  border: 1.5px solid #fff;
+  background: #F59E0B; border-radius: 50%; border: 1.5px solid #fff;
 }
-.cell-sel-hidden {
-  position: absolute;
-  opacity: 0;
-  width: 104px; height: 36px;
-  cursor: pointer;
-  top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
+.cell-sel {
+  position: absolute; opacity: 0; inset: 0; cursor: pointer;
+  width: 100%; height: 100%; z-index: 2;
 }
-.cell-sel-hidden { border: none; background: transparent; }
 
-/* ── SAVE BAR ── */
+/* SAVE BAR */
 .save-bar {
   position: fixed;
-  bottom: calc(var(--nav-h, 64px) + env(safe-area-inset-bottom,0px) + 6px);
+  bottom: calc(var(--nav-h, 64px) + env(safe-area-inset-bottom,0px) + 8px);
   left: 50%;
-  transform: translateX(-50%) translateY(100px);
-  background: linear-gradient(135deg, #0A2E5A, #0D3A70);
+  transform: translateX(-50%) translateY(120px);
+  background: linear-gradient(135deg, #0A2E5A 0%, #0D3A72 100%);
   color: #fff;
-  padding: 13px 20px;
+  padding: 12px 18px;
   border-radius: 16px;
   display: flex; align-items: center; gap: 10px;
   z-index: 300;
-  box-shadow: 0 8px 40px rgba(10,46,90,.4);
+  box-shadow: 0 8px 32px rgba(10,46,90,.35);
   transition: transform .3s cubic-bezier(.34,1.56,.64,1);
   white-space: nowrap;
-  min-width: 280px;
 }
 .save-bar.show { transform: translateX(-50%) translateY(0); }
-.save-bar-left { flex: 1; }
-.save-bar-count { font-size: 15px; font-weight: 800; }
-.save-bar-hint  { font-size: 10px; opacity: .65; margin-top: 1px; }
-.save-bar-actions { display: flex; gap: 8px; }
-.sb-discard {
-  padding: 8px 14px;
-  background: rgba(255,255,255,.12);
-  border: 1px solid rgba(255,255,255,.2);
-  color: #fff; border-radius: 9px;
-  font-size: 12px; font-weight: 700;
-  cursor: pointer; transition: background .1s;
-}
-.sb-discard:hover { background: rgba(255,255,255,.2); }
-.sb-save {
-  padding: 8px 16px;
-  background: #00A89A;
-  border: none;
-  color: #fff; border-radius: 9px;
-  font-size: 12px; font-weight: 800;
-  cursor: pointer; transition: background .1s;
-}
-.sb-save:hover { background: #008F82; }
-.sb-save:disabled { background: #5A8AAA; cursor: not-allowed; }
 </style>
 </head>
 <body>
 <div id="kib-topbar"></div>
 
 <!-- TOOLBAR -->
-<div class="ed-toolbar" style="margin-top:var(--topbar-h,56px);">
-  <div class="ed-toolbar-top">
-    <div class="wk-nav">
-      <button class="wk-arrow" onclick="prevWeek()">‹</button>
-      <div class="wk-label" id="wk-label">Loading…</div>
-      <button class="wk-arrow" onclick="nextWeek()">›</button>
-    </div>
-    <button class="today-btn" onclick="goToday()">Today</button>
-    <div class="changes-badge" id="changes-badge">● 0 changes</div>
+<div class="ed-bar" style="margin-top:var(--topbar-h,56px);">
+  <div class="ed-bar-row1">
+    <button class="wk-arrow" onclick="prevWeek()">‹</button>
+    <div class="wk-lbl" id="wk-lbl">Loading…</div>
+    <button class="wk-arrow" onclick="nextWeek()">›</button>
+    <button class="ed-btn primary" onclick="goToday()">Today</button>
+    <button class="ed-btn" id="refresh-btn" onclick="refreshData()">
+      <span id="refresh-icon" style="display:inline-block;">↺</span> Refresh
+    </button>
+    <div id="pending-badge" style="display:none;" class="ed-btn amber">● <span id="pending-count">0</span> unsaved</div>
     <div style="flex:1;"></div>
-    <button onclick="saveAll()" id="save-btn-top" style="display:none;padding:6px 14px;background:#00A89A;border:none;color:#fff;border-radius:9px;font-size:12px;font-weight:800;cursor:pointer;">✓ Save</button>
+    <button id="save-top-btn" onclick="saveAll()" style="display:none;background:#00A89A;border:none;color:#fff;padding:6px 14px;border-radius:9px;font-size:12px;font-weight:800;cursor:pointer;">✓ Save</button>
   </div>
-  <div class="ed-toolbar-teams" id="tc-wrap"></div>
+  <div class="ed-bar-row2" id="tc-wrap"></div>
 </div>
 
 <!-- GRID -->
@@ -297,16 +229,14 @@ body { background: #F0F4FA; }
 
 <div id="kib-bottomnav"></div>
 
-<!-- SAVE BAR (floating) -->
+<!-- SAVE BAR -->
 <div class="save-bar" id="save-bar">
-  <div class="save-bar-left">
-    <div class="save-bar-count" id="save-bar-count">0 changes</div>
-    <div class="save-bar-hint">Tap Save to update Google Sheets</div>
+  <div style="flex:1;">
+    <div style="font-size:14px;font-weight:800;" id="save-bar-count">0 changes</div>
+    <div style="font-size:10px;opacity:.65;margin-top:1px;">Tap Save to update Google Sheets</div>
   </div>
-  <div class="save-bar-actions">
-    <button class="sb-discard" onclick="discardAll()">✕ Discard</button>
-    <button class="sb-save"    onclick="saveAll()" id="save-btn">✓ Save All</button>
-  </div>
+  <button onclick="discardAll()" style="padding:8px 13px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;">✕ Discard</button>
+  <button onclick="saveAll()" id="save-btn" style="padding:8px 16px;background:#00A89A;border:none;color:#fff;border-radius:9px;font-size:12px;font-weight:800;cursor:pointer;">✓ Save All</button>
 </div>
 
 <script src="js/config.js"></script>
@@ -321,7 +251,7 @@ if (!['management','wfm','admin'].includes(_acc)) {
   alert('Management access required.'); window.history.back(); throw 0;
 }
 
-const user = Auth.user();
+const user    = Auth.user();
 Nav.init('schedule-edit');
 
 let allData=null, allAgents=[], allDates=[];
@@ -330,31 +260,28 @@ let pending={};
 
 /* ── SHIFT OPTIONS ── */
 function buildOptions(cur) {
-  const shifts = CFG.SHIFT_OPTIONS||[];
-  const types  = CFG.DAY_TYPES||[];
   let h = '<option value="">— select —</option>';
-  h += '<optgroup label="─ Shifts ─">';
-  shifts.forEach(s => {
-    // Short label: "09-17" from "09:00-17:00"
-    const parts = s.split('-');
-    const short = parts.length>=2
-      ? `${parseInt(parts[0])}-${parseInt(parts[1].split(':')[0])||parseInt(parts[1])}`
-      : s;
-    h += `<option value="${s}" ${s===cur?'selected':''}>${short}</option>`;
+  h += '<optgroup label="── Shifts ──">';
+  (CFG.SHIFT_OPTIONS||[]).forEach(s=>{
+    h += `<option value="${s}" ${s===cur?'selected':''}>${s}</option>`;
   });
-  h += '</optgroup><optgroup label="─ Off / Leave ─">';
-  types.forEach(t => { h += `<option value="${t.code}" ${t.code===cur?'selected':''}>${t.code}</option>`; });
+  h += '</optgroup><optgroup label="── Off / Leave ──">';
+  (CFG.DAY_TYPES||[]).forEach(t=>{
+    h += `<option value="${t.code}" ${t.code===cur?'selected':''}>${t.code} — ${t.label}</option>`;
+  });
   h += '</optgroup>';
   return h;
 }
 
-/* ── COLORS ── */
-function clr(code) {
+/* ── CELL COLORS ── */
+function cellStyle(code) {
   if (!code||code==='OFF') return {bg:'#F1F5F9',c:'#64748B'};
-  const dt = (CFG.DAY_TYPES||[]).find(d=>d.code===code);
-  if (dt) return {bg:dt.bg,c:dt.color};
-  const def = CFG.getShiftDisplay&&CFG.getShiftDisplay(code);
-  if (def?.bg) return {bg:def.bg,c:def.color};
+  const dt=(CFG.DAY_TYPES||[]).find(d=>d.code===code);
+  if (dt) return {bg:dt.bg, c:dt.color};
+  if (CFG.getShiftDisplay) {
+    const def = CFG.getShiftDisplay(code);
+    if (def?.bg) return {bg:def.bg, c:def.color};
+  }
   const h=parseInt(code)||0;
   if(h<9)  return {bg:'#DBEAFE',c:'#1D4ED8'};
   if(h<13) return {bg:'#D1FAE5',c:'#065F46'};
@@ -362,10 +289,25 @@ function clr(code) {
   return {bg:'#EDE9FE',c:'#5B21B6'};
 }
 
+/* ── SHORT LABEL ── */
+function shortLabel(code) {
+  if (!code||code==='OFF') return 'OFF';
+  const dt=(CFG.DAY_TYPES||[]).find(d=>d.code===code);
+  if (dt) return dt.short||dt.code;
+  const parts=code.split('-');
+  if (parts.length>=2) {
+    const s=parts[0].split(':')[0];
+    const e=parts[1].split(':')[0];
+    return `${parseInt(s)}–${parseInt(e)}`;
+  }
+  return code;
+}
+
 /* ── INIT ── */
-async function init() {
+async function init(force=false) {
+  setLoading(true);
   try {
-    allData   = await API.getAll();
+    allData   = await API.getAll(force);
     Nav.setSyncStatus(true);
     allAgents = (allData.agents||[]).filter(a=>a.t!=='Management');
     allDates  = (allData.dates||[]).map(d=>U.normDate(d));
@@ -373,20 +315,30 @@ async function init() {
     renderGrid();
   } catch(e) {
     Nav.setSyncStatus(false);
-    document.getElementById('g-container').innerHTML =
+    document.getElementById('g-container').innerHTML=
       `<div style="color:#EF4444;padding:48px;text-align:center;">
         <div style="font-size:28px;margin-bottom:10px;">⚠️</div>
         <div style="font-weight:700;margin-bottom:14px;">Failed to load schedule</div>
-        <button onclick="init()" style="padding:9px 20px;border-radius:9px;border:2px solid #EF4444;
-          background:#fff;color:#EF4444;font-weight:800;font-size:13px;cursor:pointer;">Retry</button>
+        <button onclick="init(true)" style="padding:9px 20px;border-radius:9px;border:2px solid #EF4444;
+          background:#fff;color:#EF4444;font-weight:800;font-size:13px;cursor:pointer;">↺ Retry</button>
       </div>`;
+  } finally {
+    setLoading(false);
   }
+}
+
+function setLoading(on) {
+  const btn = document.getElementById('refresh-btn');
+  const icon = document.getElementById('refresh-icon');
+  if (!btn||!icon) return;
+  btn.disabled = on;
+  icon.style.animation = on ? 'spin .6s linear infinite' : '';
 }
 
 /* ── TEAM CHIPS ── */
 function buildTeamChips() {
-  const teams = ['All',...CFG.TEAMS.filter(t=>allAgents.some(a=>a.t===t))];
-  document.getElementById('tc-wrap').innerHTML = teams.map(t=>
+  const teams=['All',...(CFG.TEAMS||[]).filter(t=>allAgents.some(a=>a.t===t))];
+  document.getElementById('tc-wrap').innerHTML=teams.map(t=>
     `<div class="tc ${t===teamFilter?'on':''}" onclick="setTeam('${t}',this)">${t}</div>`
   ).join('');
 }
@@ -397,12 +349,24 @@ function setTeam(t,el) {
   renderGrid();
 }
 
-/* ── WEEK ── */
+/* ── REFRESH ── */
+async function refreshData() {
+  if (Object.keys(pending).length) {
+    if (!confirm('Refresh will discard unsaved changes. Continue?')) return;
+    pending={};
+  }
+  API.clearCache('getAll');
+  API.clearCache('sched_');
+  await init(true);
+  U.toast('Schedule refreshed ✓','ok');
+}
+
+/* ── WEEK NAV ── */
 function prevWeek() { weekAnchor=U.addDays(weekAnchor,-7); renderGrid(); }
 function nextWeek() { weekAnchor=U.addDays(weekAnchor, 7); renderGrid(); }
 function goToday()  { weekAnchor=U.today(); renderGrid(); }
 
-function weekDates() {
+function getWeekDates() {
   const w=U.getWeekDates(weekAnchor);
   if (!allDates.length) return w;
   return w.filter(d=>d>=allDates[0]&&d<=allDates[allDates.length-1]);
@@ -410,96 +374,96 @@ function weekDates() {
 
 /* ── RENDER ── */
 function renderGrid() {
-  const wd = weekDates();
+  const wd=getWeekDates();
   if (!wd.length) {
     document.getElementById('g-container').innerHTML=
-      `<div style="padding:48px;text-align:center;color:#94A3B8;font-size:13px;">No schedule data for this period.</div>`;
-    setWkLabel(wd); return;
+      `<div style="padding:48px;text-align:center;color:#94A3B8;font-size:13px;">
+        No schedule data for this period.<br>
+        <button onclick="refreshData()" style="margin-top:12px;padding:8px 16px;border-radius:9px;
+          border:1.5px solid #0A2E5A;color:#0A2E5A;background:#fff;font-weight:700;cursor:pointer;">
+          ↺ Refresh Data</button>
+      </div>`;
+    updateWkLbl(wd); return;
   }
-  setWkLabel(wd);
+  updateWkLbl(wd);
 
-  let agents=allAgents.filter(a=>teamFilter==='All'||a.t===teamFilter);
-  const today=U.today();
-  const teams=[...new Set(agents.map(a=>a.t))];
-  const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const MONS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const agents = teamFilter==='All' ? allAgents : allAgents.filter(a=>a.t===teamFilter);
+  const today  = U.today();
+  const teams  = [...new Set(agents.map(a=>a.t))];
+  const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MONS   = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-  /* thead */
-  let th=`<thead><tr><th class="th-name">👤 ${agents.length} Agents</th>`;
+  // Header
+  let th=`<thead><tr>
+    <th class="th-name" style="font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.4px;">
+      👤 ${agents.length} agents
+    </th>`;
   wd.forEach(d=>{
     const dn=new Date(d+'T00:00:00');
-    const isT=d===today,isW=U.isWeekend(d);
-    th+=`<th class="${isT?'th-today-col':isW?'th-wknd-col':''}">
-      <div style="opacity:.7;font-size:8.5px;">${DAYS[dn.getDay()]}</div>
-      <div class="th-date-num">${dn.getDate()}</div>
-      <div style="font-size:8px;opacity:.6;">${MONS[dn.getMonth()]}</div>
+    const isT=d===today, isW=U.isWeekend(d);
+    th+=`<th class="${isT?'th-today':isW?'th-wknd':''}">
+      <div style="font-size:8px;opacity:.65;">${DAYS[dn.getDay()]}</div>
+      <div style="font-size:15px;font-weight:900;color:${isT?'#fff':'rgba(255,255,255,.92)'};">${dn.getDate()}</div>
+      <div style="font-size:8px;opacity:.55;">${MONS[dn.getMonth()]}</div>
     </th>`;
   });
   th+=`</tr></thead>`;
 
-  /* tbody */
+  // Body
   let tb='<tbody>';
   teams.forEach(team=>{
     const members=agents.filter(a=>a.t===team);
     if (!members.length) return;
     const tc=CFG.TEAM_COLORS[team]||'#6B7280';
-
-    // Team separator row with mini stats
+    // Count scheduled today
     const todayIdx=allDates.indexOf(today);
-    const onToday=members.filter(ag=>{
-      const raw=todayIdx>=0&&ag.sch?ag.sch[todayIdx]:'OFF';
-      return raw&&raw!=='OFF';
+    const scheduled=members.filter(ag=>{
+      const s=todayIdx>=0&&ag.sch?ag.sch[todayIdx]:'';
+      return s&&s!=='OFF'&&!['AL','SL','PH','UL','Leave'].includes(s);
     }).length;
-    tb+=`<tr class="grp-row">
-      <td colspan="${wd.length+1}" style="color:${tc};">
-        ${team}
-        <span style="color:#5A7AAA;font-weight:600;text-transform:none;letter-spacing:0;font-size:9.5px;margin-left:6px;">
-          ${members.length} agents · ${onToday} scheduled today
-        </span>
-      </td>
-    </tr>`;
+    tb+=`<tr class="grp-row"><td colspan="${wd.length+1}" style="color:${tc};">
+      ${team}
+      <span style="color:#6A8AAA;font-weight:600;text-transform:none;letter-spacing:0;font-size:9px;margin-left:8px;">
+        ${members.length} agents · ${scheduled} working today
+      </span>
+    </td></tr>`;
 
     members.forEach(ag=>{
       const name=ag.n||ag.name;
       const ac=U.avatarColor(name);
       tb+=`<tr>
-        <td class="td-name ${wd.includes(today)?'today-col':''}">
-          <div class="ag-info">
+        <td class="td-name">
+          <div style="display:flex;align-items:center;gap:7px;">
             <div class="ag-av" style="background:${ac};">${U.initials(name)}</div>
             <div>
               <div class="ag-nm">${name}</div>
-              <span class="ag-role" style="background:${tc};">${ag.role||team}</span>
+              <span class="ag-role" style="background:${tc};">${ag.t||ag.role||team}</span>
             </div>
           </div>
         </td>`;
+
       wd.forEach(d=>{
         const di=allDates.indexOf(d);
+        // DEBUG: log if date not found
+        if (di<0 && allDates.length>0) console.warn('Date not in allDates:', d, 'allDates[0]:', allDates[0]);
         const raw=(di>=0&&ag.sch?ag.sch[di]:'')||'OFF';
         const pKey=`${name}|${d}`;
-        const cur=pending[pKey]?pending[pKey].shift:CFG.normalizeShiftCode(raw);
-        const {bg,c}=clr(cur);
-        const isT=d===today,isW=U.isWeekend(d);
+        const code=pending[pKey]?pending[pKey].shift:(CFG.normalizeShiftCode?CFG.normalizeShiftCode(raw):raw)||'OFF';
+        const {bg,c}=cellStyle(code);
+        const lbl=shortLabel(code);
         const edited=!!pending[pKey];
-        // Escape for HTML attribute
-        const eAgnt=name.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-        const eOrig=CFG.normalizeShiftCode(raw);
-        // Short display label
-        const dispParts = cur.split('-');
-        const shortLbl = (!cur||cur==='OFF') ? 'OFF'
-          : (CFG.DAY_TYPES||[]).find(dt=>dt.code===cur)
-            ? ((CFG.DAY_TYPES||[]).find(dt=>dt.code===cur).short||cur)
-            : dispParts.length>=2
-              ? dispParts[0].split(':')[0]+'–'+dispParts[1].split(':')[0]
-              : cur;
-        tb+=`<td class="${isT?'today-col':''} ${isW?'wknd-col':''}">
-          <div class="cell-sel-wrap">
-            <div class="cell-chip" style="background:${bg};color:${c};${edited?'outline:2px solid #F59E0B;outline-offset:2px;':''}" onclick="this.nextElementSibling.focus()">
-              ${shortLbl}${edited?'<span class="edited-dot"></span>':''}
+        const isT=d===today, isW=U.isWeekend(d);
+        const ea=name.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        const eo=CFG.normalizeShiftCode?CFG.normalizeShiftCode(raw):raw;
+
+        tb+=`<td class="${isT?'td-today':''} ${isW?'td-wknd':''}">
+          <div class="cell-wrap">
+            <div class="cell-chip ${edited?'edited':''}" style="background:${bg};color:${c};"
+                 id="chip-${ea.replace(/\s+/g,'-').replace(/[^\w-]/g,'')}-${d}">
+              ${lbl}${edited?'<span class="edited-dot"></span>':''}
             </div>
-            <select class="cell-sel-hidden"
-              data-agent="${eAgnt}" data-date="${d}" data-orig="${eOrig}"
-              onchange="onCellChange(this)">
-              ${buildOptions(cur)}
+            <select class="cell-sel" data-agent="${ea}" data-date="${d}" data-orig="${eo}" onchange="onCellChange(this)">
+              ${buildOptions(code)}
             </select>
           </div>
         </td>`;
@@ -512,53 +476,52 @@ function renderGrid() {
   document.getElementById('g-container').innerHTML=`<table class="g-tbl">${th}${tb}</table>`;
 }
 
-function setWkLabel(wd) {
-  const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  if (!wd||!wd.length) { document.getElementById('wk-label').textContent='No data'; return; }
-  const f=new Date(wd[0]+'T00:00:00'),l=new Date(wd[wd.length-1]+'T00:00:00');
-  document.getElementById('wk-label').textContent=`${f.getDate()} ${m[f.getMonth()]} – ${l.getDate()} ${m[l.getMonth()]}`;
+function updateWkLbl(wd) {
+  const MONS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  if (!wd?.length) { document.getElementById('wk-lbl').textContent='No data'; return; }
+  const f=new Date(wd[0]+'T00:00:00'), l=new Date(wd[wd.length-1]+'T00:00:00');
+  document.getElementById('wk-lbl').textContent=`${f.getDate()} ${MONS[f.getMonth()]} – ${l.getDate()} ${MONS[l.getMonth()]}`;
 }
 
 /* ── CELL CHANGE ── */
 function onCellChange(sel) {
-  const {agent:agentName,date,orig}=sel.dataset;
+  const {agent,date,orig}=sel.dataset;
   const code=sel.value;
   if (!code) return;
-  const pKey=`${agentName}|${date}`;
+  const pKey=`${agent}|${date}`;
   if (code===orig) {
     delete pending[pKey];
   } else {
-    pending[pKey]={agent:agentName,date,shift:code,orig};
+    pending[pKey]={agent,date,shift:code,orig};
   }
-  const edited = pKey in pending;
-  const {bg,c}=clr(code);
+  const edited=pKey in pending;
+  const {bg,c}=cellStyle(code);
+  const lbl=shortLabel(code);
   // Update chip
-  const chip=sel.previousElementSibling;
-  if (chip) {
+  const chipId=`chip-${agent.replace(/\s+/g,'-').replace(/[^\w-]/g,'')}-${date}`;
+  const chip=document.getElementById(chipId);
+  if(chip){
     chip.style.background=bg; chip.style.color=c;
-    // Short label
-    const parts=code.split('-');
-    const dt=(CFG.DAY_TYPES||[]).find(d=>d.code===code);
-    const short=(!code||code==='OFF')?'OFF'
-      :dt?(dt.short||code)
-      :parts.length>=2?parts[0].split(':')[0]+'–'+parts[1].split(':')[0]
-      :code;
-    chip.innerHTML=short+(edited?'<span class="edited-dot"></span>':'');
-    chip.style.outline=edited?'2px solid #F59E0B':'none';
+    chip.innerHTML=lbl+(edited?'<span class="edited-dot"></span>':'');
+    chip.classList.toggle('edited',edited);
   }
   updatePending();
 }
 
+/* ── PENDING STATE ── */
 function updatePending() {
   const n=Object.keys(pending).length;
-  const badge=document.getElementById('changes-badge');
   const bar=document.getElementById('save-bar');
-  const topBtn=document.getElementById('save-btn-top');
-  document.getElementById('save-bar-count').textContent=`${n} unsaved change${n!==1?'s':''}`;
-  badge.textContent=`● ${n} change${n!==1?'s':''}`;
-  badge.classList.toggle('show',n>0);
-  bar.classList.toggle('show',n>0);
-  topBtn.style.display=n>0?'':'none';
+  const badge=document.getElementById('pending-badge');
+  const topBtn=document.getElementById('save-top-btn');
+  const count=document.getElementById('pending-count');
+  const barCount=document.getElementById('save-bar-count');
+
+  if(barCount) barCount.textContent=`${n} unsaved change${n!==1?'s':''}`;
+  if(count) count.textContent=n;
+  if(badge) badge.style.display=n>0?'':'none';
+  if(topBtn) topBtn.style.display=n>0?'':'none';
+  if(bar) bar.classList.toggle('show',n>0);
 }
 
 function discardAll() {
@@ -572,14 +535,15 @@ function discardAll() {
 async function saveAll() {
   const changes=Object.values(pending);
   if (!changes.length) return;
-  const btns=[document.getElementById('save-btn'),document.getElementById('save-btn-top')];
+  const btns=[document.getElementById('save-btn'),document.getElementById('save-top-btn')];
   btns.forEach(b=>{if(b){b.disabled=true;b.textContent='Saving…';}});
   try {
-    await API.bulkUpdateShifts(changes,user.name);
+    await API.bulkUpdateShifts(changes, user.name);
+    // Update local data
     changes.forEach(ch=>{
       const ag=allAgents.find(a=>(a.n||a.name)===ch.agent);
       const idx=allDates.indexOf(ch.date);
-      if (ag&&idx>=0&&ag.sch) ag.sch[idx]=ch.shift;
+      if(ag&&idx>=0&&ag.sch) ag.sch[idx]=ch.shift;
     });
     const n=changes.length;
     pending={};
@@ -590,34 +554,10 @@ async function saveAll() {
   } catch(e) {
     Nav.setSyncStatus(false);
     U.toast('Save failed — check n8n workflow','err');
+    console.error('saveAll error:',e);
   } finally {
     btns.forEach(b=>{if(b){b.disabled=false;b.textContent=b.id==='save-btn'?'✓ Save All':'✓ Save';}});
   }
-}
-
-async function refreshData() {
-  if (Object.keys(pending).length) {
-    if (!confirm('Refresh will discard unsaved changes. Continue?')) return;
-    pending = {};
-    updatePending();
-  }
-  const btn = document.getElementById('refresh-btn');
-  const icon = document.getElementById('refresh-icon');
-  btn.disabled = true;
-  icon.style.display = 'inline-block';
-  icon.style.animation = 'spin .6s linear infinite';
-  // Add spin animation
-  if (!document.getElementById('spin-style')) {
-    const s = document.createElement('style');
-    s.id = 'spin-style';
-    s.textContent = '@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
-    document.head.appendChild(s);
-  }
-  API.clearCache('getAll');
-  await init(true);
-  btn.disabled = false;
-  icon.style.animation = '';
-  U.toast('Schedule refreshed ✓', 'ok');
 }
 
 init();
