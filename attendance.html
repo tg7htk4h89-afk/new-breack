@@ -30,6 +30,10 @@
 <div id="kib-app">
   <div id="user-strip-wrap"></div>
   <div class="page-content">
+    <div id="att-loading" style="text-align:center;padding:40px;color:var(--t2);">
+      <div class="kib-spin" style="margin:0 auto 12px;"></div>
+      Loading attendance data…
+    </div>
 
     <!-- Date selector -->
     <div class="tab-bar" style="margin-top:12px;">
@@ -119,14 +123,25 @@ async function init(force = false) {
     if (isMgmt) {
       document.getElementById('att-stats').style.display = '';
       document.getElementById('mgmt-att-view').style.display = '';
+      document.getElementById('att-loading').style.display='none';
       buildTeamTabs();
       renderMgmtView();
     } else {
+      document.getElementById('att-loading').style.display='none';
       document.getElementById('agent-checkin').style.display = '';
       renderAgentStatus();
     }
   } catch(e) {
-    Nav.setSyncStatus(false); U.toast('Failed to load attendance','err'); }
+    Nav.setSyncStatus(false);
+    console.error('Attendance load error:', e);
+    if (!window._attRetried) {
+      window._attRetried = true;
+      U.toast('Reconnecting…','warn');
+      setTimeout(() => { window._attRetried = false; init(true); }, 3000);
+    } else {
+      U.toast('Failed to load — check n8n workflows','err');
+    }
+  }
 }
 
 function onDateChange() {
