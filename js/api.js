@@ -21,14 +21,32 @@ const API = (() => {
   }
 
   /* ── Cache helper ─────────────────────────────────── */
-  const _cache = {};
+  // sessionStorage cache — persists across page navigations within the same session
+  const CACHE_PREFIX = 'kib_cache_';
   function fromCache(key, ttl = 30000) {
-    const e = _cache[key];
-    if (e && Date.now() - e.ts < ttl) return e.data;
-    return null;
+    try {
+      const raw = sessionStorage.getItem(CACHE_PREFIX + key);
+      if (!raw) return null;
+      const e = JSON.parse(raw);
+      if (Date.now() - e.ts < ttl) return e.data;
+      sessionStorage.removeItem(CACHE_PREFIX + key);
+      return null;
+    } catch(e) { return null; }
   }
-  function toCache(key, data) { _cache[key] = { ts: Date.now(), data }; }
-  function clearCache(key) { if (key) delete _cache[key]; else Object.keys(_cache).forEach(k => delete _cache[k]); }
+  function toCache(key, data) {
+    try {
+      sessionStorage.setItem(CACHE_PREFIX + key, JSON.stringify({ ts: Date.now(), data }));
+    } catch(e) {
+      // sessionStorage full — clear old entries and retry
+      try { sessionStorage.clear(); sessionStorage.setItem(CACHE_PREFIX + key, JSON.stringify({ ts: Date.now(), data })); } catch(e2) {}
+    }
+  }
+  function clearCache(key) {
+    try {
+      if (key) sessionStorage.removeItem(CACHE_PREFIX + key);
+      else Object.keys(sessionStorage).filter(k=>k.startsWith(CACHE_PREFIX)).forEach(k=>sessionStorage.removeItem(k));
+    } catch(e) {}
+  }
 
   /* ── Public API ───────────────────────────────────── */
   return {
