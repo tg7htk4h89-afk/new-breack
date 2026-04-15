@@ -181,7 +181,7 @@
 
     <!-- My submissions today -->
     <div class="section-hdr" style="margin-top:4px;">
-      <div class="section-title">My Submissions</div>
+      <div class="section-title">My Submissions <span style="font-size:11px;color:var(--t2);font-weight:500;">· last 5 days</span></div>
     </div>
     <div id="my-submissions"><div class="skel" style="height:80px;border-radius:12px;"></div></div>
 
@@ -388,38 +388,72 @@ async function logKPI(type, e) {
 
 /* ── My Submissions ── */
 function renderMySubmissions() {
-  const kpi = data?.kpi||{};
-  const norm = v=>U.normDate(v?.Date||v?.date||'');
-  const all  = [
+  const kpi  = data?.kpi||{};
+  const norm = v => U.normDate(v?.Date||v?.date||'');
+
+  // Last 5 days
+  const last5 = [];
+  for (let i = 0; i < 5; i++) {
+    const d = new Date(today + 'T00:00:00');
+    d.setDate(d.getDate() - i);
+    last5.push(U.fmt(d));
+  }
+
+  const all = [
     ...(kpi.issue     ||[]).filter(k=>k.Agent===user.name).map(k=>({...k,_t:'issue'})),
     ...(kpi.permission||[]).filter(k=>k.Agent===user.name).map(k=>({...k,_t:'permission'})),
     ...(kpi.extra     ||[]).filter(k=>k.Agent===user.name).map(k=>({...k,_t:'extra'})),
     ...(kpi.meeting   ||[]).filter(k=>k.Agent===user.name).map(k=>({...k,_t:'meeting'})),
-  ].filter(k=>norm(k)===today)
-   .sort((a,b)=>(b.Time||'').localeCompare(a.Time||''));
+  ].filter(k => last5.includes(norm(k)))
+   .sort((a,b) => {
+     const da = (norm(a)||''), db = (norm(b)||'');
+     if (db !== da) return db.localeCompare(da); // newest date first
+     return (b.Time||'').localeCompare(a.Time||'');
+   });
 
-  const el = document.getElementById('my-submissions');
+  const el    = document.getElementById('my-submissions');
   const icons = {issue:'💻',permission:'🚪',extra:'☕',meeting:'📋'};
   const bgs   = {issue:'#FEF2F2',permission:'#F0FDF4',extra:'#FFFBEB',meeting:'#EFF6FF'};
+  const labels= {issue:'System Issue',permission:'Permission',extra:'Extra Break',meeting:'Meeting'};
+  const MONTHS= ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
   if (!all.length) {
-    el.innerHTML='<div style="text-align:center;padding:20px;color:var(--t2);font-size:13px;">No submissions today</div>';
+    el.innerHTML='<div style="text-align:center;padding:20px;color:var(--t2);font-size:13px;">No submissions in the last 5 days</div>';
     return;
   }
-  el.innerHTML = all.map(k=>`
-    <div class="approval-row">
+
+  // Group by date
+  let lastDate = '';
+  const rows = all.map(k => {
+    const kDate = norm(k);
+    const d     = new Date(kDate+'T00:00:00');
+    const label = kDate===today ? 'Today' : kDate===last5[1] ? 'Yesterday'
+                : `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+    const dateSep = kDate !== lastDate
+      ? `<div style="font-size:10px;font-weight:800;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;padding:8px 0 4px;">${label}</div>`
+      : '';
+    lastDate = kDate;
+    return dateSep + `
+    <div class="approval-row" style="margin-bottom:6px;">
       <div style="display:flex;align-items:center;gap:10px;">
         <div style="width:36px;height:36px;border-radius:10px;background:${bgs[k._t]};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${icons[k._t]}</div>
         <div style="flex:1;">
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-            <span style="font-size:13px;font-weight:700;color:var(--t1);">${k.Application||k.PermissionType||k.Subject||k.Reason||k._t}</span>
+            <span style="font-size:12px;font-weight:700;color:var(--t1);">${labels[k._t]}</span>
             ${statusPill(k)}
           </div>
-          <div style="font-size:11px;color:var(--t2);margin-top:2px;">${k.Duration||''} ${k.ApprovedBy&&k.ApprovedBy!=='REJECTED'?'· by '+k.ApprovedBy:''}</div>
+          <div style="font-size:11px;color:var(--t2);margin-top:1px;">
+            ${k.Application||k.PermissionType||k.Subject||k.Reason||''}
+            ${k.Duration ? '· '+k.Duration : ''}
+            ${k.ApprovedBy&&k.ApprovedBy!=='REJECTED' ? ' · ✓ '+k.ApprovedBy : ''}
+          </div>
         </div>
         <span style="font-size:10px;color:var(--t3);">${(k.Time||'').slice(0,5)}</span>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+
+  el.innerHTML = rows;
 }
 
 /* ── Pending Approvals (management) ── */
