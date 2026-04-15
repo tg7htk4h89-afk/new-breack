@@ -86,7 +86,7 @@ async function init(force = false) {
       document.getElementById('filter-row').style.display = '';
       buildTeamFilters();
     }
-    renderAll();
+    try { renderAll(); } catch(re){ console.error('renderAll error:',re); }
   } catch(e) {
     Nav.setSyncStatus(false);
     console.error('Load error:', e);
@@ -119,7 +119,7 @@ function setTeamFilter(t, el) {
   teamFilter = t;
   document.querySelectorAll('#team-filters .fchip').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
-  renderAll();
+  try { renderAll(); } catch(re){ console.error('renderAll error:',re); }
 }
 
 function renderAll() {
@@ -343,7 +343,7 @@ async async function actOnRequest(id, kind, action, note='') {
     U.toast(`${action==='approve'?'Approved':'Rejected'} ✓`, 'ok');
     API.clearCache('getAll'); // cache cleared — next page load will refresh
     Nav.setSyncStatus(true);
-    renderAll();
+    try { renderAll(); } catch(re){ console.error('renderAll error:',re); }
   } catch(e) {
     Nav.setSyncStatus(false); U.toast('Failed — try again','err'); }
 }
