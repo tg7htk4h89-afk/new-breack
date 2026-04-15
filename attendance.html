@@ -250,7 +250,7 @@ function renderMgmtView() {
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <span class="att-chip ${chipCls}">${label}</span>
-        ${Auth.isWFM()&&!isOff?`<button class="btn btn-xs btn-outline" onclick="editStatus('${name}','${status}')">Mark</button>`:''}
+        ${isMgmt&&!isOff?`<button class="btn btn-xs btn-outline" style="font-size:11px;padding:4px 10px;" onclick="editStatus('${name}','${status}')">Mark</button>`:''}
       </div>
     </div>`;
   }).join('');
@@ -281,12 +281,13 @@ async function editStatus(agentName, currentStatus) {
      <button class="btn btn-navy flex-1" onclick="saveEditStatus('${agentName}')">Save</button>`);
 }
 
-async function saveEditStatus(agentName) {
+async async function saveEditStatus(agentName) {
   const status = document.getElementById('modal-status').value;
   const note   = document.getElementById('modal-note')?.value||'';
   try {
     await API.saveAttendance([{ agent:agentName, date:selDate, status, time:U.nowHHMM(), note, loggedBy:user.name, ts:new Date().toISOString() }]);
     U.closeModal();
+    API.clearCache('getAll');
     allData = await API.getAll(true);
     renderMgmtView();
     U.toast(`${agentName} → ${status} ✓`, 'ok');
