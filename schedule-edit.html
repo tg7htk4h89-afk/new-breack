@@ -5,409 +5,469 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#082C52">
-<title>KIB WFM — Schedule Editor</title>
+<meta name="theme-color" content="#0A2E5A">
+<title>KIB WFM — Schedule Editor v150938</title>
 <link rel="stylesheet" href="css/kib.css">
 <style>
-/* ── Editor-specific overrides ──────────────────────── */
-body { background: #F0F5FB; }
+:root {
+  --ed-navy: #0A2E5A;
+  --ed-teal: #00A89A;
+  --ed-amber: #F59E0B;
+  --ed-red: #EF4444;
+  --ed-green: #10B981;
+}
 
-.editor-toolbar {
-  background: var(--white);
-  border-bottom: 1px solid var(--border);
+/* ── TOOLBAR ── */
+.ed-toolbar {
+  position: sticky;
+  top: var(--topbar-h, 56px);
+  z-index: 50;
+  background: #fff;
+  border-bottom: 2px solid #E8EEF7;
   padding: 10px 14px;
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 8px;
-  position: sticky;
-  top: var(--topbar-h);
-  z-index: 50;
+  flex-wrap: wrap;
 }
-
-.filter-chip {
-  padding: 6px 12px;
-  border-radius: 20px;
-  border: 1.5px solid var(--border);
-  background: var(--white);
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--t2);
+.week-nav-ed {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: #F0F5FB;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.week-nav-ed button {
+  border: none;
+  background: none;
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  color: var(--ed-navy);
   cursor: pointer;
-  transition: .12s;
+  font-weight: 800;
+  transition: background .12s;
+}
+.week-nav-ed button:hover { background: #DDE8F5; }
+.wk-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ed-navy);
+  padding: 0 8px;
   white-space: nowrap;
+  min-width: 130px;
+  text-align: center;
 }
-.filter-chip.active {
-  background: var(--navy);
-  border-color: var(--navy);
-  color: #fff;
-}
-.filter-chips {
+.team-chips-ed {
   display: flex;
   gap: 5px;
   overflow-x: auto;
   scrollbar-width: none;
-  flex-wrap: nowrap;
-}
-.filter-chips::-webkit-scrollbar { display: none; }
-
-/* Grid wrap */
-.grid-outer {
-  overflow: auto;
   flex: 1;
-  position: relative;
-  border: 1px solid var(--border);
-  border-radius: var(--rl);
-  background: var(--white);
-  box-shadow: var(--shadow);
-  margin: 0 14px;
 }
-.sch-grid {
+.team-chips-ed::-webkit-scrollbar { display: none; }
+.tc {
+  padding: 5px 11px;
+  border-radius: 20px;
+  border: 1.5px solid #D1DCF0;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  color: #5A6E8A;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: .12s;
+  flex-shrink: 0;
+}
+.tc.on { background: var(--ed-navy); border-color: var(--ed-navy); color: #fff; }
+.search-ed {
+  padding: 7px 10px 7px 30px;
+  border: 1.5px solid #D1DCF0;
+  border-radius: 20px;
+  font-size: 12px;
+  color: #1A2F4E;
+  background: #F8FAFF;
+  outline: none;
+  width: 150px;
+  transition: .2s;
+}
+.search-ed:focus { border-color: var(--ed-navy); width: 190px; }
+.search-wrap { position: relative; flex-shrink: 0; }
+.search-wrap::before {
+  content: '🔍';
+  position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
+  font-size: 11px; pointer-events: none;
+}
+.save-bar {
+  position: fixed;
+  bottom: calc(var(--nav-h, 64px) + env(safe-area-inset-bottom, 0px));
+  left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--ed-navy);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 200;
+  box-shadow: 0 8px 32px rgba(10,46,90,.35);
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+  white-space: nowrap;
+}
+.save-bar.show { transform: translateX(-50%) translateY(0); }
+.save-bar-msg { font-size: 13px; font-weight: 700; }
+
+/* ── GRID ── */
+.grid-wrap {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 10px 12px;
+  border-radius: 14px;
+  border: 1.5px solid #D8E5F5;
+  background: #fff;
+  box-shadow: 0 4px 24px rgba(10,46,90,.08);
+}
+.sch-tbl {
   border-collapse: separate;
   border-spacing: 0;
   width: max-content;
   min-width: 100%;
 }
 
-/* Sticky header row */
-.sch-grid thead th {
+/* Header */
+.sch-tbl thead th {
   position: sticky;
   top: 0;
   z-index: 12;
-  background: #0A2E5A;
-  color: rgba(255,255,255,.7);
-  padding: 10px 6px;
-  font-size: 10px;
+  background: var(--ed-navy);
+  color: rgba(255,255,255,.65);
+  padding: 8px 4px;
+  font-size: 9.5px;
   font-weight: 700;
   text-align: center;
   white-space: nowrap;
   border-right: 1px solid rgba(255,255,255,.06);
-  border-bottom: 2px solid rgba(255,255,255,.08);
-  line-height: 1.3;
-  min-width: 60px;
+  min-width: 62px;
+  line-height: 1.4;
 }
-.sch-grid thead th.th-name {
+.sch-tbl thead th.th-name {
   position: sticky;
   left: 0;
   z-index: 22;
   text-align: left;
   padding-left: 14px;
-  min-width: 196px;
-  width: 196px;
-  border-right: 2px solid rgba(255,255,255,.1);
+  min-width: 180px;
+  width: 180px;
+  background: #0A2E5A;
+  border-right: 2px solid rgba(255,255,255,.12);
+  font-size: 10px;
+  color: rgba(255,255,255,.5);
+  text-transform: uppercase;
+  letter-spacing: .5px;
 }
-.sch-grid thead th.th-today {
-  background: var(--teal);
+.sch-tbl thead th.th-today {
+  background: var(--ed-teal);
   color: #fff;
 }
-.sch-grid thead th.th-wknd {
-  background: #0D2040;
-  color: rgba(255,255,255,.4);
+.sch-tbl thead th.th-wknd {
+  background: #0C2345;
+  color: rgba(255,255,255,.35);
 }
 
-/* Body cells */
-.sch-grid td {
-  border-right: 1px solid var(--border2);
-  border-bottom: 1px solid var(--border2);
-  vertical-align: middle;
-  height: 48px;
+/* Cells */
+.sch-tbl td {
+  border-right: 1px solid #EDF2FA;
+  border-bottom: 1px solid #EDF2FA;
+  height: 46px;
   padding: 0;
 }
-.sch-grid td.td-name {
+.sch-tbl .td-name {
   position: sticky;
   left: 0;
   z-index: 5;
-  background: var(--white);
-  border-right: 2px solid var(--border);
-  padding: 6px 12px;
+  background: #fff;
+  border-right: 2px solid #E0EAF8;
+  padding: 6px 10px;
   white-space: nowrap;
-  min-width: 196px;
-  width: 196px;
+  min-width: 180px;
+  width: 180px;
 }
-.sch-grid tr:hover td { background: rgba(13,92,166,.025); }
-.sch-grid tr:hover td.td-name { background: rgba(13,92,166,.04); }
+.sch-tbl tr:hover td { background: rgba(10,46,90,.022); }
+.sch-tbl tr:hover .td-name { background: #F3F8FF; }
 
-/* Name cell content */
-.ag-name  { font-size: 12px; font-weight: 700; color: var(--t1); line-height: 1.2; }
-.ag-badge {
-  display: inline-block;
+/* Group separator */
+.grp-row td {
+  background: #EEF4FC !important;
+  font-size: 10px;
+  font-weight: 800;
+  color: #1A3F70;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  padding: 4px 14px;
+  border-bottom: 1px solid #DAE7F8;
+  height: 28px !important;
+}
+
+/* Shift cell */
+.sh-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  cursor: pointer;
+  transition: filter .1s;
+  min-width: 62px;
+}
+.sh-cell:hover { filter: brightness(.93); }
+.sh-cell.today-col { background: rgba(0,168,154,.06); }
+.sh-cell.wknd-col  { background: rgba(240,245,251,.7); }
+
+/* Shift chip */
+.sh-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px;
+  border-radius: 7px;
+  font-size: 9.5px;
+  font-weight: 800;
+  width: 54px;
+  letter-spacing: .2px;
+  transition: transform .1s, box-shadow .1s;
+  position: relative;
+}
+.sh-cell:hover .sh-chip {
+  transform: scale(1.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+.sh-chip.edited {
+  outline: 2.5px solid var(--ed-amber);
+  outline-offset: 2px;
+}
+
+/* POPUP */
+.sh-popup {
+  position: fixed;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: #fff;
+  border: 1.5px solid #D1DCF0;
+  border-radius: 16px;
+  box-shadow: 0 12px 48px rgba(10,46,90,.22);
+  z-index: 600;
+  width: 280px;
+  overflow: hidden;
+  animation: popIn .15s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes popIn { from { opacity:0; transform:scale(.88); } }
+
+.sh-popup-hdr {
+  background: var(--ed-navy);
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.sh-popup-hdr-info .agent-nm {
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+}
+.sh-popup-hdr-info .date-nm {
+  font-size: 11px;
+  color: rgba(255,255,255,.6);
+  margin-top: 1px;
+}
+.sh-popup-close {
+  background: rgba(255,255,255,.12);
+  border: none;
+  color: #fff;
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.sh-popup-close:hover { background: rgba(255,255,255,.2); }
+
+.popup-body { padding: 12px 14px; }
+
+.popup-section-lbl {
+  font-size: 9px;
+  font-weight: 800;
+  color: #7A8FAA;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  margin-bottom: 6px;
+  margin-top: 10px;
+}
+.popup-section-lbl:first-child { margin-top: 0; }
+
+.shift-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin-bottom: 4px;
+}
+.shift-opt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 4px;
+  border-radius: 10px;
+  border: 1.5px solid #E0EAF8;
+  cursor: pointer;
+  transition: .12s;
+  text-align: center;
+  gap: 2px;
+  background: #F8FAFF;
+}
+.shift-opt:hover { border-color: var(--ed-navy); background: #EEF4FC; }
+.shift-opt.selected { border-color: var(--ed-navy); background: var(--ed-navy); }
+.shift-opt.selected .so-label,
+.shift-opt.selected .so-time { color: #fff !important; }
+.so-label { font-size: 10px; font-weight: 800; color: #1A2F4E; }
+.so-time  { font-size: 8.5px; color: #7A8FAA; }
+
+.daytype-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+}
+.daytype-opt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 4px;
+  border-radius: 10px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: .12s;
+  text-align: center;
+  gap: 2px;
+}
+.daytype-opt:hover { filter: brightness(.92); }
+.daytype-opt.selected { outline: 2.5px solid var(--ed-navy); outline-offset: 1px; }
+.dt-icon { font-size: 16px; }
+.dt-label { font-size: 9px; font-weight: 800; }
+
+.popup-apply-btn {
+  width: 100%;
+  padding: 11px;
+  border-radius: 11px;
+  border: none;
+  background: var(--ed-navy);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: background .12s;
+}
+.popup-apply-btn:hover { background: #0D3A70; }
+.popup-apply-btn:disabled { background: #A0B0C8; cursor: not-allowed; }
+
+/* Legend */
+.legend-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #F8FAFF;
+  border-top: 1px solid #E8EEF7;
+  margin: 0 12px 80px;
+  border-radius: 0 0 14px 14px;
+}
+.leg-item {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 600; color: #5A6E8A;
+}
+.leg-dot {
+  width: 22px; height: 13px;
+  border-radius: 4px;
+}
+
+/* Agent name cell */
+.ag-av {
+  width: 26px; height: 26px;
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 900;
+  color: #fff;
+  flex-shrink: 0;
+}
+.ag-nm { font-size: 11.5px; font-weight: 700; color: #1A2F4E; line-height: 1.2; }
+.ag-team {
   font-size: 8px; font-weight: 700;
   color: #fff;
   padding: 1px 5px;
   border-radius: 3px;
   margin-top: 2px;
+  display: inline-block;
 }
-
-/* Group header rows */
-.sch-grid .grp-row td {
-  background: #EEF4FC !important;
-  font-size: 10px;
-  font-weight: 800;
-  color: var(--navy2);
-  text-transform: uppercase;
-  letter-spacing: .8px;
-  padding: 5px 14px;
-  border-bottom: 1px solid var(--border);
-  white-space: nowrap;
-  position: sticky;
-  left: 0;
-}
-
-/* Shift cells */
-.sch-cell {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 4px 3px;
-  transition: background .1s;
-  min-width: 60px;
-}
-.sch-cell:hover { background: rgba(13,92,166,.05); }
-.sch-cell.is-wknd { opacity: .7; }
-.sch-cell.is-today { background: rgba(0,168,154,.06); }
-.sch-cell.is-today:hover { background: rgba(0,168,154,.12); }
-
-.cell-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 6px;
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 800;
-  width: 52px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: transform .1s;
-  position: relative;
-}
-.sch-cell:hover .cell-chip { transform: scale(1.06); }
-.cell-chip.changed {
-  outline: 2px solid var(--amber);
-  outline-offset: 1px;
-}
-
-/* Pending bar */
-.pending-bar {
-  position: fixed;
-  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
-  left: 0; right: 0;
-  background: #0A2E5A;
-  color: #fff;
-  padding: 10px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  z-index: 100;
-  box-shadow: 0 -3px 20px rgba(0,0,0,.3);
-  transform: translateY(100%);
-  transition: transform .2s;
-}
-.pending-bar.show { transform: translateY(0); }
-.pb-msg { font-size: 13px; font-weight: 600; }
-.pb-actions { display: flex; gap: 8px; flex-shrink: 0; }
-
-/* Cell dropdown popup */
-.cell-popup {
-  position: fixed;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(13,92,166,.2);
-  z-index: 500;
-  min-width: 200px;
-  overflow: hidden;
-  animation: fadeIn .15s;
-}
-@keyframes fadeIn { from { opacity:0; transform:scale(.95); } }
-.popup-header {
-  background: var(--navy3);
-  color: rgba(255,255,255,.8);
-  padding: 10px 13px;
-  font-size: 11px;
-  font-weight: 700;
-}
-.popup-header strong { color: #fff; font-size: 12px; display: block; }
-.popup-divider {
-  font-size: 9px;
-  font-weight: 800;
-  color: var(--t3);
-  text-transform: uppercase;
-  letter-spacing: .7px;
-  padding: 6px 13px 3px;
-}
-.popup-option {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 9px 13px;
-  cursor: pointer;
-  transition: background .1s;
-  border-bottom: 1px solid var(--border2);
-}
-.popup-option:last-child { border-bottom: none; }
-.popup-option:hover { background: rgba(13,92,166,.05); }
-.popup-option .opt-chip {
-  width: 44px; height: 22px;
-  border-radius: 5px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 9px; font-weight: 800;
-  flex-shrink: 0;
-}
-.popup-option .opt-label { font-size: 12px; font-weight: 700; }
-.popup-option .opt-sub   { font-size: 10px; color: var(--t2); }
-
-/* Legend bar */
-.legend-bar {
-  background: var(--bg);
-  border-top: 1px solid var(--border);
-  padding: 8px 14px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-.leg-item {
-  display: flex; align-items: center; gap: 4px;
-  font-size: 10px; font-weight: 600; color: var(--t2);
-}
-.leg-dot {
-  width: 20px; height: 14px;
-  border-radius: 3px; flex-shrink: 0;
-}
-
-/* Search box in toolbar */
-.sch-search {
-  padding: 7px 11px 7px 32px;
-  border: 1.5px solid var(--border);
-  border-radius: 20px;
-  font-size: 12px;
-  color: var(--t1);
-  background: var(--bg);
-  outline: none;
-  width: 160px;
-  transition: .2s;
-}
-.sch-search:focus { border-color: var(--navy); width: 200px; }
-.sch-search-wrap { position: relative; }
-.sch-search-wrap::before {
-  content: '⌕';
-  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-  font-size: 14px; color: var(--t3); pointer-events: none;
-}
-
-/* Publish toggle */
-.pub-btn {
-  padding: 7px 14px;
-  border-radius: 20px;
-  border: 1.5px solid var(--green);
-  background: none;
-  color: var(--green);
-  font-size: 12px; font-weight: 700;
-  cursor: pointer;
-  transition: .15s;
-}
-.pub-btn:hover { background: var(--green); color: #fff; }
-.pub-btn.published { background: var(--green); color: #fff; border-color: var(--green); }
 </style>
 </head>
 <body>
-
 <div id="kib-topbar"></div>
 
-<!-- Sticky toolbar -->
-<div class="editor-toolbar" id="editor-toolbar" style="margin-top:var(--topbar-h);">
-  <!-- Week navigation -->
-  <div class="week-nav">
-    <button onclick="prevWeek()" title="Previous week">‹</button>
-    <div class="wn-label" id="week-label">Loading…</div>
-    <button onclick="nextWeek()" title="Next week">›</button>
+<!-- TOOLBAR -->
+<div class="ed-toolbar" style="margin-top:var(--topbar-h,56px);">
+  <div class="week-nav-ed">
+    <button onclick="prevWeek()">‹</button>
+    <div class="wk-label" id="wk-lbl">Loading…</div>
+    <button onclick="nextWeek()">›</button>
   </div>
-
-  <button class="btn btn-xs btn-outline" onclick="goToday()" title="Jump to today">Today</button>
-
-  <!-- Team filter chips -->
-  <div class="filter-chips" id="team-chips">
-    <div class="filter-chip active" onclick="setTeam('All',this)">All</div>
-    <!-- Populated by JS -->
+  <button class="btn btn-xs btn-outline" onclick="goToday()">Today</button>
+  <div class="team-chips-ed" id="team-chips"></div>
+  <div class="search-wrap">
+    <input class="search-ed" id="agent-search" type="text" placeholder="Search agent…" oninput="onSearch()">
   </div>
-
-  <!-- Search -->
-  <div class="sch-search-wrap" style="margin-left:auto;">
-    <input class="sch-search" id="agent-search" type="text" placeholder="Search agent…" oninput="onSearch()">
-  </div>
-
-  <!-- Publish button -->
-  <button class="btn btn-xs btn-outline" onclick="showChangeLog()">📋 Change Log</button>
-  <button class="pub-btn" id="pub-btn" onclick="togglePublish()">📢 Publish</button>
 </div>
 
-<!-- Grid container -->
-<div id="kib-app" style="padding-top:0;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 56px);">
-  <div class="grid-outer" id="grid-outer">
-    <div id="grid-container" style="min-height:200px;display:flex;align-items:center;justify-content:center;">
-      <div>
-        <div class="kib-spin" style="margin:0 auto 10px;"></div>
-        <div style="font-size:13px;color:var(--t2);">Loading schedule from n8n…</div>
+<!-- GRID -->
+<div id="kib-app" style="padding-top:0;padding-bottom:10px;">
+  <div class="grid-wrap" id="grid-wrap">
+    <div id="grid-container" style="min-height:200px;display:flex;align-items:center;justify-content:center;padding:40px;">
+      <div style="text-align:center;">
+        <div class="kib-spin" style="margin:0 auto 12px;"></div>
+        <div style="font-size:13px;color:#7A8FAA;">Loading schedule…</div>
       </div>
     </div>
   </div>
-
-  <!-- Legend -->
-  <div class="legend-bar" style="margin:10px 14px 0;">
-    <span style="font-size:10px;font-weight:700;color:var(--t2);margin-right:4px;">SHIFTS:</span>
-    <!-- Populated by JS -->
-  </div>
+  <div class="legend-strip" id="legend-strip"></div>
 </div>
 
-<!-- Bottom nav -->
 <div id="kib-bottomnav"></div>
 
-<!-- Pending changes bar -->
-<div class="pending-bar" id="pending-bar">
-  <div class="pb-msg" id="pb-msg">0 unsaved changes</div>
-  <div class="pb-actions">
-    <button class="btn btn-xs btn-red" onclick="discardChanges()">✕ Discard</button>
-    <button class="btn btn-xs btn-teal" onclick="saveAllChanges()" id="save-btn">✓ Save All</button>
-  </div>
+<!-- SAVE BAR -->
+<div class="save-bar" id="save-bar">
+  <div class="save-bar-msg" id="save-bar-msg">0 changes</div>
+  <button onclick="discardChanges()" style="background:rgba(255,255,255,.15);border:none;color:#fff;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">✕ Discard</button>
+  <button onclick="saveAllChanges()" id="save-btn" style="background:#00A89A;border:none;color:#fff;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;">✓ Save All</button>
 </div>
 
-<!-- Cell popup (hidden by default) -->
-<div class="cell-popup" id="cell-popup" style="display:none;">
-  <div class="popup-header" style="display:flex;justify-content:space-between;align-items:center;">
-    <div>
-      <div style="font-size:14px;font-weight:800;color:var(--t1);" id="popup-agent">Agent</div>
-      <div style="font-size:12px;color:var(--t2);margin-top:1px;" id="popup-date">Date</div>
+<!-- POPUP -->
+<div class="sh-popup" id="sh-popup" style="display:none;">
+  <div class="sh-popup-hdr">
+    <div class="sh-popup-hdr-info">
+      <div class="agent-nm" id="pop-agent">—</div>
+      <div class="date-nm"  id="pop-date">—</div>
     </div>
-    <button onclick="closePopup()" style="background:none;border:none;font-size:20px;color:var(--t3);cursor:pointer;padding:4px;">✕</button>
+    <button class="sh-popup-close" onclick="closePopup()">✕</button>
   </div>
-  <div style="margin:12px 0 8px;">
-    <label style="font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Select Shift</label>
-    <select id="popup-select" class="fld" style="font-size:14px;padding:10px 12px;font-weight:700;" onchange="">
-      <optgroup label="── Shifts ──">
-        <option value="OFF">OFF — Day Off</option>
-      </optgroup>
-      <optgroup label="── Leave Types ──">
-      </optgroup>
-    </select>
-  </div>
-  <div style="display:flex;gap:8px;margin-top:12px;">
-    <button onclick="applyFromDropdown()" class="btn btn-navy" style="flex:1;padding:11px;font-size:14px;font-weight:800;">
-      ✓ Apply
-    </button>
-    <button onclick="closePopup()" class="btn btn-outline" style="padding:11px 16px;font-size:14px;">
-      Cancel
-    </button>
+  <div class="popup-body">
+    <div class="popup-section-lbl">Shift</div>
+    <div class="shift-grid" id="pop-shifts"></div>
+    <div class="popup-section-lbl">Day Type</div>
+    <div class="daytype-grid" id="pop-daytypes"></div>
+    <button class="popup-apply-btn" id="pop-apply-btn" onclick="applySelected()">Apply Change</button>
   </div>
 </div>
-
-<!-- Backdrop to close popup -->
-<div id="popup-backdrop" style="display:none;position:fixed;inset:0;z-index:499;" onclick="closePopup()"></div>
+<div id="pop-backdrop" style="display:none;position:fixed;inset:0;z-index:599;" onclick="closePopup()"></div>
 
 <script src="js/config.js"></script>
 <script src="js/auth.js"></script>
@@ -416,440 +476,333 @@ body { background: #F0F5FB; }
 <script src="js/nav.js"></script>
 <script>
 if (!Auth.guard()) throw 0;
-// Only QA team, WFM Manager, and Admin can edit the schedule
-const _role = (Auth.user()?.role||'').toLowerCase();
-const _dept = (Auth.user()?.dept||'').toLowerCase();
 const _access = Auth.user()?.access||'';
-// All management, wfm and admin can edit schedule
-const canEditSchedule = ['management','wfm','admin'].includes(_access);
-if (!canEditSchedule) {
+if (!['management','wfm','admin'].includes(_access)) {
   alert('Schedule editing requires management access.');
-  window.history.back();
-  throw 0;
+  window.history.back(); throw 0;
 }
 
 const user = Auth.user();
 Nav.init('schedule-edit');
 
-/* ── State ─────────────────────────────────────────── */
-let allData      = null;    // from n8n getAll
-let allAgents    = [];      // [{n, t, sch:[], ...}]
-let allDates     = [];      // ["YYYY-MM-DD", ...]
-let weekDates    = [];      // 7 dates currently shown
-let weekAnchor   = U.today();
-let teamFilter   = 'All';
-let searchQuery  = '';
-let pendingChanges = {};    // { "agent|date": { agent, date, shift, orig } }
-let isPublished  = false;
+let allData = null, allAgents = [], allDates = [];
+let weekAnchor = U.today(), teamFilter = 'All', searchQuery = '';
+let pendingChanges = {}; // key: "agent|date"
+let selectedShift = null; // currently selected in popup
+let popAgent = null, popDate = null, popOrig = null;
 
-/* ── Boot ──────────────────────────────────────────── */
+/* ── Init ── */
 async function init(force = false) {
   try {
-    allData   = await API.getAll();
-    allAgents = (allData.agents || []).filter(a => a.t !== 'Management');
-    allDates  = (allData.dates  || []).map(d => U.normDate(d));
-    isPublished = allData.published || false;
-    updatePublishBtn();
+    allData   = await API.getAll(force);
+    Nav.setSyncStatus(true);
+    allAgents = (allData.agents||[]).filter(a => a.t !== 'Management');
+    allDates  = (allData.dates||[]).map(d => U.normDate(d));
     buildTeamChips();
     buildLegend();
     renderGrid();
   } catch(e) {
     Nav.setSyncStatus(false);
-    console.error(e);
     document.getElementById('grid-container').innerHTML =
-      `<div style="padding:40px;text-align:center;color:var(--red);">⚠ Failed to load from n8n.<br><button class="btn btn-sm btn-outline" onclick="init()" style="margin-top:10px;">Retry</button></div>`;
+      `<div style="text-align:center;padding:40px;color:#EF4444;">
+        ⚠ Failed to load<br>
+        <button onclick="init(true)" style="margin-top:12px;padding:8px 16px;border-radius:8px;border:1.5px solid #EF4444;background:#fff;color:#EF4444;font-weight:700;cursor:pointer;">Retry</button>
+      </div>`;
   }
 }
 
-/* ── Team chips ────────────────────────────────────── */
+/* ── Team chips ── */
 function buildTeamChips() {
-  const teams = ['All', ...CFG.TEAMS.filter(t => allAgents.some(a => a.t === t))];
-  const el = document.getElementById('team-chips');
-  el.innerHTML = teams.map(t =>
-    `<div class="filter-chip ${t==='All'?'active':''}" onclick="setTeam('${t}',this)">${t}</div>`
+  const teams = ['All', ...CFG.TEAMS.filter(t => allAgents.some(a => a.t===t))];
+  document.getElementById('team-chips').innerHTML = teams.map(t =>
+    `<div class="tc ${t==='All'?'on':''}" onclick="setTeam('${t}',this)">${t}</div>`
   ).join('');
 }
-
 function setTeam(t, el) {
   teamFilter = t;
-  document.querySelectorAll('#team-chips .filter-chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
+  document.querySelectorAll('.tc').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
   renderGrid();
 }
-
 function onSearch() {
   searchQuery = document.getElementById('agent-search').value.toLowerCase();
   renderGrid();
 }
 
-/* ── Legend ────────────────────────────────────────── */
+/* ── Legend ── */
 function buildLegend() {
-  const bar = document.querySelector('.legend-bar');
-  const themeItems = CFG.SHIFT_THEME.map(t => ({short:t.short, label:t.label, bg:t.bg, color:t.color}));
-  const items = [...themeItems, ...CFG.DAY_TYPES].map(s =>
-    `<div class="leg-item">
-      <div class="leg-dot" style="background:${s.bg||'#eee'};border:1px solid ${s.color};"></div>
-      ${s.short||s.code}
-    </div>`
-  ).join('');
-  bar.innerHTML = `<span style="font-size:10px;font-weight:700;color:var(--t2);">LEGEND:</span> ${items}`;
+  const items = [
+    {bg:'#DBEAFE',color:'#1D4ED8',label:'Morning'},
+    {bg:'#CCFBF1',color:'#0F766E',label:'Midday'},
+    {bg:'#FEF3C7',color:'#B45309',label:'Evening'},
+    {bg:'#F3E8FF',color:'#7C3AED',label:'Night'},
+    {bg:'#F1F5F9',color:'#475569',label:'OFF'},
+    {bg:'#FEF9C3',color:'#CA8A04',label:'Leave'},
+    {bg:'#FEE2E2',color:'#DC2626',label:'Sick (SL)'},
+    {bg:'#DCFCE7',color:'#16A34A',label:'Holiday (PH)'},
+  ];
+  document.getElementById('legend-strip').innerHTML =
+    items.map(i=>`<div class="leg-item"><div class="leg-dot" style="background:${i.bg};border:1px solid ${i.color};"></div>${i.label}</div>`).join('');
 }
 
-/* ── Week navigation ───────────────────────────────── */
-function prevWeek() { weekAnchor = U.addDays(weekAnchor, -7); renderGrid(); }
-function nextWeek() { weekAnchor = U.addDays(weekAnchor,  7); renderGrid(); }
+/* ── Week navigation ── */
+function prevWeek() { weekAnchor = U.addDays(weekAnchor,-7); renderGrid(); }
+function nextWeek() { weekAnchor = U.addDays(weekAnchor, 7); renderGrid(); }
 function goToday()  { weekAnchor = U.today(); renderGrid(); }
 
-function computeWeekDates() {
-  // Show 7 days anchored to weekAnchor, clipped to allDates range
+function getWeekDates() {
   const week = U.getWeekDates(weekAnchor);
   if (!allDates.length) return week;
-  const min = allDates[0], max = allDates[allDates.length - 1];
-  return week.filter(d => d >= min && d <= max);
+  return week.filter(d => d >= allDates[0] && d <= allDates[allDates.length-1]);
 }
 
-/* ── Main grid render ──────────────────────────────── */
+/* ── Render Grid ── */
 function renderGrid() {
-  weekDates = computeWeekDates();
+  const weekDates = getWeekDates();
   if (!weekDates.length) {
     document.getElementById('grid-container').innerHTML =
-      `<div style="padding:40px;text-align:center;color:var(--t3);">No schedule data for this week.</div>`;
-    updateWeekLabel();
-    return;
+      `<div style="padding:40px;text-align:center;color:#7A8FAA;">No schedule data for this week.</div>`;
+    updateWeekLabel(weekDates); return;
   }
-  updateWeekLabel();
+  updateWeekLabel(weekDates);
 
-  // Filter agents
   let agents = allAgents;
-  if (teamFilter !== 'All') agents = agents.filter(a => a.t === teamFilter);
-  if (searchQuery)          agents = agents.filter(a => (a.n||a.name||'').toLowerCase().includes(searchQuery));
+  if (teamFilter !== 'All') agents = agents.filter(a => a.t===teamFilter);
+  if (searchQuery)          agents = agents.filter(a => (a.n||'').toLowerCase().includes(searchQuery));
 
-  // Group by team
-  const teams = [...new Set(agents.map(a => a.t))];
   const today = U.today();
+  const teams = [...new Set(agents.map(a=>a.t))];
 
-  // Build header
-  let thead = `<thead><tr>
-    <th class="th-name">Agent / Date</th>`;
+  // Header
+  let thead = `<thead><tr><th class="th-name">Agent</th>`;
   weekDates.forEach(d => {
-    const isT = d === today;
-    const isW = U.isWeekend(d);
-    const cls = isT ? 'th-today' : isW ? 'th-wknd' : '';
-    const dn  = new Date(d + 'T00:00:00');
-    thead += `<th class="${cls}" data-date="${d}">
-      <div>${U.dayName(d)}</div>
-      <div style="font-size:11px;font-weight:900;color:${isT?'#fff':'rgba(255,255,255,.9)'};">${dn.getDate()}</div>
+    const isT = d===today, isW = U.isWeekend(d);
+    const dn = new Date(d+'T00:00:00');
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    thead += `<th class="${isT?'th-today':isW?'th-wknd':''}">
+      <div style="font-size:8.5px;opacity:.7;">${days[dn.getDay()]}</div>
+      <div style="font-size:13px;font-weight:900;color:${isT?'#fff':'rgba(255,255,255,.9)'};">${dn.getDate()}</div>
+      <div style="font-size:8px;opacity:.6;">${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][dn.getMonth()]}</div>
     </th>`;
   });
   thead += `</tr></thead>`;
 
-  // Build body
+  // Body
   let tbody = '<tbody>';
   teams.forEach(team => {
-    const members = agents.filter(a => a.t === team);
+    const members = agents.filter(a=>a.t===team);
     if (!members.length) return;
-    const teamColor = CFG.TEAM_COLORS[team] || '#6B7280';
-    tbody += `<tr class="grp-row"><td colspan="${weekDates.length + 1}" style="color:${teamColor};">${team} (${members.length})</td></tr>`;
-
+    const tc = CFG.TEAM_COLORS[team]||'#6B7280';
+    tbody += `<tr class="grp-row"><td colspan="${weekDates.length+1}" style="color:${tc};">${team} · ${members.length} agents</td></tr>`;
     members.forEach(ag => {
-      const name = ag.n || ag.name;
-      const initials = U.initials(name);
-      const avColor  = U.avatarColor(name);
+      const name = ag.n||ag.name;
+      const ac = U.avatarColor(name);
       tbody += `<tr>
-        <td class="td-name" title="${name}">
+        <td class="td-name">
           <div style="display:flex;align-items:center;gap:7px;">
-            <div style="width:28px;height:28px;border-radius:7px;background:${avColor};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0;">${initials}</div>
+            <div class="ag-av" style="background:${ac};">${U.initials(name)}</div>
             <div>
-              <div class="ag-name">${name}</div>
-              <div class="ag-badge" style="background:${teamColor};">${team}</div>
+              <div class="ag-nm">${name.split(' ')[0]}<span style="font-weight:500;color:#7A8FAA;"> ${name.split(' ').slice(1).join(' ')}</span></div>
+              <div class="ag-team" style="background:${tc};">${team}</div>
             </div>
           </div>
         </td>`;
-
       weekDates.forEach(d => {
-        const idx = allDates.indexOf(d);
-        let shift = idx >= 0 && ag.sch ? ag.sch[idx] : '';
-        if (!shift) shift = 'OFF';
-        const code  = CFG.normalizeShiftCode(shift);
-        const pKey  = `${name}|${d}`;
+        const di = allDates.indexOf(d);
+        let raw = di>=0&&ag.sch ? ag.sch[di] : 'OFF';
+        raw = raw||'OFF';
+        const pKey = `${name}|${d}`;
         const changed = !!pendingChanges[pKey];
-        const dispCode = changed ? pendingChanges[pKey].shift : code;
-        const def   = CFG.getShiftDisplay(dispCode);
-        const isT   = d === today;
-        const isW   = U.isWeekend(d);
-
-        // Render swap/leave badges from remote data
-        const hasLeave = (allData?.leaves||[]).some(l => {
-          const ls = U.normDate(l.startDate), le = U.normDate(l.endDate);
-          return l.agent === name && d >= ls && d <= le && l.status === 'approved';
-        });
-        const hasSwap = (allData?.swaps||[]).some(s =>
-          U.normDate(s.date) === d && (s.from===name||s.to===name) && s.status==='approved'
-        );
-
-        const chipStyle = def
-          ? `background:${def.bg};color:${def.color};`
-          : 'background:#F3F4F6;color:#6B7280;';
-        const chipLabel = def?.short || def?.code || dispCode;
-        const changedCls = changed ? 'changed' : '';
-        const extra = hasLeave ? '🏖' : hasSwap ? '🔄' : '';
-
-        tbody += `<td class="${isT?'td-today':''}" style="${isW?'background:rgba(240,245,251,.5)':''}">
-          <div class="sch-cell ${isT?'is-today':''} ${isW?'is-wknd':''}"
-               data-agent="${name}" data-date="${d}" data-shift="${dispCode}"
-               onclick="openPopup(event,'${escAttr(name)}','${d}','${dispCode}')">
-            <div class="cell-chip ${changedCls}" style="${chipStyle}">
-              ${chipLabel}${extra?`<span style="font-size:8px;">${extra}</span>`:''}
+        const dispCode = changed ? pendingChanges[pKey].shift : CFG.normalizeShiftCode(raw);
+        const def = CFG.getShiftDisplay(dispCode);
+        const isT = d===today, isW = U.isWeekend(d);
+        const chipBg  = def?.bg  || '#F1F5F9';
+        const chipClr = def?.color || '#6B7280';
+        const lbl = def?.short || def?.code || dispCode.slice(0,5);
+        const ename = name.replace(/'/g,"&apos;").replace(/"/g,'&quot;');
+        tbody += `<td>
+          <div class="sh-cell ${isT?'today-col':''} ${isW?'wknd-col':''}"
+               data-agent="${ename}" data-date="${d}" data-shift="${dispCode}"
+               onclick="openPopup(event,'${ename}','${d}','${dispCode}')">
+            <div class="sh-chip ${changed?'edited':''}" style="background:${chipBg};color:${chipClr};">
+              ${lbl}${changed?'<span style="position:absolute;top:-3px;right:-3px;width:6px;height:6px;background:#F59E0B;border-radius:50%;border:1px solid #fff;"></span>':''}
             </div>
           </div>
         </td>`;
       });
-
       tbody += '</tr>';
     });
   });
   tbody += '</tbody>';
 
-  document.getElementById('grid-container').innerHTML =
-    `<table class="sch-grid" id="sch-table">${thead}${tbody}</table>`;
+  document.getElementById('grid-container').innerHTML = `<table class="sch-tbl">${thead}${tbody}</table>`;
 }
 
-function updateWeekLabel() {
-  if (!weekDates.length) { U.se('week-label', 'No data'); return; }
-  const f = weekDates[0], l = weekDates[weekDates.length-1];
-  const fd = new Date(f+'T00:00:00'), ld = new Date(l+'T00:00:00');
-  const m  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  U.se('week-label', `${fd.getDate()} ${m[fd.getMonth()]} – ${ld.getDate()} ${m[ld.getMonth()]}`);
+function updateWeekLabel(weekDates) {
+  if (!weekDates||!weekDates.length) { U.se('wk-lbl','No data'); return; }
+  const f=new Date(weekDates[0]+'T00:00:00'), l=new Date(weekDates[weekDates.length-1]+'T00:00:00');
+  const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  U.se('wk-lbl',`${f.getDate()} ${m[f.getMonth()]} – ${l.getDate()} ${m[l.getMonth()]}`);
 }
 
-function escAttr(s) { return s.replace(/'/g,"&apos;").replace(/"/g,'&quot;'); }
-
-/* ── Cell Popup ────────────────────────────────────── */
+/* ── Popup ── */
 function openPopup(evt, agentName, date, currentCode) {
   evt.stopPropagation();
-  const popup    = document.getElementById('cell-popup');
-  const backdrop = document.getElementById('popup-backdrop');
-  const sel      = document.getElementById('popup-select');
+  popAgent = agentName; popDate = date; popOrig = currentCode;
+  selectedShift = currentCode;
 
-  document.getElementById('popup-agent').textContent = agentName;
-  document.getElementById('popup-date').textContent  = U.fmtDisplay(date);
-
-  // Store current context
-  popup.dataset.agent = agentName;
-  popup.dataset.date  = date;
-
-  // Build dropdown options
-  let shiftsHtml = '<option value="">— Select —</option>';
+  document.getElementById('pop-agent').textContent = agentName;
+  document.getElementById('pop-date').textContent  = U.fmtDisplay(date);
   
-  // Shift options group
-  shiftsHtml += '<optgroup label="── Shifts ──">';
-  CFG.SHIFT_OPTIONS.filter(c => c !== 'OFF').forEach(code => {
-    const sel_mark = code === currentCode ? ' ✓' : '';
-    shiftsHtml += `<option value="${code}" ${code===currentCode?'selected':''}>${code}${sel_mark}</option>`;
-  });
-  shiftsHtml += '</optgroup>';
+  // Position popup near click
+  const popup = document.getElementById('sh-popup');
+  popup.style.display = '';
+  const rect = popup.getBoundingClientRect();
+  const vw = window.innerWidth, vh = window.innerHeight;
+  let top = evt.clientY + 8, left = evt.clientX - 140;
+  if (left < 8) left = 8;
+  if (left + 280 > vw - 8) left = vw - 288;
+  if (top + rect.height > vh - 80) top = evt.clientY - rect.height - 8;
+  popup.style.top  = top + 'px';
+  popup.style.left = left + 'px';
 
-  // Day types group
-  shiftsHtml += '<optgroup label="── Day Off / Leave ──">';
-  CFG.DAY_TYPES.forEach(dt => {
-    const sel_mark = dt.code === currentCode ? ' ✓' : '';
-    shiftsHtml += `<option value="${dt.code}" ${dt.code===currentCode?'selected':''}>${dt.code} — ${dt.label}${sel_mark}</option>`;
-  });
-  shiftsHtml += '</optgroup>';
+  // Build shift grid
+  const shifts = CFG.SHIFT_OPTIONS.filter(c=>c!=='OFF');
+  document.getElementById('pop-shifts').innerHTML = shifts.map(code => {
+    const parts = code.split('-');
+    const label = parts.length>=2 ? `${parseInt(parts[0])}-${parseInt(parts[1])}` : code;
+    const isSel = code === currentCode;
+    return `<div class="shift-opt ${isSel?'selected':''}" onclick="selectShift('${code}',this)">
+      <div class="so-label">${label}</div>
+      <div class="so-time">${code}</div>
+    </div>`;
+  }).join('');
 
-  sel.innerHTML = shiftsHtml;
-  if (currentCode) sel.value = currentCode;
+  // Build day type grid
+  const types = [
+    {code:'OFF',  icon:'⚫', label:'Day Off',  bg:'#F1F5F9', color:'#475569'},
+    {code:'AL',   icon:'🏖',  label:'Annual',   bg:'#FEF9C3', color:'#CA8A04'},
+    {code:'SL',   icon:'🏥',  label:'Sick',     bg:'#FEE2E2', color:'#DC2626'},
+    {code:'PH',   icon:'🎉',  label:'Holiday',  bg:'#DCFCE7', color:'#16A34A'},
+    {code:'UL',   icon:'📋',  label:'Unpaid',   bg:'#F3E8FF', color:'#7C3AED'},
+    {code:'Leave',icon:'📅',  label:'Leave',    bg:'#FEF9C3', color:'#D97706'},
+  ];
+  document.getElementById('pop-daytypes').innerHTML = types.map(dt => {
+    const isSel = dt.code === currentCode;
+    return `<div class="daytype-opt ${isSel?'selected':''}" style="background:${dt.bg};"
+                 onclick="selectShift('${dt.code}',this)">
+      <div class="dt-icon">${dt.icon}</div>
+      <div class="dt-label" style="color:${dt.color};">${dt.label}</div>
+    </div>`;
+  }).join('');
 
-  popup.style.display   = '';
-  backdrop.style.display = '';
-  popup.classList.add('popup-slide-up');
+  updateApplyBtn();
+
+  document.getElementById('pop-backdrop').style.display = '';
 }
 
-function applyFromDropdown() {
-  const popup = document.getElementById('cell-popup');
-  const sel   = document.getElementById('popup-select');
-  const code  = sel.value;
-  if (!code) { U.toast('Select a shift first','warn'); return; }
-  applyShift(popup.dataset.agent, popup.dataset.date, code);
+function selectShift(code, el) {
+  selectedShift = code;
+  // Deselect all
+  document.querySelectorAll('.shift-opt, .daytype-opt').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+  updateApplyBtn();
+}
+
+function updateApplyBtn() {
+  const btn = document.getElementById('pop-apply-btn');
+  if (!btn) return;
+  const changed = selectedShift !== popOrig;
+  btn.textContent = changed ? `Apply: ${selectedShift}` : 'No Change';
+  btn.disabled = !changed;
+  btn.style.background = changed ? 'var(--ed-navy)' : '#A0B0C8';
+}
+
+function applySelected() {
+  if (!selectedShift || selectedShift === popOrig) return;
+  applyShift(popAgent, popDate, selectedShift);
   closePopup();
 }
-
 
 function closePopup() {
-  document.getElementById('cell-popup').style.display = 'none';
-  document.getElementById('popup-backdrop').style.display = 'none';
+  document.getElementById('sh-popup').style.display = 'none';
+  document.getElementById('pop-backdrop').style.display = 'none';
 }
 
-/* ── Apply a shift change ──────────────────────────── */
+/* ── Apply shift ── */
 function applyShift(agentName, date, newCode) {
-  closePopup();
-
-  // Find original shift
-  const ag  = allAgents.find(a => (a.n||a.name) === agentName);
+  const ag  = allAgents.find(a=>(a.n||a.name)===agentName);
   const idx = allDates.indexOf(date);
-  const orig = ag && idx >= 0 && ag.sch ? (ag.sch[idx] || 'OFF') : 'OFF';
+  const orig = ag&&idx>=0&&ag.sch ? (ag.sch[idx]||'OFF') : 'OFF';
   const origCode = CFG.normalizeShiftCode(orig);
-
   const pKey = `${agentName}|${date}`;
-
   if (newCode === origCode) {
-    // Revert to original — remove pending
     delete pendingChanges[pKey];
   } else {
     const def = CFG.getShiftDisplay(newCode);
-    pendingChanges[pKey] = {
-      agent:      agentName,
-      date,
-      shift:      newCode,
-      shiftStart: def?.start || '',
-      shiftEnd:   def?.end   || '',
-      orig:       origCode,
-    };
+    pendingChanges[pKey] = { agent:agentName, date, shift:newCode, shiftStart:def?.start||'', shiftEnd:def?.end||'', orig:origCode };
   }
-
-  updatePendingBar();
-  updateCell(agentName, date, newCode, pKey in pendingChanges);
+  updateSaveBar();
+  // Update cell
+  const cell = document.querySelector(`.sh-cell[data-agent="${agentName}"][data-date="${date}"]`);
+  if (cell) {
+    const def = CFG.getShiftDisplay(newCode);
+    const chip = cell.querySelector('.sh-chip');
+    const lbl = def?.short || def?.code || newCode.slice(0,5);
+    const isChanged = pKey in pendingChanges;
+    if (chip) {
+      chip.style.background = def?.bg||'#F1F5F9';
+      chip.style.color = def?.color||'#6B7280';
+      chip.innerHTML = lbl + (isChanged?'<span style="position:absolute;top:-3px;right:-3px;width:6px;height:6px;background:#F59E0B;border-radius:50%;border:1px solid #fff;"></span>':'');
+      chip.classList.toggle('edited', isChanged);
+    }
+    cell.dataset.shift = newCode;
+  }
 }
 
-function updateCell(agentName, date, newCode, isChanged) {
-  const cell = document.querySelector(`.sch-cell[data-agent="${CSS.escape(agentName)}"][data-date="${date}"]`);
-  if (!cell) return;
-  const def = CFG.getShiftDisplay(newCode);
-  const chip = cell.querySelector('.cell-chip');
-  if (chip) {
-    chip.style.background = def ? def.bg : '#F3F4F6';
-    chip.style.color       = def ? def.color : '#6B7280';
-    chip.textContent       = def?.short || def?.code || newCode;
-    chip.classList.toggle('changed', isChanged);
-  }
-  cell.dataset.shift = newCode;
-}
-
-/* ── Pending changes bar ───────────────────────────── */
-function updatePendingBar() {
+/* ── Save bar ── */
+function updateSaveBar() {
   const count = Object.keys(pendingChanges).length;
-  const bar   = document.getElementById('pending-bar');
-  const msg   = document.getElementById('pb-msg');
-  msg.textContent = `${count} unsaved change${count !== 1 ? 's' : ''}`;
-  bar.classList.toggle('show', count > 0);
+  const bar = document.getElementById('save-bar');
+  document.getElementById('save-bar-msg').textContent = `${count} unsaved change${count!==1?'s':''}`;
+  bar.classList.toggle('show', count>0);
 }
 
 function discardChanges() {
   if (!Object.keys(pendingChanges).length) return;
   if (!confirm('Discard all unsaved changes?')) return;
   pendingChanges = {};
-  updatePendingBar();
+  updateSaveBar();
   renderGrid();
 }
 
 async function saveAllChanges() {
   const changes = Object.values(pendingChanges);
   if (!changes.length) return;
-
   const btn = document.getElementById('save-btn');
-  btn.disabled = true; btn.textContent = 'Saving…';
-
+  btn.disabled=true; btn.textContent='Saving…';
   try {
-    const res = await API.bulkUpdateShifts(changes, user.name);
-    if (res?.ok !== false) {
-      // Update local agent.sch data so grid reflects saved state
-      changes.forEach(ch => {
-        const ag  = allAgents.find(a => (a.n||a.name) === ch.agent);
-        const idx = allDates.indexOf(ch.date);
-        if (ag && idx >= 0 && ag.sch) ag.sch[idx] = ch.shift;
-      });
-      pendingChanges = {};
-      updatePendingBar();
-      renderGrid(); // re-render with clean state
-      U.toast(`${changes.length} change${changes.length>1?'s':''} saved ✓`, 'ok');
-      API.clearCache();
-    } else {
-      U.toast('Save failed — ' + (res?.error || 'try again'), 'err');
-    }
+    await API.bulkUpdateShifts(changes, user.name);
+    // Update local data
+    changes.forEach(ch => {
+      const ag  = allAgents.find(a=>(a.n||a.name)===ch.agent);
+      const idx = allDates.indexOf(ch.date);
+      if (ag&&idx>=0&&ag.sch) ag.sch[idx] = ch.shift;
+    });
+    pendingChanges = {};
+    updateSaveBar();
+    renderGrid();
+    API.clearCache('getAll');
+    U.toast(`${changes.length} change${changes.length>1?'s':''} saved ✓`, 'ok');
   } catch(e) {
     Nav.setSyncStatus(false);
-    U.toast('Network error while saving', 'err');
+    U.toast('Failed to save — check n8n workflow', 'err');
   } finally {
-    btn.disabled = false; btn.textContent = '✓ Save All';
+    btn.disabled=false; btn.textContent='✓ Save All';
   }
 }
 
-/* ── Publish ───────────────────────────────────────── */
-function updatePublishBtn() {
-  const btn = document.getElementById('pub-btn');
-  if (isPublished) {
-    btn.textContent = '✓ Published';
-    btn.classList.add('published');
-  } else {
-    btn.textContent = '📢 Publish';
-    btn.classList.remove('published');
-  }
-}
-
-async function togglePublish() {
-  if (Object.keys(pendingChanges).length) {
-    U.toast('Save all changes before publishing', 'warn'); return;
-  }
-  const newState = !isPublished;
-  const confirmMsg = newState
-    ? 'Publish schedule? Agents will be able to see it.'
-    : 'Unpublish schedule? Agents will not see new changes.';
-  if (!confirm(confirmMsg)) return;
-
-  try {
-    const res = await API.publishSchedule({
-      startDate:   weekDates[0] || allDates[0],
-      endDate:     weekDates[weekDates.length-1] || allDates[allDates.length-1],
-      published:   newState,
-      publishedBy: user.name,
-    });
-    if (res?.ok !== false) {
-      isPublished = newState;
-      updatePublishBtn();
-      U.toast(newState ? 'Schedule published ✓' : 'Schedule unpublished', 'ok');
-    }
-  } catch(e) {
-    Nav.setSyncStatus(false); U.toast('Failed to update publish status', 'err'); }
-}
-
-/* ── Refresh ───────────────────────────────────────── */
-async function refreshData() {
-  if (Object.keys(pendingChanges).length) {
-    if (!confirm('Refresh will discard unsaved changes. Continue?')) return;
-  }
-  pendingChanges = {};
-  API.clearCache();
-  document.getElementById('grid-container').innerHTML =
-    `<div style="padding:40px;text-align:center;"><div class="kib-spin" style="margin:0 auto 10px;"></div><div style="font-size:13px;color:var(--t2);">Refreshing…</div></div>`;
-  await init();
-}
-
-/* ── Close popup on Escape ─────────────────────────── */
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closePopup();
-});
-// Close popup on any touch outside
-document.addEventListener('touchstart', e => {
-  const popup = document.getElementById('cell-popup');
-  if (popup && popup.style.display !== 'none') {
-    if (!popup.contains(e.target) && !e.target.closest('.sch-cell')) {
-      closePopup();
-    }
-  }
-}, { passive: true });
-
-/* ── Boot ──────────────────────────────────────────── */
-/* ── Format ISO date for schedule display ─────────────── */
-function fmtDateHeader(iso) {
-  if (!iso) return iso;
-  // Already formatted? Return as-is
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
-  const d = new Date(iso + 'T00:00:00');
-  const days  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const months= ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()];
-}
-
+document.addEventListener('keydown', e => { if (e.key==='Escape') closePopup(); });
 init();
 </script>
 </body>
