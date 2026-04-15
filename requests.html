@@ -72,9 +72,9 @@ let teamFilter = 'All';
 Nav.init('requests');
 document.getElementById('user-strip-wrap').innerHTML = Nav.renderUserStrip();
 
-async function init() {
+async function init(force = false) {
   try {
-    data = await API.getAll();
+    data = await API.getAll(force);
     Nav.setSyncStatus(true);
     if (isMgmt) {
       document.getElementById('filter-row').style.display = '';
@@ -175,26 +175,54 @@ function renderSwaps() {
     : (data?.swaps||[]).filter(s => (s.from||s.From)===user.name||(s.to||s.To)===user.name)
         .sort((a,b) => new Date(b.ts||b.Timestamp||0)-new Date(a.ts||a.Timestamp||0));
 
-  document.getElementById('pane-swaps').innerHTML = swaps.length
-    ? swaps.map(s => {
-        const st  = (s.status||'').toLowerCase();
-        const canAct = (st==='pending_peer' && (s.to||s.To)===user.name) ||
-                       (st==='pending_mgmt' && isMgmt);
-        return buildCard({...s,_k:'swap'}, canAct);
-      }).join('')
-    : empty('🔄','No swap requests');
+  if (!swaps.length) {
+    document.getElementById('pane-swaps').innerHTML = empty('No swap requests');
+    return;
+  }
+
+  document.getElementById('pane-swaps').innerHTML = swaps.map(s => {
+    const id   = s.id||s.ID;
+    const from = s.from||s.From||'';
+    const to   = s.to||s.To||'';
+    const date = s.date||s.Date||'';
+    const fromShift = s.shiftFrom||s.FromShift||'';
+    const toShift   = s.shiftTo||s.ToShift||'';
+    const status    = (s.status||s.Status||'pending').toLowerCase();
+    const isPending = status === 'pending';
+
+    const statusColor = status==='approved'?'#16A34A':status==='rejected'?'#DC2626':'#B45309';
+    const statusBg    = status==='approved'?'#DCFCE7':status==='rejected'?'#FEE2E2':'#FEF3C7';
+
+    const actionBtns = (isMgmt && isPending) ? `
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button onclick="actOnRequest('${id}','swap','approve')"
+          style="flex:1;padding:8px;border-radius:10px;border:none;background:#0A4A8A;color:#fff;font-size:12px;font-weight:800;cursor:pointer;">
+          ✓ Approve
+        </button>
+        <button onclick="actOnRequest('${id}','swap','reject')"
+          style="flex:1;padding:8px;border-radius:10px;border:1.5px solid #E5E7EB;background:#fff;color:#DC2626;font-size:12px;font-weight:800;cursor:pointer;">
+          ✕ Reject
+        </button>
+      </div>` : '';
+
+    return `<div style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="font-size:13px;font-weight:800;color:var(--t1);">🔄 Shift Swap</div>
+        <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:${statusBg};color:${statusColor};">${status.toUpperCase()}</span>
+      </div>
+      <div style="font-size:12px;color:var(--t2);margin-bottom:4px;">
+        <b style="color:var(--t1);">${from}</b> ↔ <b style="color:var(--t1);">${to}</b>
+      </div>
+      <div style="font-size:11px;color:var(--t2);">
+        📅 ${U.normDate(date)} &nbsp;|&nbsp; ${fromShift||'?'} ↔ ${toShift||'?'}
+      </div>
+      ${s.reason||s.Reason ? `<div style="font-size:11px;color:var(--t2);margin-top:4px;">💬 ${s.reason||s.Reason}</div>` : ''}
+      ${actionBtns}
+    </div>`;
+  }).join('');
 }
 
-/* ── SCHEDULE PREFS ───────────────────────────────── */
-function renderPrefs() {
-  const prefs = filterByRole(data?.scheduleRequests||[], 'agent')
-    .sort((a,b) => new Date(b.ts||b.Timestamp||0)-new Date(a.ts||a.Timestamp||0));
-  document.getElementById('pane-prefs').innerHTML = prefs.length
-    ? prefs.map(r => buildCard({...r,_k:'pref'}, isMgmt && (r.status||'').toLowerCase()==='pending')).join('')
-    : empty('📋','No schedule requests');
-}
 
-/* ── Card builder ─────────────────────────────────── */
 function buildCard(r, canAct) {
   const isLeave = r._k === 'leave';
   const isSwap  = r._k === 'swap';
@@ -262,13 +290,34 @@ async function reject(id, kind) {
   await actOnRequest(id, kind, 'reject', note);
 }
 
-async function actOnRequest(id, kind, action, note='') {
+async async function actOnRequest(id, kind, action, note='') {
   if (!id) return;
   try {
     if (kind === 'leave') {
       await API.approveLeave({ leaveId:id, action, approvedBy:user.name, note });
     } else if (kind === 'swap') {
-      await API.respondSwap({ swapId:id, action, respondedBy:user.name });
+      // Find the swap to get all fields needed for schedule update
+      const swp = (data?.swaps||[]).find(s=>(s.id||s.ID)===id);
+      if (action === 'approve') {
+        await fetch(CFG.N8N.APPROVE_SWAP, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            id,
+            approved: true,
+            actionedBy: user.name,
+            from:      swp?.from      || swp?.From      || '',
+            to:        swp?.to        || swp?.To        || '',
+            date:      swp?.date      || swp?.Date      || '',
+            fromShift: swp?.shiftFrom || swp?.FromShift || '',
+            toShift:   swp?.shiftTo   || swp?.ToShift   || ''
+          })
+        });
+      } else {
+        await fetch(CFG.N8N.APPROVE_SWAP, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ id, approved: false, actionedBy: user.name })
+        });
+      }
     } else {
       // Schedule preference — update status
       await API.submitScheduleRequest({
