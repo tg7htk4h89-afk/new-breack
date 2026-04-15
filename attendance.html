@@ -14,7 +14,7 @@
 .att-absent  { background:var(--red-bg);   color:var(--red);   }
 .att-late    { background:var(--amber-bg);  color:var(--amber); }
 .att-leave   { background:rgba(124,58,237,.1); color:var(--purple); }
-.att-unknown { background:#F3F4F6; color:#6B7280; }
+.att-unknown { background:#FEF9EE; color:#B45309; border:1.5px dashed #FCD34D; font-weight:700; }
 
 .att-table-wrap { overflow-x:auto; }
 .att-row { display:grid; grid-template-columns:1fr auto auto; gap:8px; align-items:center; padding:10px 13px; border-bottom:1px solid var(--border2); }
@@ -239,7 +239,7 @@ function renderMgmtView() {
       ? status.charAt(0).toUpperCase()+status.slice(1).replace('_',' ')
       : isLeave ? todayShift
       : isOff   ? 'OFF'
-      : 'Unknown';
+      : 'Not Marked';
     const shiftLbl = todayShift || '—';
 
     return `<div class="mgmt-row">
@@ -250,7 +250,7 @@ function renderMgmtView() {
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <span class="att-chip ${chipCls}">${label}</span>
-        ${Auth.isWFM()?`<button class="btn btn-xs btn-outline" onclick="editStatus('${name}','${status}')">Edit</button>`:''}
+        ${Auth.isWFM()&&!isOff?`<button class="btn btn-xs btn-outline" onclick="editStatus('${name}','${status}')">Mark</button>`:''}
       </div>
     </div>`;
   }).join('');
