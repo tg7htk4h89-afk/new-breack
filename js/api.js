@@ -39,12 +39,12 @@ const API = (() => {
     /** Full initial load — parallel calls, resilient with timeout */
     async getAll(force = false) {
       if (!force) {
-        const cached = fromCache('getAll', 120000); // 2min cache
+        const cached = fromCache('getAll', 300000); // 5min cache
         if (cached) return cached;
       }
       // Debounce: max 1 forced call per 8s
       const now = Date.now();
-      if (force && window._lastGetAll && (now - window._lastGetAll) < 8000) {
+      if (force && window._lastGetAll && (now - window._lastGetAll) < 30000) {
         const cached = fromCache('getAll', 999999);
         if (cached) return cached;
       }
@@ -62,19 +62,19 @@ const API = (() => {
           } catch(e) { return {}; }
         };
 
-        const [sched, brks, lvs, swps, att, kpi, notif, sr] = await Promise.all([
-          safe(N.GET_SCHEDULE),
-          safe(N.GET_BREAKS),
-          safe(N.GET_LEAVES),
-          safe(N.GET_SWAPS),
-          safe(N.GET_ATTENDANCE),
-          safe(N.GET_KPI),
-          safe(N.GET_NOTIF),
-          safe(N.GET_SCHEDREQUESTS),
-        ]);
+        // Fetch schedule first (critical), then others with delay to avoid quota
+        const sched = await safe(N.GET_SCHEDULE);
         clearTimeout(timer);
 
         if (!sched.agents?.length) throw new Error('Schedule unavailable');
+
+        // Fetch secondary data with staggering to avoid quota
+        await new Promise(r => setTimeout(r, 500));
+        const [brks, lvs] = await Promise.all([safe(N.GET_BREAKS), safe(N.GET_LEAVES)]);
+        await new Promise(r => setTimeout(r, 500));
+        const [swps, att] = await Promise.all([safe(N.GET_SWAPS), safe(N.GET_ATTENDANCE)]);
+        await new Promise(r => setTimeout(r, 500));
+        const [kpi, notif, sr] = await Promise.all([safe(N.GET_KPI), safe(N.GET_NOTIF), safe(N.GET_SCHEDREQUESTS)]);
 
         const d = {
           ok: true,
