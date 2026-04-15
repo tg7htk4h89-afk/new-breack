@@ -491,7 +491,7 @@ function renderTeamGrid() {
     </table>`;
 }
 
-async function init() {
+async function init(force = false) {
   try {
     data     = await API.getAll();
     Nav.setSyncStatus(true);
