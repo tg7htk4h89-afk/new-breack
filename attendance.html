@@ -297,7 +297,7 @@ async function editStatus(agentName, currentStatus) {
      <button class="btn btn-navy flex-1" onclick="saveEditStatus('${agentName}')">Save</button>`);
 }
 
-async async function saveEditStatus(agentName) {
+async function saveEditStatus(agentName) {
   const status = document.getElementById('modal-status').value;
   const note   = document.getElementById('modal-note')?.value||'';
   try {
