@@ -120,12 +120,13 @@ const isMgmt = Auth.isManagement();
 async function init(force = false) {
   try {
     allData = await API.getAll();
+    const _ld = document.getElementById('att-loading'); if(_ld)_ld.style.display='none';
     if (isMgmt) {
       document.getElementById('att-stats').style.display = '';
       document.getElementById('mgmt-att-view').style.display = '';
       document.getElementById('att-loading').style.display='none';
       buildTeamTabs();
-      renderMgmtView();
+      try { renderMgmtView(); } catch(re){ console.error('renderMgmtView error:',re); }
     } else {
       document.getElementById('att-loading').style.display='none';
       document.getElementById('agent-checkin').style.display = '';
