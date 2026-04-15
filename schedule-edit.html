@@ -379,11 +379,31 @@ body { background: #F0F5FB; }
 
 <!-- Cell popup (hidden by default) -->
 <div class="cell-popup" id="cell-popup" style="display:none;">
-  <div style="display:none;height:4px;width:40px;background:rgba(255,255,255,.3);border-radius:4px;margin:8px auto -4px;" id="popup-handle"></div>
-  <div class="popup-header">
-    <strong id="popup-agent">Agent Name</strong><br><span id="popup-date" style="font-weight:400;">Date</span>
+  <div class="popup-header" style="display:flex;justify-content:space-between;align-items:center;">
+    <div>
+      <div style="font-size:14px;font-weight:800;color:var(--t1);" id="popup-agent">Agent</div>
+      <div style="font-size:12px;color:var(--t2);margin-top:1px;" id="popup-date">Date</div>
+    </div>
+    <button onclick="closePopup()" style="background:none;border:none;font-size:20px;color:var(--t3);cursor:pointer;padding:4px;">✕</button>
   </div>
-  <div id="popup-options"></div>
+  <div style="margin:12px 0 8px;">
+    <label style="font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Select Shift</label>
+    <select id="popup-select" class="fld" style="font-size:14px;padding:10px 12px;font-weight:700;" onchange="">
+      <optgroup label="── Shifts ──">
+        <option value="OFF">OFF — Day Off</option>
+      </optgroup>
+      <optgroup label="── Leave Types ──">
+      </optgroup>
+    </select>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:12px;">
+    <button onclick="applyFromDropdown()" class="btn btn-navy" style="flex:1;padding:11px;font-size:14px;font-weight:800;">
+      ✓ Apply
+    </button>
+    <button onclick="closePopup()" class="btn btn-outline" style="padding:11px 16px;font-size:14px;">
+      Cancel
+    </button>
+  </div>
 </div>
 
 <!-- Backdrop to close popup -->
@@ -412,7 +432,7 @@ let pendingChanges = {};    // { "agent|date": { agent, date, shift, orig } }
 let isPublished  = false;
 
 /* ── Boot ──────────────────────────────────────────── */
-async function init() {
+async function init(force = false) {
   try {
     allData   = await API.getAll();
     allAgents = (allData.agents || []).filter(a => a.t !== 'Management');
@@ -596,68 +616,53 @@ function escAttr(s) { return s.replace(/'/g,"&apos;").replace(/"/g,'&quot;'); }
 /* ── Cell Popup ────────────────────────────────────── */
 function openPopup(evt, agentName, date, currentCode) {
   evt.stopPropagation();
-  const popup = document.getElementById('cell-popup');
+  const popup    = document.getElementById('cell-popup');
   const backdrop = document.getElementById('popup-backdrop');
+  const sel      = document.getElementById('popup-select');
 
   document.getElementById('popup-agent').textContent = agentName;
   document.getElementById('popup-date').textContent  = U.fmtDisplay(date);
 
-  let optHtml = `<div class="popup-divider">Shifts</div>`;
-  CFG.SHIFTS.forEach(s => {
-    const isCur = s.code === currentCode;
-    optHtml += `
-      <div class="popup-option" onclick="applyShift('${escAttr(agentName)}','${date}','${s.code}')">
-        <div class="opt-chip" style="background:${s.bg};color:${s.color};">${s.short||s.code}</div>
-        <div>
-          <div class="opt-label" style="${isCur?'color:var(--navy);':''}">${s.label} ${isCur?'✓':''}</div>
-          <div class="opt-sub">${s.start} – ${s.end}</div>
-        </div>
-      </div>`;
+  // Store current context
+  popup.dataset.agent = agentName;
+  popup.dataset.date  = date;
+
+  // Build dropdown options
+  let shiftsHtml = '<option value="">— Select —</option>';
+  
+  // Shift options group
+  shiftsHtml += '<optgroup label="── Shifts ──">';
+  CFG.SHIFT_OPTIONS.filter(c => c !== 'OFF').forEach(code => {
+    const sel_mark = code === currentCode ? ' ✓' : '';
+    shiftsHtml += `<option value="${code}" ${code===currentCode?'selected':''}>${code}${sel_mark}</option>`;
   });
+  shiftsHtml += '</optgroup>';
 
-  optHtml += `<div class="popup-divider">Day Types</div>`;
-  CFG.DAY_TYPES.forEach(s => {
-    const isCur = s.code === currentCode;
-    optHtml += `
-      <div class="popup-option" onclick="applyShift('${escAttr(agentName)}','${date}','${s.code}')">
-        <div class="opt-chip" style="background:${s.bg};color:${s.color};">${s.short||s.code}</div>
-        <div>
-          <div class="opt-label" style="${isCur?'color:var(--navy);':''}">${s.label} ${isCur?'✓':''}</div>
-          <div class="opt-sub">&nbsp;</div>
-        </div>
-      </div>`;
+  // Day types group
+  shiftsHtml += '<optgroup label="── Day Off / Leave ──">';
+  CFG.DAY_TYPES.forEach(dt => {
+    const sel_mark = dt.code === currentCode ? ' ✓' : '';
+    shiftsHtml += `<option value="${dt.code}" ${dt.code===currentCode?'selected':''}>${dt.code} — ${dt.label}${sel_mark}</option>`;
   });
+  shiftsHtml += '</optgroup>';
 
-  document.getElementById('popup-options').innerHTML = optHtml;
+  sel.innerHTML = shiftsHtml;
+  if (currentCode) sel.value = currentCode;
 
-  // Show popup
-  popup.style.display = 'block';
-  backdrop.style.display = 'block';
-  // Show drag handle on mobile
-  const isMobile = window.innerWidth <= 600;
-  const handle = document.getElementById('popup-handle');
-  if (handle) handle.style.display = isMobile ? 'block' : 'none';
-
-  // Mobile: CSS handles bottom-sheet via media query
-  // Desktop: position near the clicked cell
-  if (window.innerWidth > 520) {
-    const rect = evt.currentTarget.getBoundingClientRect();
-    const pw = 220, ph = 380;
-    let top  = rect.bottom + 4;
-    let left = rect.left;
-    if (top + ph > window.innerHeight) top = Math.max(8, rect.top - ph - 4);
-    if (left + pw > window.innerWidth)  left = window.innerWidth - pw - 10;
-    if (left < 8) left = 8;
-    popup.style.top  = top  + 'px';
-    popup.style.left = left + 'px';
-    popup.style.maxHeight = Math.min(ph, window.innerHeight - top - 16) + 'px';
-    popup.style.overflowY = 'auto';
-  } else {
-    // Mobile: CSS handles positioning via media query (bottom sheet)
-    popup.style.top = ''; popup.style.left = '';
-    popup.style.maxHeight = '';
-  }
+  popup.style.display   = '';
+  backdrop.style.display = '';
+  popup.classList.add('popup-slide-up');
 }
+
+function applyFromDropdown() {
+  const popup = document.getElementById('cell-popup');
+  const sel   = document.getElementById('popup-select');
+  const code  = sel.value;
+  if (!code) { U.toast('Select a shift first','warn'); return; }
+  applyShift(popup.dataset.agent, popup.dataset.date, code);
+  closePopup();
+}
+
 
 function closePopup() {
   document.getElementById('cell-popup').style.display = 'none';
@@ -823,6 +828,17 @@ document.addEventListener('touchstart', e => {
 }, { passive: true });
 
 /* ── Boot ──────────────────────────────────────────── */
+/* ── Format ISO date for schedule display ─────────────── */
+function fmtDateHeader(iso) {
+  if (!iso) return iso;
+  // Already formatted? Return as-is
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
+  const d = new Date(iso + 'T00:00:00');
+  const days  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months= ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()];
+}
+
 init();
 </script>
 </body>
