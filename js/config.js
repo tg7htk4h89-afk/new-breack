@@ -25,11 +25,8 @@ var CFG = {
     UPDATE_SHIFT:      'https://n8n.kib-cc-wfm.com/webhook/kib-update-shift',
     SUBMIT_SCHEDREQ:   'https://n8n.kib-cc-wfm.com/webhook/kib-submit-schedrequest',
     NOTIFY:            'https://n8n.kib-cc-wfm.com/webhook/kib-notify',
-    MOOD_USERS:        'https://n8n.kib-cc-wfm.com/webhook/kib-mood-get-users',
-    MOOD_POSTS:        'https://n8n.kib-cc-wfm.com/webhook/kib-mood-get-posts',
-    MOOD_CREATE:       'https://n8n.kib-cc-wfm.com/webhook/kib-mood-create-post',
-    MOOD_COMMENT:      'https://n8n.kib-cc-wfm.com/webhook/kib-mood-add-comment',
-    MOOD_LIKE:         'https://n8n.kib-cc-wfm.com/webhook/kib-mood-toggle-like'
+    MOOD_GET:        'https://n8n.kib-cc-wfm.com/webhook/kib-mood-get',
+    MOOD_SUBMIT:     'https://n8n.kib-cc-wfm.com/webhook/kib-mood-submit'
   },
 
   SHEET_ID: '1j0So-QvjT10NtSfx8avDMob1bK4gem8FLJLs5yiEgi4',
