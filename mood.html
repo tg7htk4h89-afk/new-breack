@@ -127,6 +127,7 @@ input[type="date"].md-datepick::-webkit-calendar-picker-indicator { filter: inve
 
 /* Sticker wall grid */
 .sticker-wall {
+  min-height: 60px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
   gap: 10px;
@@ -185,7 +186,7 @@ input[type="date"].md-datepick::-webkit-calendar-picker-indicator { filter: inve
 <div id="kib-topbar"></div>
 <div id="user-strip-wrap"></div>
 
-<div class="page-content" style="padding-top:0;">
+<div class="page-content" style="padding-top:0; padding-bottom:90px;">
 
   <!-- HERO -->
   <div class="mood-hero">
@@ -260,7 +261,7 @@ const EMOJIS = [
   { e: '😴', label: 'Tired'       },
   { e: '🤯', label: 'Overwhelmed' },
   { e: '😤', label: 'Frustrated'  },
-  { e: '😔', label: 'Down'        },
+  { e: '🙁', label: 'Down'        },
   { e: '🤒', label: 'Unwell'      },
   { e: '☕', label: 'Need coffee'  },
   { e: '🚀', label: 'On fire'     },
