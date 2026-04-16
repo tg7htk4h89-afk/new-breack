@@ -3,269 +3,182 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0A2E5A">
 <title>KIB WFM — Daily Mood</title>
 <link rel="stylesheet" href="css/kib.css">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
 <style>
-/* ── MOOD PAGE STYLES ── */
+/* ── MOOD PAGE ── */
 .mood-hero {
   background: linear-gradient(135deg, #0A2E5A 0%, #0D3A70 60%, #005A6E 100%);
-  border-radius: 0 0 24px 24px;
-  padding: 20px 16px 18px;
-  margin-bottom: 14px;
+  border-radius: 0 0 28px 28px;
+  padding: 22px 16px 20px;
+  margin-bottom: 16px;
   position: relative; overflow: hidden;
-}
-.mood-hero::before {
-  content: '';
-  position: absolute; top: -40px; right: -40px;
-  width: 140px; height: 140px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(0,168,154,.25) 0%, transparent 70%);
 }
 .mood-hero::after {
   content: '✦';
-  position: absolute; bottom: 8px; right: 20px;
-  font-size: 48px; color: rgba(255,255,255,.05);
+  position: absolute; bottom: 10px; right: 18px;
+  font-size: 52px; color: rgba(255,255,255,.04);
+  line-height: 1;
 }
 .mood-hero-title {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: 22px; font-weight: 800; color: #fff;
-  letter-spacing: -.3px; margin-bottom: 3px;
+  font-size: 20px; font-weight: 800; color: #fff;
+  letter-spacing: -.3px; margin-bottom: 2px;
 }
-.mood-hero-sub { font-size: 12px; color: rgba(255,255,255,.55); margin-bottom: 14px; }
-.mood-date-nav { display: flex; align-items: center; gap: 8px; }
+.mood-hero-sub { font-size: 12px; color: rgba(255,255,255,.5); margin-bottom: 14px; }
+
+/* Date nav */
+.mood-date-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
 .md-arrow {
-  width: 32px; height: 32px;
+  width: 30px; height: 30px;
   border: 1.5px solid rgba(255,255,255,.2);
-  border-radius: 9px;
-  background: rgba(255,255,255,.08);
-  color: #fff; font-size: 16px; font-weight: 800;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  border-radius: 9px; background: rgba(255,255,255,.08);
+  color: #fff; font-size: 15px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
   transition: background .12s; flex-shrink: 0;
 }
 .md-arrow:hover { background: rgba(255,255,255,.18); }
-.md-arrow:disabled { opacity: .35; cursor: not-allowed; }
-.mood-date-val {
-  flex: 1; font-size: 13px; font-weight: 700; color: #fff;
-  display: flex; align-items: center; gap: 6px;
-}
-.today-badge {
-  font-size: 9px; font-weight: 700; background: var(--teal);
-  color: #fff; padding: 2px 7px; border-radius: 20px;
-}
+.md-arrow:disabled { opacity: .3; cursor: not-allowed; }
+.mood-date-val { flex: 1; font-size: 13px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 6px; }
+.today-badge { font-size: 9px; font-weight: 700; background: var(--teal); color: #fff; padding: 2px 7px; border-radius: 20px; }
 input[type="date"].md-datepick {
   background: rgba(255,255,255,.1); border: 1.5px solid rgba(255,255,255,.2);
-  border-radius: 9px; color: #fff; padding: 5px 8px;
-  font-size: 11px; cursor: pointer; outline: none;
+  border-radius: 9px; color: #fff; padding: 5px 8px; font-size: 11px; cursor: pointer; outline: none;
 }
 input[type="date"].md-datepick::-webkit-calendar-picker-indicator { filter: invert(1) opacity(.6); }
-.mood-stats { display: flex; gap: 8px; margin-top: 12px; }
-.mood-stat {
-  flex: 1; background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 10px; padding: 8px 10px; text-align: center;
-}
-.mood-stat-n { font-size: 18px; font-weight: 800; color: #FFD285; line-height: 1; }
-.mood-stat-l { font-size: 9px; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .4px; margin-top: 2px; }
 
-/* Create card */
-.mood-create {
-  background: var(--white); border-radius: 18px;
+/* Mood stats bar */
+.mood-stats { display: flex; gap: 6px; flex-wrap: wrap; }
+.mood-stat {
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.12);
+  border-radius: 20px; padding: 5px 12px;
+  font-size: 13px; color: #fff; font-weight: 600;
+  display: flex; align-items: center; gap: 5px;
+}
+.mood-stat-count { font-size: 11px; color: rgba(255,255,255,.6); }
+
+/* ── EMOJI PICKER CARD ── */
+.picker-card {
+  background: var(--white); border-radius: 20px;
   border: 1px solid var(--border2); box-shadow: var(--shadow);
   overflow: hidden; margin-bottom: 14px;
 }
-.mood-create-hdr {
-  padding: 12px 16px; border-bottom: 1px solid var(--border2);
+.picker-card-hdr {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border2);
+}
+.picker-card-title { font-size: 13px; font-weight: 700; color: var(--t1); }
+.picker-card-sub   { font-size: 11px; color: var(--t3); margin-top: 2px; }
+
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  padding: 14px 16px;
+}
+.emoji-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: var(--bg); border: 2px solid transparent;
+  border-radius: 14px; padding: 10px 4px;
+  cursor: pointer; transition: all .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.emoji-btn:hover { background: rgba(10,46,90,.06); border-color: rgba(10,46,90,.15); }
+.emoji-btn.selected {
+  background: rgba(10,46,90,.08);
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(10,46,90,.1);
+}
+.emoji-btn .emoji-glyph { font-size: 28px; line-height: 1; }
+.emoji-btn .emoji-label { font-size: 9px; font-weight: 700; color: var(--t2); text-align: center; line-height: 1.2; }
+.emoji-btn.selected .emoji-label { color: var(--navy); }
+
+.picker-footer {
+  padding: 10px 16px 14px;
+  border-top: 1px solid var(--border2);
   display: flex; align-items: center; gap: 10px;
 }
-.mood-create-av {
-  width: 38px; height: 38px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--navy), var(--teal));
-  display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 800; color: #fff; flex-shrink: 0;
+.selected-preview {
+  flex: 1; display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--t3);
 }
-.mood-create-name { font-size: 13px; font-weight: 700; color: var(--t1); }
-.mood-create-dept { font-size: 11px; color: var(--t3); }
-.mood-create-body { padding: 12px 16px; }
-
-.mood-textarea {
-  width: 100%;
-  border: 1.5px solid var(--border2);
-  border-radius: 12px;
-  padding: 10px 13px;
-  font-family: var(--ff, 'DM Sans', sans-serif);
-  font-size: 13px; color: var(--t1);
-  background: var(--bg); outline: none; resize: none;
-  min-height: 72px; line-height: 1.5;
-  transition: border-color .15s;
-}
-.mood-textarea:focus { border-color: var(--navy); background: #fff; }
-.mood-textarea::placeholder { color: var(--t3); }
-
-.upload-zone {
-  border: 2px dashed var(--border2);
-  border-radius: 12px; background: var(--bg);
-  padding: 18px; text-align: center; cursor: pointer;
-  position: relative; transition: border-color .12s, background .12s;
-  margin-top: 10px;
-}
-.upload-zone:hover, .upload-zone.over { border-color: var(--teal); background: rgba(0,168,154,.04); }
-.upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-.upload-zone-icon { font-size: 22px; }
-.upload-zone-txt { font-size: 12px; font-weight: 600; color: var(--t2); margin-top: 4px; }
-.upload-zone-hint { font-size: 10px; color: var(--t3); margin-top: 2px; }
-
-.img-preview-wrap {
-  display: none; position: relative; border-radius: 12px;
-  overflow: hidden; background: var(--bg); aspect-ratio: 4/3; margin-top: 10px;
-}
-.img-preview-wrap img { width: 100%; height: 100%; object-fit: cover; }
-.img-remove-btn {
-  position: absolute; top: 8px; right: 8px;
-  width: 26px; height: 26px; border-radius: 50%;
-  background: rgba(0,0,0,.55); border: none;
-  color: #fff; font-size: 12px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-}
-.mood-create-foot {
-  padding: 10px 16px 14px;
-  display: flex; gap: 8px;
-  border-top: 1px solid var(--border2);
-}
-.btn-mood-post {
-  flex: 1; padding: 10px;
+.selected-preview .sp-emoji { font-size: 22px; }
+.selected-preview .sp-label { font-size: 12px; font-weight: 600; color: var(--t1); }
+.btn-submit-mood {
+  padding: 10px 20px;
   background: var(--navy); color: #fff;
   border: none; border-radius: 12px;
   font-size: 13px; font-weight: 700; cursor: pointer;
-  transition: background .12s; display: flex; align-items: center; justify-content: center; gap: 5px;
+  transition: background .12s; white-space: nowrap;
+  display: flex; align-items: center; gap: 5px;
 }
-.btn-mood-post:hover { background: var(--navy2); }
-.btn-mood-post:disabled { background: var(--t3); cursor: not-allowed; }
-.btn-mood-clear {
-  padding: 10px 14px;
-  background: var(--bg); border: 1.5px solid var(--border2);
-  color: var(--t2); border-radius: 12px;
-  font-size: 13px; font-weight: 600; cursor: pointer;
-}
+.btn-submit-mood:hover { background: var(--teal); }
+.btn-submit-mood:disabled { background: var(--t3); cursor: not-allowed; }
 
-/* Feed */
-.feed-divider {
+/* ── STICKER WALL ── */
+.wall-section-label {
   text-align: center; font-size: 10px; font-weight: 700;
   color: var(--t3); text-transform: uppercase; letter-spacing: .8px;
   display: flex; align-items: center; gap: 10px; margin: 14px 0 12px;
 }
-.feed-divider::before, .feed-divider::after { content:''; flex:1; height:1px; background:var(--border2); }
+.wall-section-label::before, .wall-section-label::after {
+  content: ''; flex: 1; height: 1px; background: var(--border2);
+}
 
-/* Post card */
-.post-card {
+/* Sticker wall grid */
+.sticker-wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 10px;
+}
+.sticker {
   background: var(--white);
-  border-radius: 18px;
+  border-radius: 16px;
   border: 1px solid var(--border2);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  margin-bottom: 14px;
-  animation: pFadeUp .35s ease both;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  padding: 14px 8px 10px;
+  text-align: center;
+  animation: stickerPop .3s cubic-bezier(.34,1.56,.64,1) both;
+  transition: transform .15s, box-shadow .15s;
+  position: relative;
 }
-@keyframes pFadeUp { from { opacity:0; transform:translateY(12px); } }
+.sticker:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,.1); }
+.sticker.is-me {
+  border-color: var(--navy);
+  background: linear-gradient(135deg, rgba(10,46,90,.04) 0%, rgba(0,168,154,.04) 100%);
+}
+.sticker.is-me::after {
+  content: 'You';
+  position: absolute; top: 6px; right: 6px;
+  font-size: 8px; font-weight: 800;
+  background: var(--navy); color: #fff;
+  padding: 1px 5px; border-radius: 8px;
+}
+@keyframes stickerPop { from { opacity:0; transform:scale(.7) translateY(8px); } }
 
-.post-hdr {
-  display: flex; align-items: center; gap: 9px;
-  padding: 12px 14px 8px;
-}
-.post-av {
-  width: 38px; height: 38px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 800; color: #fff; flex-shrink: 0;
-}
-.post-av img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-.post-uname { font-size: 13px; font-weight: 700; color: var(--t1); }
-.post-umeta { font-size: 10px; color: var(--t3); }
-.post-time {
-  margin-left: auto; font-size: 10px; color: var(--t3);
-  background: var(--bg); padding: 2px 8px; border-radius: 20px;
-}
-.post-img { width: 100%; aspect-ratio: 4/3; background: var(--bg); overflow: hidden; }
-.post-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s; }
-.post-card:hover .post-img img { transform: scale(1.02); }
+.sticker-emoji { font-size: 34px; line-height: 1; margin-bottom: 6px; display: block; }
+.sticker-name  { font-size: 10px; font-weight: 700; color: var(--t1); line-height: 1.3; word-break: break-word; }
+.sticker-label { font-size: 9px; color: var(--t3); margin-top: 2px; }
+.sticker-time  { font-size: 9px; color: var(--t3); margin-top: 3px; }
 
-.post-actions {
-  padding: 8px 14px 0;
-  display: flex; align-items: center; gap: 4px;
+/* Group header */
+.emoji-group-hdr {
+  grid-column: 1 / -1;
+  font-size: 12px; font-weight: 700; color: var(--t2);
+  padding: 6px 0 2px;
+  display: flex; align-items: center; gap: 8px;
 }
-.btn-like {
-  display: flex; align-items: center; gap: 4px;
-  background: none; border: none; cursor: pointer;
-  font-size: 12px; font-weight: 600; color: var(--t2);
-  padding: 5px 10px; border-radius: 10px; transition: background .1s, color .1s;
-}
-.btn-like:hover { background: rgba(217,64,64,.07); color: #D94040; }
-.btn-like.liked { color: #D94040; }
-.btn-like .lico { font-size: 15px; }
-.btn-like.liked .lico::before { content: '❤️'; }
-.lico::before { content: '🤍'; }
-.btn-show-cmts {
-  display: flex; align-items: center; gap: 4px;
-  background: none; border: none; cursor: pointer;
-  font-size: 12px; font-weight: 600; color: var(--t2);
-  padding: 5px 10px; border-radius: 10px; transition: background .1s;
-}
-.btn-show-cmts:hover { background: rgba(10,46,90,.07); color: var(--navy); }
-
-.post-caption {
-  padding: 6px 14px 10px;
-  font-size: 13px; line-height: 1.5; color: var(--t1);
-}
-.post-caption .pname { font-weight: 700; color: var(--navy); margin-right: 4px; }
-
-/* Comments */
-.cmt-section { border-top: 1px solid var(--border2); padding: 10px 14px 12px; }
-.cmt-item { display: flex; gap: 7px; margin-bottom: 7px; }
-.cmt-av {
-  width: 26px; height: 26px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 8px; font-weight: 800; color: #fff; flex-shrink: 0;
-}
-.cmt-bubble { background: var(--bg); border-radius: 0 10px 10px 10px; padding: 5px 9px; flex: 1; }
-.cmt-uname { font-size: 11px; font-weight: 700; color: var(--navy); }
-.cmt-text { font-size: 12px; color: var(--t1); margin-top: 1px; line-height: 1.4; }
-.cmt-time { font-size: 9px; color: var(--t3); margin-top: 2px; }
-
-.add-cmt { display: flex; gap: 7px; align-items: center; margin-top: 8px; }
-.add-cmt-av {
-  width: 26px; height: 26px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--navy), var(--teal));
-  display: flex; align-items: center; justify-content: center;
-  font-size: 8px; font-weight: 800; color: #fff; flex-shrink: 0;
-}
-.cmt-input {
-  flex: 1; padding: 7px 12px;
-  border: 1.5px solid var(--border2); border-radius: 20px;
-  font-size: 12px; color: var(--t1); background: var(--bg); outline: none;
-  transition: border-color .12s;
-}
-.cmt-input:focus { border-color: var(--navy); background: #fff; }
-.cmt-input::placeholder { color: var(--t3); }
-.btn-send-cmt {
-  padding: 6px 12px;
-  background: var(--navy); color: #fff; border: none;
-  border-radius: 20px; font-size: 11px; font-weight: 700;
-  cursor: pointer; white-space: nowrap;
-  transition: background .1s;
-}
-.btn-send-cmt:hover { background: var(--teal); }
-.btn-send-cmt:disabled { background: var(--t3); cursor: not-allowed; }
+.emoji-group-hdr::after { content: ''; flex:1; height:1px; background: var(--border2); }
 
 /* Empty / loading */
 .mood-empty {
-  text-align: center; padding: 48px 20px;
-  background: var(--white); border-radius: 18px;
-  border: 1px solid var(--border2);
+  grid-column: 1 / -1;
+  text-align: center; padding: 40px 20px;
+  background: var(--white); border-radius: 16px; border: 1px solid var(--border2);
 }
-.mood-empty-emoji { font-size: 44px; display: block; margin-bottom: 12px; }
-.mood-empty h3 { font-size: 17px; font-weight: 700; color: var(--t1); margin-bottom: 6px; }
-.mood-empty p { font-size: 13px; color: var(--t3); line-height: 1.5; max-width: 260px; margin: 0 auto; }
+.mood-empty-emoji { font-size: 40px; display: block; margin-bottom: 10px; }
+.mood-empty h3    { font-size: 16px; font-weight: 700; margin-bottom: 5px; }
+.mood-empty p     { font-size: 12px; color: var(--t3); }
 </style>
 </head>
 <body>
@@ -276,8 +189,8 @@ input[type="date"].md-datepick::-webkit-calendar-picker-indicator { filter: inve
 
   <!-- HERO -->
   <div class="mood-hero">
-    <div class="mood-hero-title">Share Your Mood ✦</div>
-    <div class="mood-hero-sub">How's the team feeling today?</div>
+    <div class="mood-hero-title">Team Mood Board ✦</div>
+    <div class="mood-hero-sub">How's everyone feeling today?</div>
     <div class="mood-date-nav">
       <button class="md-arrow" id="btn-prev">‹</button>
       <div class="mood-date-val">
@@ -287,45 +200,37 @@ input[type="date"].md-datepick::-webkit-calendar-picker-indicator { filter: inve
       <input type="date" class="md-datepick" id="mood-datepick">
       <button class="md-arrow" id="btn-next">›</button>
     </div>
-    <div class="mood-stats">
-      <div class="mood-stat"><div class="mood-stat-n" id="ms-posts">—</div><div class="mood-stat-l">Posts</div></div>
-      <div class="mood-stat"><div class="mood-stat-n" id="ms-cmts">—</div><div class="mood-stat-l">Comments</div></div>
-      <div class="mood-stat"><div class="mood-stat-n" id="ms-likes">—</div><div class="mood-stat-l">Reactions</div></div>
+    <div class="mood-stats" id="mood-stats">
+      <!-- filled by JS -->
     </div>
   </div>
 
-  <!-- CREATE (today only) -->
-  <div class="mood-create" id="create-section">
-    <div class="mood-create-hdr">
-      <div class="mood-create-av" id="create-av">?</div>
-      <div>
-        <div class="mood-create-name" id="create-name">Loading…</div>
-        <div class="mood-create-dept" id="create-dept"></div>
-      </div>
+  <!-- EMOJI PICKER (today only) -->
+  <div class="picker-card" id="picker-card">
+    <div class="picker-card-hdr">
+      <div class="picker-card-title">How are you feeling today?</div>
+      <div class="picker-card-sub" id="picker-sub">Pick one emoji that best describes your mood</div>
     </div>
-    <div class="mood-create-body">
-      <textarea class="mood-textarea" id="mood-caption" placeholder="What's on your mind today? Share a win, a thought, or just your mood 😊" rows="3"></textarea>
-      <div class="upload-zone" id="upload-zone">
-        <input type="file" id="img-input" accept="image/jpeg,image/png,image/webp">
-        <div class="upload-zone-icon">📷</div>
-        <div class="upload-zone-txt">Add a photo (optional)</div>
-        <div class="upload-zone-hint">JPG, PNG or WebP · Max 5 MB</div>
-      </div>
-      <div class="img-preview-wrap" id="img-preview-wrap">
-        <img id="preview-img" src="" alt="">
-        <button class="img-remove-btn" id="remove-img">✕</button>
-      </div>
+    <div class="emoji-grid" id="emoji-grid">
+      <!-- injected by JS -->
     </div>
-    <div class="mood-create-foot">
-      <button class="btn-mood-clear" id="btn-clear">Clear</button>
-      <button class="btn-mood-post" id="btn-post">✦ Share Mood</button>
+    <div class="picker-footer">
+      <div class="selected-preview" id="sel-preview">
+        <span>Tap an emoji above</span>
+      </div>
+      <button class="btn-submit-mood" id="btn-submit" disabled>
+        Share Mood
+      </button>
     </div>
   </div>
 
-  <div class="feed-divider"><span id="feed-lbl">Today's Vibes</span></div>
-
-  <div id="mood-feed">
-    <div class="feed-loading"><div class="kib-spin"></div> Loading…</div>
+  <!-- STICKER WALL -->
+  <div class="wall-section-label"><span id="wall-lbl">Today's Vibes</span></div>
+  <div class="sticker-wall" id="sticker-wall">
+    <div class="feed-loading" style="grid-column:1/-1;padding:32px;text-align:center;">
+      <div class="kib-spin" style="margin:0 auto 8px;"></div>
+      <div style="font-size:12px;color:var(--t3);">Loading moods…</div>
+    </div>
   </div>
 
 </div>
@@ -338,322 +243,237 @@ input[type="date"].md-datepick::-webkit-calendar-picker-indicator { filter: inve
 <script src="js/nav.js"></script>
 <script>
 if (!Auth.guard()) throw 0;
-
 const user = Auth.user();
 Nav.init('mood');
-document.getElementById('user-strip-wrap').innerHTML = Nav.renderUserStrip();
+document.getElementById('user-strip-wrap').innerHTML = Nav.renderUserStrip ? Nav.renderUserStrip() : '';
 
-/* ── STATE ── */
+/* ── EMOJI OPTIONS ──────────────────────────────────────── */
+const EMOJIS = [
+  { e: '😄', label: 'Happy'       },
+  { e: '🤩', label: 'Excited'     },
+  { e: '😎', label: 'Confident'   },
+  { e: '🙏', label: 'Grateful'    },
+  { e: '💪', label: 'Motivated'   },
+  { e: '😊', label: 'Good'        },
+  { e: '😐', label: 'Neutral'     },
+  { e: '🤔', label: 'Thinking'    },
+  { e: '😴', label: 'Tired'       },
+  { e: '🤯', label: 'Overwhelmed' },
+  { e: '😤', label: 'Frustrated'  },
+  { e: '😔', label: 'Down'        },
+  { e: '🤒', label: 'Unwell'      },
+  { e: '☕', label: 'Need coffee'  },
+  { e: '🚀', label: 'On fire'     },
+];
+
+/* ── STATE ─────────────────────────────────────────────── */
 let selDate = U.today();
-let posts   = [];
-let imgFile = null, imgB64 = null;
+let selEmoji = null;
+let moods = [];
 
-const AV_COLORS = ['#0A2E5A','#007060','#7A3B00','#4A1580','#8B2500','#005A8B'];
+/* ── UTILITIES ─────────────────────────────────────────── */
+function addDays(iso, n) {
+  const d = new Date(iso + 'T00:00:00');
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+function fmtDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { weekday:'long', day:'numeric', month:'long' });
+}
+function fmtTime(dt) {
+  if (!dt) return '';
+  try { return new Date(dt).toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' }); }
+  catch { return ''; }
+}
+function uid() {
+  const n = new Date();
+  return `${n.getFullYear()}${String(n.getMonth()+1).padStart(2,'0')}${String(n.getDate()).padStart(2,'0')}-${String(n.getHours()).padStart(2,'0')}${String(n.getMinutes()).padStart(2,'0')}${String(n.getSeconds()).padStart(2,'0')}-${String(Math.random()*1000|0).padStart(3,'0')}`;
+}
+function myUserId() { return user.user_id || user.id || ''; }
+function myName()   { return user.name || user.full_name || ''; }
 
-/* ── UTILS ── */
-function initials(n='') { return n.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase()||'?'; }
-function avColor(n='') { let h=0; for(let i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))&0xFFFFFF; return AV_COLORS[Math.abs(h)%AV_COLORS.length]; }
-function fmtDate(iso) { if(!iso)return''; const d=new Date(iso+'T00:00:00'); return d.toLocaleDateString('en-US',{weekday:'long',day:'numeric',month:'long'}); }
-function fmtTime(dt) { if(!dt)return''; try{ return new Date(dt).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}); }catch{return'';} }
-function addDays(iso,n) { const d=new Date(iso+'T00:00:00'); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
-function uid() { const n=new Date(); return `${n.getFullYear()}${String(n.getMonth()+1).padStart(2,'0')}${String(n.getDate()).padStart(2,'0')}-${String(n.getHours()).padStart(2,'0')}${String(n.getMinutes()).padStart(2,'0')}${String(n.getSeconds()).padStart(2,'0')}-${String(Math.random()*1000|0).padStart(3,'0')}`; }
-function esc(s='') { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
-
-/* ── RENDER DATE HEADER ── */
+/* ── RENDER HEADER ─────────────────────────────────────── */
 function renderHeader() {
   const isToday = selDate === U.today();
   document.getElementById('mood-date-lbl').textContent = fmtDate(selDate);
   document.getElementById('today-badge').style.display = isToday ? '' : 'none';
   document.getElementById('mood-datepick').value = selDate;
   document.getElementById('btn-next').disabled = isToday;
-  document.getElementById('create-section').style.display = isToday ? '' : 'none';
-  document.getElementById('feed-lbl').textContent = isToday ? "Today's Vibes" : `Feed · ${fmtDate(selDate)}`;
+  document.getElementById('picker-card').style.display = isToday ? '' : 'none';
+  document.getElementById('wall-lbl').textContent = isToday ? "Today's Vibes" : `Moods · ${fmtDate(selDate)}`;
 }
 
+/* ── RENDER EMOJI GRID ─────────────────────────────────── */
+function renderPicker() {
+  const myMood = moods.find(m => m.user_id === myUserId());
+  const grid = document.getElementById('emoji-grid');
+
+  grid.innerHTML = EMOJIS.map(({ e, label }) => {
+    const isSelected = selEmoji === e || (myMood && myMood.emoji === e);
+    return `<button class="emoji-btn ${isSelected ? 'selected' : ''}" onclick="pickEmoji('${e}', '${label}')">
+      <span class="emoji-glyph">${e}</span>
+      <span class="emoji-label">${label}</span>
+    </button>`;
+  }).join('');
+
+  // If already submitted today, pre-select their current mood
+  if (myMood && !selEmoji) {
+    selEmoji = myMood.emoji;
+    const sub = document.getElementById('picker-sub');
+    sub.textContent = `You shared "${myMood.emoji_label}" today — tap a different one to update`;
+    updatePreview(myMood.emoji, myMood.emoji_label);
+  }
+}
+
+function pickEmoji(e, label) {
+  selEmoji = e;
+  // Update UI
+  document.querySelectorAll('.emoji-btn').forEach(btn => btn.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  updatePreview(e, label);
+  document.getElementById('btn-submit').disabled = false;
+}
+
+function updatePreview(e, label) {
+  document.getElementById('sel-preview').innerHTML =
+    `<span class="sp-emoji">${e}</span><span class="sp-label">${label}</span>`;
+  document.getElementById('btn-submit').disabled = false;
+}
+
+/* ── RENDER STATS BAR ──────────────────────────────────── */
 function renderStats() {
-  const totalCmts  = posts.reduce((s,p)=>(s+(p.comments||[]).length),0);
-  const totalLikes = posts.reduce((s,p)=>(s+(p.likes_count||0)),0);
-  document.getElementById('ms-posts').textContent  = posts.length;
-  document.getElementById('ms-cmts').textContent   = totalCmts;
-  document.getElementById('ms-likes').textContent  = totalLikes;
+  const counts = {};
+  moods.forEach(m => {
+    const key = m.emoji + '|' + m.emoji_label;
+    counts[key] = (counts[key] || 0) + 1;
+  });
+  const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0, 5);
+  document.getElementById('mood-stats').innerHTML = sorted.map(([key, n]) => {
+    const [emoji] = key.split('|');
+    return `<div class="mood-stat"><span>${emoji}</span><span class="mood-stat-count">${n}</span></div>`;
+  }).join('') + (moods.length ? `<div class="mood-stat"><span style="font-size:10px;">👥</span><span class="mood-stat-count">${moods.length} shared</span></div>` : '');
 }
 
-/* ── RENDER USER IN CREATE BOX ── */
-function renderCreateUser() {
-  const name = user.name||user.full_name||'You';
-  const dept = user.dept||user.department||'';
-  const role = user.role||'';
-  const av = document.getElementById('create-av');
-  av.textContent = initials(name);
-  av.style.background = `linear-gradient(135deg, ${avColor(name)}, var(--teal))`;
-  document.getElementById('create-name').textContent = name;
-  document.getElementById('create-dept').textContent = [role, dept].filter(Boolean).join(' · ');
-}
-
-/* ── RENDER FEED ── */
-function renderFeed() {
-  const feed = document.getElementById('mood-feed');
-  if (!posts.length) {
-    feed.innerHTML = `<div class="mood-empty"><span class="mood-empty-emoji">🌤</span><h3>No moods shared yet</h3><p>Be the first to share your mood for ${esc(fmtDate(selDate))}!</p></div>`;
+/* ── RENDER STICKER WALL ────────────────────────────────── */
+function renderWall() {
+  const wall = document.getElementById('sticker-wall');
+  if (!moods.length) {
+    wall.innerHTML = `<div class="mood-empty">
+      <span class="mood-empty-emoji">🌤</span>
+      <h3>No moods yet</h3>
+      <p>Be the first to share how you're feeling!</p>
+    </div>`;
     return;
   }
-  feed.innerHTML = posts.map(renderPostCard).join('');
-  renderStats();
+
+  // Group by emoji
+  const groups = {};
+  moods.forEach(m => {
+    const k = m.emoji;
+    if (!groups[k]) groups[k] = [];
+    groups[k].push(m);
+  });
+
+  // Sort groups by count
+  const sortedGroups = Object.entries(groups).sort((a,b) => b[1].length - a[1].length);
+
+  let html = '';
+  sortedGroups.forEach(([emoji, entries]) => {
+    const label = entries[0].emoji_label;
+    html += `<div class="emoji-group-hdr">${emoji} ${label} <span style="font-size:10px;color:var(--t3);font-weight:400;">(${entries.length})</span></div>`;
+    entries.forEach(m => {
+      const isMe = m.user_id === myUserId();
+      const firstName = (m.user_name||'').split(' ')[0];
+      html += `<div class="sticker ${isMe ? 'is-me' : ''}">
+        <span class="sticker-emoji">${emoji}</span>
+        <div class="sticker-name">${firstName}</div>
+        <div class="sticker-label">${m.department||''}</div>
+        <div class="sticker-time">${fmtTime(m.created_at)}</div>
+      </div>`;
+    });
+  });
+
+  wall.innerHTML = html;
 }
 
-function renderPostCard(p) {
-  const avBg  = avColor(p.user_name||'');
-  const isMe  = p.user_id === (user.user_id||user.id||'');
-  const liked = p.user_liked || isMe && posts.find(x=>x.post_id===p.post_id)?.user_liked;
-  const meta  = [p.department, p.role].filter(Boolean).join(' · ');
-
-  const cmtsHtml = (p.comments||[]).map(c=>`
-    <div class="cmt-item">
-      <div class="cmt-av" style="background:${avColor(c.user_name)};">${initials(c.user_name)}</div>
-      <div class="cmt-bubble">
-        <div class="cmt-uname">${esc(c.user_name)}</div>
-        <div class="cmt-text">${esc(c.comment_text)}</div>
-        <div class="cmt-time">${fmtTime(c.comment_datetime)}</div>
-      </div>
-    </div>`).join('');
-
-  const imgHtml = p.image_url
-    ? `<div class="post-img"><img src="${esc(p.image_url)}" alt="post image" loading="lazy"></div>`
-    : '';
-
-  return `<div class="post-card" id="pc-${esc(p.post_id)}">
-    <div class="post-hdr">
-      <div class="post-av" style="background:${avBg};">${initials(p.user_name)}</div>
-      <div>
-        <div class="post-uname">${esc(p.user_name)}</div>
-        ${meta?`<div class="post-umeta">${esc(meta)}</div>`:''}
-      </div>
-      <div class="post-time">${fmtTime(p.post_datetime)}</div>
-    </div>
-    ${imgHtml}
-    <div class="post-actions">
-      <button class="btn-like ${liked?'liked':''}" onclick="onLike('${esc(p.post_id)}')">
-        <span class="lico"></span>
-        <span id="lc-${esc(p.post_id)}">${p.likes_count||0}</span>
-      </button>
-      <button class="btn-show-cmts" onclick="toggleCmts('${esc(p.post_id)}')">
-        💬 <span id="cc-${esc(p.post_id)}">${(p.comments||[]).length}</span>
-      </button>
-    </div>
-    <div class="post-caption">
-      <span class="pname">${esc(p.user_name.split(' ')[0])}</span>${esc(p.caption_text)}
-    </div>
-    <div class="cmt-section" id="cs-${esc(p.post_id)}">
-      <div id="cl-${esc(p.post_id)}">${cmtsHtml}</div>
-      <div class="add-cmt">
-        <div class="add-cmt-av" style="background:${avColor(user.name||'')}">${initials(user.name||user.full_name||'?')}</div>
-        <input class="cmt-input" id="ci-${esc(p.post_id)}" placeholder="Add a comment…"
-          onkeydown="if(event.key==='Enter')onComment('${esc(p.post_id)}')">
-        <button class="btn-send-cmt" onclick="onComment('${esc(p.post_id)}')">Post</button>
-      </div>
-    </div>
-  </div>`;
-}
-
-function toggleCmts(pid) {
-  const el = document.getElementById(`cs-${pid}`);
-  if (el) el.style.display = el.style.display==='none' ? '' : 'none';
-}
-
-/* ── LOAD FEED ── */
-async function loadFeed(date) {
-  document.getElementById('mood-feed').innerHTML = '<div class="feed-loading"><div class="kib-spin"></div> Loading…</div>';
+/* ── LOAD ───────────────────────────────────────────────── */
+async function loadMoods(date) {
+  document.getElementById('sticker-wall').innerHTML =
+    `<div style="grid-column:1/-1;padding:32px;text-align:center;">
+      <div class="kib-spin" style="margin:0 auto 8px;"></div>
+      <div style="font-size:12px;color:var(--t3);">Loading…</div>
+    </div>`;
   try {
-    const res = await fetch(`${CFG.N8N.MOOD_POSTS}`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
+    const res = await fetch(CFG.N8N.MOOD_GET, {
+      method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ date })
     });
     const data = await res.json();
     if (!data.success) throw new Error(data.message);
-    posts = data.data || [];
-    // Mark user_liked based on current user
-    const uid_ = user.user_id || user.id || '';
-    posts.forEach(p => {
-      p.user_liked = !!(p.liked_users||[]).includes(uid_);
-    });
-    renderFeed();
+    moods = data.data || [];
     renderStats();
+    renderPicker();
+    renderWall();
   } catch(e) {
-    document.getElementById('mood-feed').innerHTML =
-      `<div class="mood-empty"><span class="mood-empty-emoji">⚠️</span><h3>Couldn't load</h3><p>${esc(e.message)}</p></div>`;
-    U.toast('Feed error: '+e.message,'err');
+    document.getElementById('sticker-wall').innerHTML =
+      `<div class="mood-empty"><span class="mood-empty-emoji">⚠️</span><h3>Couldn't load</h3><p>${e.message}</p></div>`;
+    U.toast('Failed to load moods', 'err');
   }
 }
 
-/* ── CREATE POST ── */
-async function onPost() {
-  const caption = document.getElementById('mood-caption').value.trim();
-  if (!caption || caption.length < 2) { U.toast('Please write something first 😊', 'warn'); return; }
-  if (caption.length > 500) { U.toast('Caption too long (max 500 chars)', 'warn'); return; }
-
-  const btn = document.getElementById('btn-post');
-  btn.disabled = true; btn.textContent = '⏳ Posting…';
+/* ── SUBMIT ─────────────────────────────────────────────── */
+async function submitMood() {
+  if (!selEmoji) return;
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true; btn.textContent = '⏳';
 
   try {
-    const name = user.name || user.full_name || '';
-    const res = await fetch(CFG.N8N.MOOD_CREATE, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
+    const emojiObj = EMOJIS.find(x => x.e === selEmoji);
+    const res = await fetch(CFG.N8N.MOOD_SUBMIT, {
+      method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        post_id:       'POST-' + uid(),
-        post_date:     selDate,
-        post_datetime: new Date().toISOString(),
-        user_id:       user.user_id || user.id || '',
-        user_name:     name,
-        employee_id:   user.employee_id || '',
-        department:    user.dept || user.department || '',
-        role:          user.role || '',
-        caption_text:  caption,
-        created_at:    new Date().toISOString(),
-        image_b64:     imgB64 || '',
-        image_name:    imgFile ? imgFile.name : '',
-        image_type:    imgFile ? imgFile.type : '',
+        mood_id:     'MOOD-' + uid(),
+        mood_date:   selDate,
+        user_id:     myUserId(),
+        user_name:   myName(),
+        employee_id: user.employee_id || '',
+        department:  user.dept || user.department || '',
+        role:        user.role || '',
+        emoji:       selEmoji,
+        emoji_label: emojiObj ? emojiObj.label : selEmoji,
+        created_at:  new Date().toISOString(),
       })
     });
     const data = await res.json();
     if (!data.success) throw new Error(data.message);
-    U.toast('Mood shared! 🎉', 'ok');
-    clearCreate();
-    await loadFeed(selDate);
+    U.toast('Mood shared! ' + selEmoji, 'ok');
+    await loadMoods(selDate);
   } catch(e) {
-    U.toast('Failed to post: ' + e.message, 'err');
+    U.toast('Failed: ' + e.message, 'err');
   } finally {
-    btn.disabled = false; btn.textContent = '✦ Share Mood';
+    btn.disabled = false; btn.textContent = 'Share Mood';
   }
 }
 
-/* ── LIKE ── */
-async function onLike(postId) {
-  const btn = document.querySelector(`#pc-${postId} .btn-like`);
-  if (btn) btn.disabled = true;
-  try {
-    const res = await fetch(CFG.N8N.MOOD_LIKE, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        like_id:   'LIKE-' + uid(),
-        post_id:   postId,
-        user_id:   user.user_id || user.id || '',
-        user_name: user.name || user.full_name || '',
-        created_at: new Date().toISOString(),
-      })
-    });
-    const data = await res.json();
-    if (!data.success) throw new Error(data.message);
-    const lc = document.getElementById(`lc-${postId}`);
-    if (lc) lc.textContent = data.data.likes_count;
-    if (btn) btn.classList.toggle('liked', data.data.user_liked);
-    const p = posts.find(x=>x.post_id===postId);
-    if (p) { p.likes_count = data.data.likes_count; p.user_liked = data.data.user_liked; }
-  } catch(e) {
-    U.toast('Reaction failed', 'err');
-  } finally {
-    if (btn) btn.disabled = false;
-  }
-}
-
-/* ── COMMENT ── */
-async function onComment(postId) {
-  const inp = document.getElementById(`ci-${postId}`);
-  const txt = inp?.value?.trim() || '';
-  if (!txt) { U.toast('Comment cannot be empty', 'warn'); return; }
-
-  const sendBtn = inp?.nextElementSibling;
-  if (sendBtn) sendBtn.disabled = true;
-
-  try {
-    const name = user.name || user.full_name || '';
-    const res = await fetch(CFG.N8N.MOOD_COMMENT, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        comment_id:       'COM-' + uid(),
-        post_id:          postId,
-        comment_date:     selDate,
-        comment_datetime: new Date().toISOString(),
-        user_id:          user.user_id || user.id || '',
-        user_name:        name,
-        comment_text:     txt,
-        created_at:       new Date().toISOString(),
-        status:           'active',
-      })
-    });
-    const data = await res.json();
-    if (!data.success) throw new Error(data.message);
-
-    // Append locally
-    const cl = document.getElementById(`cl-${postId}`);
-    if (cl) {
-      const d = document.createElement('div');
-      d.className = 'cmt-item';
-      d.innerHTML = `
-        <div class="cmt-av" style="background:${avColor(name)}">${initials(name)}</div>
-        <div class="cmt-bubble">
-          <div class="cmt-uname">${esc(name)}</div>
-          <div class="cmt-text">${esc(txt)}</div>
-          <div class="cmt-time">Just now</div>
-        </div>`;
-      cl.appendChild(d);
-    }
-    const cc = document.getElementById(`cc-${postId}`);
-    if (cc) cc.textContent = parseInt(cc.textContent||'0') + 1;
-    if (inp) inp.value = '';
-    U.toast('Comment added ✓', 'ok');
-  } catch(e) {
-    U.toast('Comment failed: ' + e.message, 'err');
-  } finally {
-    if (sendBtn) sendBtn.disabled = false;
-  }
-}
-
-/* ── IMAGE ── */
-function handleImg(file) {
-  if (!file) return;
-  const allowed = ['image/jpeg','image/png','image/webp'];
-  if (!allowed.includes(file.type)) { U.toast('Only JPG, PNG, WebP allowed', 'warn'); return; }
-  if (file.size > 5*1024*1024) { U.toast('Max 5 MB', 'warn'); return; }
-  imgFile = file;
-  const reader = new FileReader();
-  reader.onload = e => {
-    imgB64 = e.target.result.split(',')[1];
-    document.getElementById('preview-img').src = e.target.result;
-    document.getElementById('upload-zone').style.display = 'none';
-    document.getElementById('img-preview-wrap').style.display = 'block';
-  };
-  reader.readAsDataURL(file);
-}
-
-function clearCreate() {
-  document.getElementById('mood-caption').value = '';
-  document.getElementById('img-input').value = '';
-  imgFile = null; imgB64 = null;
-  document.getElementById('upload-zone').style.display = '';
-  document.getElementById('img-preview-wrap').style.display = 'none';
-  document.getElementById('preview-img').src = '';
-}
-
-/* ── EVENTS ── */
-document.getElementById('btn-prev').addEventListener('click', () => { selDate = addDays(selDate,-1); renderHeader(); loadFeed(selDate); });
-document.getElementById('btn-next').addEventListener('click', () => { const n=addDays(selDate,1); if(n<=U.today()){selDate=n; renderHeader(); loadFeed(selDate);} });
-document.getElementById('mood-datepick').addEventListener('change', e => {
-  if(e.target.value<=U.today()){selDate=e.target.value;renderHeader();loadFeed(selDate);}
-  else{U.toast("Can't browse future dates","warn");e.target.value=selDate;}
+/* ── EVENTS ─────────────────────────────────────────────── */
+document.getElementById('btn-prev').addEventListener('click', () => {
+  selDate = addDays(selDate, -1); selEmoji = null; renderHeader(); loadMoods(selDate);
 });
-document.getElementById('btn-post').addEventListener('click', onPost);
-document.getElementById('btn-clear').addEventListener('click', clearCreate);
-document.getElementById('img-input').addEventListener('change', e => handleImg(e.target.files[0]));
-document.getElementById('remove-img').addEventListener('click', clearCreate);
-const uz = document.getElementById('upload-zone');
-uz.addEventListener('dragover', e=>{e.preventDefault();uz.classList.add('over');});
-uz.addEventListener('dragleave', ()=>uz.classList.remove('over'));
-uz.addEventListener('drop', e=>{e.preventDefault();uz.classList.remove('over');handleImg(e.dataTransfer.files[0]);});
+document.getElementById('btn-next').addEventListener('click', () => {
+  const n = addDays(selDate, 1);
+  if (n <= U.today()) { selDate = n; selEmoji = null; renderHeader(); loadMoods(selDate); }
+});
+document.getElementById('mood-datepick').addEventListener('change', e => {
+  if (e.target.value <= U.today()) { selDate = e.target.value; selEmoji = null; renderHeader(); loadMoods(selDate); }
+  else { U.toast("Can't browse future dates", 'warn'); e.target.value = selDate; }
+});
+document.getElementById('btn-submit').addEventListener('click', submitMood);
 
-/* ── INIT ── */
-renderCreateUser();
+/* ── INIT ────────────────────────────────────────────────── */
 renderHeader();
-loadFeed(selDate);
+loadMoods(selDate);
 </script>
 </body>
 </html>
