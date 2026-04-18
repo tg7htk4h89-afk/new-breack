@@ -5,6 +5,7 @@ var CFG = {
 
   N8N: {
     AUTH:              'https://n8n.kib-cc-wfm.com/webhook/kib-auth',
+    GET_ALL:           'https://n8n.kib-cc-wfm.com/webhook/kib-get-all',
     GET_SCHEDULE:      'https://n8n.kib-cc-wfm.com/webhook/kib-get-schedule',
     GET_BREAKS:        'https://n8n.kib-cc-wfm.com/webhook/kib-get-breaks',
     GET_LEAVES:        'https://n8n.kib-cc-wfm.com/webhook/kib-get-leaves',
@@ -25,8 +26,16 @@ var CFG = {
     UPDATE_SHIFT:      'https://n8n.kib-cc-wfm.com/webhook/kib-update-shift',
     SUBMIT_SCHEDREQ:   'https://n8n.kib-cc-wfm.com/webhook/kib-submit-schedrequest',
     NOTIFY:            'https://n8n.kib-cc-wfm.com/webhook/kib-notify',
+    LEAVES:            'https://n8n.kib-cc-wfm.com/webhook/kib-submit-leave',
+    SWAPS:             'https://n8n.kib-cc-wfm.com/webhook/kib-submit-swap',
+    KPI:               'https://n8n.kib-cc-wfm.com/webhook/kib-submit-kpi',
+    SCHED_REQ:         'https://n8n.kib-cc-wfm.com/webhook/kib-submit-schedrequest',
     MOOD_GET:        'https://n8n.kib-cc-wfm.com/webhook/kib-mood-get',
-    MOOD_SUBMIT:     'https://n8n.kib-cc-wfm.com/webhook/kib-mood-submit'
+    MOOD_SUBMIT:     'https://n8n.kib-cc-wfm.com/webhook/kib-mood-submit',
+    LEAVES:          'https://n8n.kib-cc-wfm.com/webhook/kib-submit-leave',
+    SWAPS:           'https://n8n.kib-cc-wfm.com/webhook/kib-submit-swap',
+    KPI:             'https://n8n.kib-cc-wfm.com/webhook/kib-submit-kpi',
+    SCHED_REQ:       'https://n8n.kib-cc-wfm.com/webhook/kib-submit-schedrequest'
   },
 
   SHEET_ID: '1j0So-QvjT10NtSfx8avDMob1bK4gem8FLJLs5yiEgi4',
