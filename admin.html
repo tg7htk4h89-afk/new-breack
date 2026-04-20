@@ -125,7 +125,7 @@ let allUsers = [];
 Nav.init('admin');
 document.getElementById('user-strip-wrap').innerHTML = Nav.renderUserStrip();
 
-async function init() {
+async function init(force = false) {
   try {
     allData  = await API.getAll();
     // userLogins from UserLogins sheet: {id, name, role, dept, access, active}
