@@ -171,9 +171,12 @@ function buildSlotGrid(){
   grid.innerHTML=slots.map(t=>{
     const inSlot=all.filter(b=>(b.breakStart||b['Break Start']||'').slice(0,5)===t.slice(0,5));
     const mine=inSlot.find(b=>b.agent===user.name||b.Agent===user.name);
-    const cnt=inSlot.length,full=cnt>=MAX_CON&&!mine;
+    const cnt=inSlot.length;
+    const isVoice=(user.role||'').toLowerCase().includes('voice')||(user.dept||user.department||'').toLowerCase().includes('voice');
+    const myLimit=isVoice?MAX_CON+1:MAX_CON;
+    const full=cnt>=myLimit&&!mine;
     const slotMin=U.toMin(t),passed=(slotMin%1440)<(nowMin%1440)-5&&!mine;
-    let cls='',cntText=`${cnt}/${MAX_CON}`;
+    let cls='',cntText=`${cnt}/${isVoice?MAX_CON+1:MAX_CON}`;
     if(mine){cls='mine';cntText='✓ Mine';}
     else if(full){cls='full';cntText='Full';}
     else if(passed){cls='blocked';cntText='Passed';}
@@ -280,6 +283,19 @@ function pickSlot(t,el){
   if(!activeBreak)document.getElementById('book-btn').disabled=false;
   checkBalWarn();
 }
+
+function selDurFn(val, el) {
+  selDurVal = val;
+  document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+  // Warn if remaining balance is less than selected duration
+  const used = myBreaksToday().reduce((s,b) => s+(parseInt(b.duration||b.Duration)||0), 0);
+  const rem  = DAILY_MIN - used;
+  if (val > rem) {
+    U.toast(`Only ${rem} min remaining today`, 'warn');
+  }
+}
+
 
 
 async function bookBreak(){
