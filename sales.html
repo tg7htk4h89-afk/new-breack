@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Performance - CC Task Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'IBM Plex Sans',system-ui,sans-serif}
+body{background:#F0F4F9;color:#0A1628}
+:root{--bg:#fff;--bg2:#F8FAFC;--t1:#0A1628;--t2:#4A5568;--t3:#8A9BB0;--border:#E4EAF3;--blue:#1877C5;--green:#0EA472;--red:#E5383B;--amber:#F4A523;--sidebar:#0D1B3E}
+.app-layout{display:flex;min-height:100vh}
+.sidebar{width:220px;background:var(--sidebar);display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;height:100vh;z-index:100;overflow-y:auto}
+.sidebar-header{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sidebar-logomark{width:36px;height:36px;background:linear-gradient(135deg,#1877C5,#0EA472);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff;margin-bottom:10px}
+.sidebar-title{font-size:13px;font-weight:700;color:#fff}.sidebar-sub{font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px}
+.sidebar-nav{flex:1;padding:12px 10px}
+.nav-section{font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;padding:14px 8px 6px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:500;color:rgba(255,255,255,0.6);text-decoration:none;margin-bottom:2px;transition:all .15s}
+.nav-item:hover{background:rgba(255,255,255,0.08);color:#fff}.nav-item.active{background:#1877C5;color:#fff}
+.sidebar-footer{padding:12px 10px;border-top:1px solid rgba(255,255,255,0.08)}
+.user-chip{display:flex;align-items:center;gap:8px}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#1877C5,#0EA472);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+.user-name{font-size:11px;font-weight:600;color:#fff}.user-role{font-size:9px;color:rgba(255,255,255,0.4)}
+.btn-logout{background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.4);padding:4px;margin-left:auto}
+.main-content{margin-left:220px;flex:1;display:flex;flex-direction:column}
+.top-bar{height:56px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 20px;position:sticky;top:0;z-index:50}
+.breadcrumb{font-size:13px;font-weight:600;color:var(--t1);flex:1}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;text-decoration:none;border:none;font-family:inherit;transition:all .15s}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:#1565A8}
+.btn-secondary{background:var(--bg2);color:var(--t2);border:1px solid var(--border)}
+.filter-select{padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;color:var(--t1);background:#fff;outline:none;font-family:inherit}
+.page-content{padding:20px;flex:1}
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.kpi-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px 16px;position:relative;overflow:hidden}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kpi-blue::before{background:var(--blue)}.kpi-green::before{background:var(--green)}.kpi-amber::before{background:var(--amber)}
+.kpi-value{font-size:22px;font-weight:800;color:var(--t1);line-height:1.2;margin-bottom:4px}
+.kpi-label{font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.5px}
+.kpi-sub{font-size:11px;color:var(--t3);margin-top:3px}
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.chart-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:16px}
+.chart-title{font-size:13px;font-weight:700;color:var(--t1);margin-bottom:14px}
+.chart-wrap{position:relative;height:220px}
+.panel{background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
+.panel-title{font-size:13px;font-weight:700;color:var(--t1)}
+table.st{width:100%;border-collapse:collapse}
+table.st th{background:var(--bg2);padding:9px 14px;text-align:left;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--border)}
+table.st td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+table.st tr:last-child td{border-bottom:none}
+table.st tr:hover td{background:var(--bg2)}
+.badge{display:inline-flex;padding:3px 8px;border-radius:5px;font-size:11px;font-weight:700}
+.bg{background:#DCFCE7;color:#166534}.ba{background:#FEF9C3;color:#854D0E}.br{background:#FEE2E2;color:#991B1B}
+.pbar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;min-width:80px}
+.pfill{height:100%;border-radius:3px}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:#fff;border-radius:20px;padding:24px;width:640px;max-width:100%;max-height:90vh;overflow-y:auto}
+.prow{display:grid;grid-template-columns:170px 90px 110px 110px;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.prow:last-child{border-bottom:none}
+.pinput{padding:7px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;color:var(--t1);background:var(--bg2);outline:none;font-family:inherit;width:100%;text-align:right}
+.pinput:focus{border-color:var(--blue);background:#fff}
+.tab-btn{flex:1;padding:9px;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:inherit;transition:all .15s}
+
+/* ── UNIVERSAL MOBILE ─────────────────────────────────────── */
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); transition: transform .25s ease; }
+  .sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,.35); }
+  .sidebar-toggle { display: flex !important; align-items: center; justify-content: center; }
+  .main-content { margin-left: 0 !important; }
+  .top-bar { padding: 0 14px; gap: 8px; }
+  .page-content { padding: 14px !important; }
+  .page-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .page-title { font-size: 18px; }
+  .breadcrumb { font-size: 13px; }
+  .search-bar { display: none; }
+  .form-row, .form-row-3 { grid-template-columns: 1fr !important; }
+  .form-card { padding: 16px; }
+  .kpi-grid { grid-template-columns: 1fr 1fr !important; gap: 10px; }
+  .kanban-board { grid-template-columns: 1fr !important; }
+  .kanban-col { min-width: 0 !important; }
+  .kanban-wrap { overflow-x: unset; }
+  .stats-row, .bottom-grid, .chart-grid { grid-template-columns: 1fr !important; }
+  .btn { padding: 8px 14px; font-size: 12px; }
+  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .modal-inner, [style*="max-width:660px"], [style*="max-width: 660px"] { max-width: 100% !important; margin: 8px !important; border-radius: 14px !important; }
+  #taskModal { padding: 8px !important; }
+  .filter-bar, .filter-row { gap: 6px; flex-wrap: wrap; }
+  .filter-btn, .f-btn { font-size: 11px; padding: 5px 11px; }
+  .add-bottom { flex-wrap: wrap; }
+  .todo-actions { opacity: 1 !important; }
+  .stats-strip { flex-wrap: wrap; gap: 8px; }
+  .rec-btn { padding: 10px 6px !important; font-size: 12px !important; }
+  .sidebar-overlay { display: block; }
+}
+@media (max-width: 480px) {
+  .kpi-grid { grid-template-columns: 1fr !important; }
+  .page-content { padding: 10px !important; }
+  .form-card { padding: 14px; }
+  .top-bar { height: 50px; }
+  .stats-strip { gap: 6px; }
+  .stat-pill { font-size: 11px; padding: 5px 10px; }
+}
+.sidebar-overlay { display: none; }
+@media (max-width: 768px) {
+  #sidebarOverlay { display: none; }
+  .sidebar.open ~ #sidebarOverlay, #sidebarOverlay.visible { display: block !important; }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   MOBILE UX IMPROVEMENTS — Full Access on Mobile
+   ═══════════════════════════════════════════════════════ */
+
+/* Base touch targets */
+button, .btn, .nav-item, a.nav-item, .k-card, .task-row {
+  min-height: 44px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: rgba(0,0,0,0.05);
+}
+
+/* Prevent zoom on input focus */
+input, select, textarea {
+  font-size: 16px !important;
+}
+
+/* Smooth scrolling */
+* { -webkit-overflow-scrolling: touch; }
+
+/* ── PHONE (≤480px) ───────────────────────────────── */
+@media (max-width: 480px) {
+
+  /* Sidebar */
+  .sidebar { width: 85vw !important; max-width: 300px; }
+  .main-content { margin-left: 0 !important; }
+
+  /* Top bar */
+  .top-bar { padding: 0 10px !important; height: 52px !important; }
+  .breadcrumb { font-size: 13px !important; }
+  .search-bar { display: none !important; }
+
+  /* Page content */
+  .page-content { padding: 10px !important; }
+
+  /* KPI grids — 2 columns always */
+  .kpi-grid { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+  .kpi-card { padding: 12px 10px !important; }
+  .kpi-value { font-size: 20px !important; }
+  .kpi-label { font-size: 10px !important; }
+
+  /* Page headers */
+  .page-header { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
+  .page-actions { width: 100% !important; justify-content: space-between !important; }
+
+  /* Cards */
+  .card, .kpi-card, .shift-card { border-radius: 10px !important; }
+
+  /* Modals — full screen on phone */
+  #taskModal, #trainingModal, #newTaskModal, #hoModal {
+    padding: 0 !important;
+    align-items: flex-end !important;
+  }
+  #taskModal > div, #trainingModal > div, #newTaskModal > div, #hoModal > div {
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 92vh !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  #taskModalBody, #cardBody {
+    max-height: calc(92vh - 120px) !important;
+  }
+
+  /* Kanban — horizontal scroll */
+  .kanban-wrap { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; padding-bottom: 16px !important; }
+  .kanban-board { display: flex !important; gap: 10px !important; min-width: max-content !important; }
+  .kanban-col { min-width: 260px !important; width: 260px !important; }
+
+  /* Tables — horizontal scroll */
+  .table-card, table { overflow-x: auto !important; display: block !important; }
+  thead, tbody, tr { display: table !important; width: 100% !important; table-layout: fixed !important; }
+  table { display: block !important; overflow-x: auto !important; white-space: nowrap !important; }
+
+  /* Forms */
+  .form-row { flex-direction: column !important; }
+  .form-group { width: 100% !important; }
+  input[type=date], input[type=number], select { width: 100% !important; }
+
+  /* Buttons */
+  .btn { padding: 10px 16px !important; font-size: 12px !important; }
+  .btn-primary, .btn-post { min-height: 44px !important; }
+
+  /* Training cards */
+  .plan-card { padding: 14px !important; }
+  .plan-header { flex-direction: column !important; gap: 8px !important; }
+
+  /* Handover */
+  .shifts-grid { grid-template-columns: 1fr !important; }
+  .kpi-row { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+
+  /* Sales */
+  .sales-grid { grid-template-columns: 1fr !important; }
+  .chart-grid { grid-template-columns: 1fr !important; }
+
+  /* Notifications */
+  .notif-list { padding: 0 !important; }
+
+  /* Tab bars — horizontal scroll */
+  .tab-bar, [class*="tab-bar"] {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none !important;
+  }
+  .tab-bar::-webkit-scrollbar { display: none !important; }
+
+  /* Hide non-essential columns in tables */
+  .col-hide-mobile { display: none !important; }
+
+  /* Floating action button for New Task */
+  .fab-new {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 50% !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,.3) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 24px !important;
+    z-index: 200 !important;
+  }
+}
+
+/* ── TABLET (481–768px) ───────────────────────────── */
+@media (min-width: 481px) and (max-width: 768px) {
+  .main-content { margin-left: 0 !important; }
+  .kpi-grid { grid-template-columns: repeat(3, 1fr) !important; }
+  .kanban-wrap { overflow-x: auto !important; }
+  .kanban-board { display: flex !important; min-width: max-content !important; }
+  .kanban-col { min-width: 240px !important; }
+  .form-row { flex-wrap: wrap !important; }
+  .page-content { padding: 16px !important; }
+}
+
+
+/* ── MOBILE BOTTOM NAVIGATION ──────────────────────── */
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: #0D1B3E;
+  border-top: 1px solid rgba(255,255,255,.1);
+  z-index: 200;
+  padding: 6px 0 env(safe-area-inset-bottom, 6px);
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+}
+.mbn-item {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  color: rgba(255,255,255,.5); text-decoration: none;
+  padding: 6px 12px; border-radius: 8px;
+  font-size: 10px; font-weight: 600;
+  transition: color .2s;
+  min-width: 52px; text-align: center;
+}
+.mbn-item.active, .mbn-item:active { color: #fff; }
+.mbn-item svg { flex-shrink: 0; }
+@media (max-width: 768px) {
+  .mobile-bottom-nav { display: flex !important; }
+  .main-content { padding-bottom: 70px !important; }
+  /* Hide sidebar on mobile - use bottom nav instead */
+  .sidebar { display: none !important; }
+  .sidebar.open { display: flex !important; }
+}
+
+</style>
+</head>
+<body class="app-layout">
+<div id="sidebarOverlay"></div>
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logomark">KIB</div>
+    <div class="sidebar-title">CC Task Manager</div>
+    <div class="sidebar-sub">Kuwait International Bank</div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">Main</div>
+    <a href="/cc.task.mane/index.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+    <a href="/cc.task.mane/tasks.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Tasks</a><a href="/cc.task.mane/tasks-archive.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>Task Archive</a><a href="/cc.task.mane/todo.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><polyline points="3 6 4 7 6 5"/><polyline points="3 12 4 13 6 11"/><polyline points="3 18 4 19 6 17"/></svg>My To-Do</a>
+    <a href="/cc.task.mane/handover.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Handover</a>
+    <a href="/cc.task.mane/training.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Training</a>
+    <a href="/cc.task.mane/sales.html" class="nav-item active"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>Sales</a>
+    <div class="nav-section">System</div>
+    <a href="/cc.task.mane/notifications.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Notifications</a>
+    <a href="/cc.task.mane/settings.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Settings</a>
+  </div>
+  <div class="sidebar-footer">
+    <div class="user-chip">
+      <div class="user-avatar" id="avatarInitials">?</div>
+      <div><div class="user-name" id="sidebarName">...</div><div class="user-role" id="sidebarRole"></div></div>
+      <button class="btn-logout" onclick="AUTH.logout()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+    </div>
+  </div>
+</nav>
+
+<main class="main-content">
+  <header class="top-bar">
+  <button class="sidebar-toggle" id="sidebarToggle" style="touch-action:manipulation" style="display:none;align-items:center;justify-content:center;width:36px;height:36px;background:none;border:none;cursor:pointer;color:var(--t2);flex-shrink:0"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <div class="breadcrumb">Sales Performance</div>
+    <input type="date" class="filter-select" id="sDate">
+    <select class="filter-select" id="sPeriod">
+      <option value="today">Today</option>
+      <option value="week">This Week</option>
+      <option value="month" selected>MTD</option>
+    </select>
+    <button class="btn btn-secondary" onclick="loadAll()">Refresh</button>
+    <button class="btn btn-primary" id="btnAdd">+ Log Sales</button>
+    <button class="notif-bell" onclick="loadBell()"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><div class="notif-badge hidden" id="notifBadge"></div></button>
+</header>
+
+  <div class="page-content">
+    <div class="kpi-row">
+      <div class="kpi-card kpi-blue"><div class="kpi-value" id="k1">0</div><div class="kpi-label">Transfer to Dirwaza (Today)</div><div class="kpi-sub" id="k1s">loading...</div></div>
+      <div class="kpi-card kpi-green"><div class="kpi-value" id="k2">0%</div><div class="kpi-label">MTD Achievement</div><div class="kpi-sub" id="k2s">loading...</div></div>
+      <div class="kpi-card kpi-amber"><div class="kpi-value" id="k3">0%</div><div class="kpi-label">Daily Achievement</div><div class="kpi-sub" id="k3s">loading...</div></div>
+    </div>
+
+    <!-- Count-based products charts -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div class="chart-title" style="margin-bottom:0">Daily: Count Products</div>
+          <span style="font-size:10px;color:var(--t3);background:var(--bg2);padding:2px 8px;border-radius:4px">Transactions</span>
+        </div>
+        <div class="chart-wrap"><canvas id="cDayCount"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div class="chart-title" style="margin-bottom:0">MTD: Count Products</div>
+          <span style="font-size:10px;color:var(--t3);background:var(--bg2);padding:2px 8px;border-radius:4px">Transactions</span>
+        </div>
+        <div class="chart-wrap"><canvas id="cMTDCount"></canvas></div>
+      </div>
+    </div>
+    <!-- Transfer to Dirwaza (KWD) chart -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;color:var(--t1)">Transfer to Dirwaza — Daily &amp; MTD vs Target</div>
+        <span style="font-size:10px;color:#6D28D9;background:#EDE9FE;padding:2px 8px;border-radius:4px;font-weight:600">KWD Amount</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div style="position:relative;height:180px"><canvas id="cTDDay"></canvas></div>
+        <div style="position:relative;height:180px"><canvas id="cTDMTD"></canvas></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Product KPIs</span><span style="font-size:11px;color:var(--t3)" id="tDate">loading...</span></div>
+      <div style="overflow-x:auto">
+        <table class="st">
+          <thead><tr><th>Product</th><th>Daily Target</th><th>Today</th><th>Daily %</th><th>Monthly Target</th><th>MTD Actual</th><th>MTD %</th><th>Progress</th></tr></thead>
+          <tbody id="pTbl"><tr><td colspan="8" style="padding:24px;text-align:center;color:var(--t3)">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Log Sales Modal -->
+<div id="modal" class="modal-overlay" style="display:none">
+  <div class="modal">
+    <div style="font-size:16px;font-weight:800;color:var(--t1);margin-bottom:14px">Log Department Sales</div>
+
+    <div style="display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:18px">
+      <button class="tab-btn" id="tabDaily" onclick="setTab('daily')">Daily Entry</button>
+      <button class="tab-btn" id="tabMTD" onclick="setTab('mtd')">MTD Bulk Update</button>
+    </div>
+
+    <div id="panelDaily">
+      <div style="margin-bottom:14px">
+        <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:6px">Date</div>
+        <input type="date" class="filter-select" id="mDate">
+      </div>
+      <div style="display:grid;grid-template-columns:170px 90px 110px 110px;gap:10px;padding:0 2px 8px;border-bottom:1px solid var(--border)">
+        <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase">Product</div>
+        <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;text-align:right">Daily Target</div>
+        <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;text-align:right">Count</div>
+        <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;text-align:right">Amount (KWD)</div>
+      </div>
+      <div id="eRows"></div>
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button class="btn btn-primary" id="saveBtn" onclick="saveDaily()">Save</button>
+        <button class="btn btn-secondary" onclick="closeM()">Cancel</button>
+      </div>
+    </div>
+
+    <div id="panelMTD" style="display:none">
+      <div style="background:#FEF9C3;border:1px solid #F4A523;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#854D0E">
+        Enter the TOTAL cumulative numbers for the entire month. This replaces all existing data for the selected month.
+      </div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:6px">Month</div>
+        <input type="month" class="filter-select" id="mMonth">
+      </div>
+      <div style="display:grid;grid-template-columns:170px 90px 110px;gap:10px;padding:0 2px 8px;border-bottom:1px solid var(--border)">
+        <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase">Product</div>
+        <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;text-align:right">Monthly Target</div>
+        <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;text-align:right">MTD Value</div>
+      </div>
+      <div id="eMTDRows"></div>
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button class="btn" id="saveMTDBtn" onclick="saveMTD()" style="background:#F4A523;color:#fff;">Update MTD Totals</button>
+        <button class="btn btn-secondary" onclick="closeM()">Cancel</button>
+      </div>
+    </div>
+
+    <div id="mMsg" style="display:none;margin-top:10px;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:600"></div>
+  </div>
+</div>
+
+<script>
+var API_BASE='https://n8n.kib-cc-wfm.com/webhook';
+var SES_KEY='kib_ops_session';
+var API={
+  _t:function(){var s=AUTH.getSession();return s?s.session_token:null;},
+  post:async function(action,body){
+    var path=action.replace(/_/g,'-');
+    var url=API_BASE+'/kib/'+path;
+    var p=Object.assign({},body||{});
+    var t=this._t();if(t)p.session_token=t;
+    var r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});
+    var txt=await r.text();var d;
+    try{d=JSON.parse(txt);}catch(e){throw new Error('Server '+r.status+': '+(txt||'empty').slice(0,120));}
+    if(!d.success)throw new Error(d.error&&d.error.message?d.error.message:d.message||'API error');
+    return d.data;
+  },
+  get:async function(action,params){return this.post(action,params||{});}
+};
+
+var AUTH = {
+  getSession: function() {
+    try { var s = JSON.parse(localStorage.getItem(SES_KEY)); return s && new Date(s.expires_at) > new Date() ? s : null; } catch(e) { return null; }
+  },
+  requireAuth: function() { if (!this.getSession()) location.href = '/cc.task.mane/login.html'; },
+  logout: function() { localStorage.removeItem(SES_KEY); location.href = '/cc.task.mane/login.html'; },
+  canDo: function() { var s = this.getSession(); return s && ['HoD','Manager','TL','AL'].indexOf(s.role) !== -1; }
+};
+
+
+async function loadBell(){
+  try{var d=await API.get('notif_list',{limit:'5',unread_only:'true'});var nb=document.getElementById('notifBadge');if(nb){if(d.unread_count>0){nb.textContent=d.unread_count;nb.classList.remove('hidden');}else nb.classList.add('hidden');}}catch(e){}
+}
+AUTH.requireAuth();
+
+// ═══════════════════════════════════════════════════════════════════
+// ── LOCAL CACHE (stale-while-revalidate) ───────────────────────────
+// Stores API responses in sessionStorage.
+// First load: returns cache instantly (if <5min old), fetches fresh in BG.
+// After 5min: fetches fresh, shows old while waiting.
+// Auto-refreshes in background (2-5min depending on page).
+// ═══════════════════════════════════════════════════════════════════
+var CACHE = {
+  _TTL: 600000,        // 5 min max age before forced refresh
+  _BG:  120000,        // 2min background refresh interval (per-page varies)
+  _pfx: 'kib_cache_',  // storage key prefix
+  _timers: {},
+
+  // Build a cache key from action + params
+  _key: function(action, params) {
+    var p = Object.keys(params||{}).sort().map(function(k){return k+'='+params[k];}).join('&');
+    return this._pfx + action + (p ? '_' + p : '');
+  },
+
+  // Save data to sessionStorage with timestamp
+  set: function(action, params, data) {
+    try {
+      var key = this._key(action, params);
+      sessionStorage.setItem(key, JSON.stringify({ ts: Date.now(), data: data }));
+    } catch(e) {} // ignore storage errors (private mode etc)
+  },
+
+  // Get cached data. Returns {data, stale} or null
+  get: function(action, params) {
+    try {
+      var key = this._key(action, params);
+      var raw = sessionStorage.getItem(key);
+      if (!raw) return null;
+      var obj = JSON.parse(raw);
+      return { data: obj.data, stale: (Date.now() - obj.ts) > this._TTL };
+    } catch(e) { return null; }
+  },
+
+  // Clear a specific action from cache (use after mutations)
+  bust: function(action) {
+    try {
+      for (var i = sessionStorage.length - 1; i >= 0; i--) {
+        var k = sessionStorage.key(i);
+        if (k && k.indexOf(this._pfx + action) === 0) {
+          sessionStorage.removeItem(k);
+        }
+      }
+    } catch(e) {}
+  },
+
+  // Bust all task-related caches (after create/update/cancel)
+  bustTasks: function() {
+    this.bust('tasks_list');
+    this.bust('tasks_detail');
+    this.bust('dashboard');
+  },
+
+  // Bust all training caches
+  bustTraining: function() {
+    this.bust('training_list');
+    this.bust('training_detail');
+    this.bust('dashboard');
+  },
+
+  // Clear everything
+  clear: function() {
+    try {
+      var keys = [];
+      for (var i = 0; i < sessionStorage.length; i++) {
+        var k = sessionStorage.key(i);
+        if (k && k.indexOf(this._pfx) === 0) keys.push(k);
+      }
+      keys.forEach(function(k){ sessionStorage.removeItem(k); });
+    } catch(e) {}
+  }
+};
+
+// Extend API.get to use cache automatically
+var _origAPIGet = API.get.bind(API);
+API.get = async function(action, params) {
+  // Actions that should NOT be cached (always fresh)
+  var noCache = ['login','notif_list','notif_read','notif_read_all'];
+  if (noCache.indexOf(action) !== -1) {
+    return _origAPIGet(action, params);
+  }
+
+  var cached = CACHE.get(action, params);
+
+  if (cached && !cached.stale) {
+    // Fresh cache — return immediately, refresh in background silently
+    _origAPIGet(action, params).then(function(fresh) {
+      CACHE.set(action, params, fresh);
+    }).catch(function(){});
+    return cached.data;
+  }
+
+  if (cached && cached.stale) {
+    // Stale cache — return old data immediately so UI shows instantly
+    // Then fetch fresh and update (next load will be fast)
+    _origAPIGet(action, params).then(function(fresh) {
+      CACHE.set(action, params, fresh);
+    }).catch(function(){});
+    return cached.data;
+  }
+
+  // No cache at all — fetch fresh and cache it
+  var fresh = await _origAPIGet(action, params);
+  CACHE.set(action, params, fresh);
+  return fresh;
+};
+
+// Extend API.post to bust relevant caches after mutations
+var _origAPIPost = API.post.bind(API);
+API.post = async function(action, body) {
+  var result = await _origAPIPost(action, body);
+  // Bust caches based on action
+  var taskActions = ['tasks_create','tasks_update','subtask_mark','task_delegate',
+                     'task_ext_request','task_ext_review'];
+  var trainActions = ['training_create','training_mark','training_comment',
+                      'training_ext_request','training_ext_review'];
+  var handoverActions = ['handover_create','handover_update'];
+  var salesActions = ['sales_entry','sales_mtd_update'];
+  var todoActions = ['ptodo_add','ptodo_update','ptodo_delete'];
+
+  if (taskActions.indexOf(action) !== -1)    CACHE.bustTasks();
+  if (trainActions.indexOf(action) !== -1)   CACHE.bustTraining();
+  if (handoverActions.indexOf(action) !== -1){ CACHE.bust('handover_dashboard'); CACHE.bust('handover_list'); CACHE.bust('dashboard'); }
+  if (salesActions.indexOf(action) !== -1)   { CACHE.bust('sales_dashboard'); CACHE.bust('dashboard'); }
+  if (todoActions.indexOf(action) !== -1)    { CACHE.bust('ptodo_list'); }
+
+  return result;
+};
+
+
+var UTILS = {
+  esc: function(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); },
+  ini: function(n){ return String(n||'?').split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase(); },
+  avc: function(n){ var c=['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#3B82F6']; var h=0,s=String(n||'A'); for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))&0xffff; return c[h%c.length]; },
+  today: function(){ return new Date(Date.now()+3*3600000).toISOString().slice(0,10); },
+  toast: function(msg,type){ var c={success:'#0EA472',error:'#E5383B',warning:'#F4A523',info:'#1877C5'}; var t=document.createElement('div'); t.style.cssText='position:fixed;bottom:20px;right:20px;background:#0D1B3E;color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;border-left:3px solid '+(c[type]||c.info)+';box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:9999;max-width:340px;font-family:inherit'; t.textContent=msg; document.body.appendChild(t); setTimeout(function(){t.remove();},3500); },
+  setUser: function(s){ if(!s)return; var i=document.getElementById('avatarInitials'),n=document.getElementById('sidebarName'),r=document.getElementById('sidebarRole'); if(i)i.textContent=this.ini(s.full_name); if(n)n.textContent=s.display_name||s.full_name.split(' ')[0]; if(r)r.textContent=s.role; document.querySelectorAll('[data-roles]').forEach(function(el){ if(el.getAttribute('data-roles').split(',').map(function(x){return x.trim();}).indexOf(s.role)===-1)el.style.display='none'; }); }
+};
+
+UTILS.setUser(AUTH.getSession());
+var S = AUTH.getSession();
+function ini(n) { return String(n || '?').split(' ').map(function(w) { return w[0] || ''; }).join('').slice(0,2).toUpperCase(); }
+if (S) {
+  var av = document.getElementById('avatarInitials'), nm = document.getElementById('sidebarName'), rl = document.getElementById('sidebarRole');
+  if (av) av.textContent = ini(S.full_name);
+  if (nm) nm.textContent = S.display_name || S.full_name.split(' ')[0];
+  if (rl) rl.textContent = S.role;
+}
+if (!AUTH.canDo()) document.getElementById('btnAdd').style.display = 'none';
+else document.getElementById('btnAdd').addEventListener('click', openM);
+
+var today = new Date(Date.now() + 3*3600000).toISOString().slice(0, 10);
+document.getElementById('sDate').value = today;
+
+var cDay = null, cMTD = null, cTDDay = null, cTDMTD = null;
+
+function sName(n) { return n.length > 12 ? n.slice(0, 10) + '..' : n; }
+function fmtN(n) { if (n >= 1000000) return (n/1000000).toFixed(1) + 'M'; if (n >= 1000) return Math.round(n/1000) + 'K'; return String(n); }
+function achC(p) { return p >= 100 ? 'bg' : p >= 80 ? 'ba' : 'br'; }
+function pCol(p) { return p >= 100 ? '#0EA472' : p >= 80 ? '#F4A523' : '#E5383B'; }
+
+async function loadAll() {
+  var date = document.getElementById('sDate').value;
+  document.getElementById('tDate').textContent = date;
+
+  try {
+    var results = await Promise.all([
+      API.get('sales_dashboard', {date: date, period: 'today'}),
+      API.get('sales_dashboard', {date: date, period: 'month'})
+    ]);
+    var dT = results[0], dM = results[1];
+    var ts = dT.summary || {}, ms = dM.summary || {};
+    var tProds = dT.products || [], mProds = dM.products || {};
+
+    var tMap = {}, mMap = {};
+    tProds.forEach(function(p) { tMap[p.product] = p; });
+    mProds.forEach(function(p) { mMap[p.product] = p; });
+
+    // KPI 1 — Transfer to Dirwaza today (KWD amount stored as sales_count)
+    var tdVal = ts.transfer_today_value || 0;
+    document.getElementById('k1').textContent = 'KWD ' + Number(tdVal).toLocaleString('en', {minimumFractionDigits:0, maximumFractionDigits:0});
+    document.getElementById('k1s').textContent = 'Daily target: KWD 68,000 | MTD target: KWD 1,500,000';
+
+    // KPI 2 — MTD avg achievement across all products
+    document.getElementById('k2').textContent = (ms.avg_mtd_ach_pct || 0) + '%';
+    document.getElementById('k2s').textContent = 'Average of all 6 products MTD';
+
+    // KPI 3 — Daily avg achievement across all products
+    document.getElementById('k3').textContent = (ts.avg_daily_ach_pct || 0) + '%';
+    document.getElementById('k3s').textContent = 'Average of all 6 products today';
+
+    // Separate count products from KWD product
+    var countProds = PRODS.filter(function(p) { return p.name !== 'Transfer to Dirwaza'; });
+    var tdProd     = PRODS.find(function(p) { return p.name === 'Transfer to Dirwaza'; });
+
+    var cntLabels  = countProds.map(function(p) { return sName(p.name); });
+
+    var baseOpts = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {legend: {position: 'top', labels: {font: {size: 10}, boxWidth: 8}}},
+      scales: {x: {ticks: {font: {size: 9}}}, y: {ticks: {font: {size: 9}}}}
+    };
+
+    // Count products — Daily
+    if (cDay) cDay.destroy();
+    cDay = new Chart(document.getElementById('cDayCount'), {type: 'bar', data: {labels: cntLabels, datasets: [
+      {label: 'Actual', data: countProds.map(function(p) { return tMap[p.name] ? Number(tMap[p.name].actual_count || 0) : 0; }), backgroundColor: 'rgba(24,119,197,0.85)', borderRadius: 5},
+      {label: 'Target', data: countProds.map(function(p) { return p.daily; }), backgroundColor: 'rgba(228,234,243,0.9)', borderRadius: 5}
+    ]}, options: baseOpts});
+
+    // Count products — MTD
+    if (cMTD) cMTD.destroy();
+    cMTD = new Chart(document.getElementById('cMTDCount'), {type: 'bar', data: {labels: cntLabels, datasets: [
+      {label: 'MTD Actual', data: countProds.map(function(p) { return mMap[p.name] ? Number(mMap[p.name].actual_count || 0) : 0; }), backgroundColor: 'rgba(14,164,114,0.85)', borderRadius: 5},
+      {label: 'Target', data: countProds.map(function(p) { return p.monthly; }), backgroundColor: 'rgba(228,234,243,0.9)', borderRadius: 5}
+    ]}, options: baseOpts});
+
+    // Transfer to Dirwaza — KWD charts
+    var tdDayAct  = tMap['Transfer to Dirwaza'] ? Number(tMap['Transfer to Dirwaza'].actual_count || 0) : 0;
+    var tdMTDAct  = mMap['Transfer to Dirwaza'] ? Number(mMap['Transfer to Dirwaza'].actual_count || 0) : 0;
+
+    var kwdOpts = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {legend: {position: 'top', labels: {font: {size: 10}, boxWidth: 8}}},
+      scales: {
+        x: {ticks: {font: {size: 9}}},
+        y: {ticks: {font: {size: 9}, callback: function(v) { return v >= 1000000 ? (v/1000000).toFixed(1)+'M' : v >= 1000 ? Math.round(v/1000)+'K' : v; }}}
+      }
+    };
+
+    if (cTDDay) cTDDay.destroy();
+    cTDDay = new Chart(document.getElementById('cTDDay'), {type: 'bar', data: {
+      labels: ['Daily'],
+      datasets: [
+        {label: 'Actual (KWD)', data: [tdDayAct], backgroundColor: 'rgba(109,40,217,0.8)', borderRadius: 6},
+        {label: 'Target (KWD)', data: [tdProd ? tdProd.daily : 0], backgroundColor: 'rgba(237,233,254,0.9)', borderRadius: 6}
+      ]
+    }, options: kwdOpts});
+
+    if (cTDMTD) cTDMTD.destroy();
+    cTDMTD = new Chart(document.getElementById('cTDMTD'), {type: 'bar', data: {
+      labels: ['MTD'],
+      datasets: [
+        {label: 'Actual (KWD)', data: [tdMTDAct], backgroundColor: 'rgba(109,40,217,0.8)', borderRadius: 6},
+        {label: 'Target (KWD)', data: [tdProd ? tdProd.monthly : 0], backgroundColor: 'rgba(237,233,254,0.9)', borderRadius: 6}
+      ]
+    }, options: kwdOpts});
+
+    document.getElementById('pTbl').innerHTML = PRODS.map(function(p) {
+      var td = tMap[p.name] || {actual_count:0, actual_amount:0, actual_value:0, daily_ach_pct:0};
+      var md = mMap[p.name] || {actual_count:0, actual_amount:0, actual_value:0, mtd_ach_pct:0};
+      var isAmt = p.name === 'Transfer to Dirwaza';
+      var pp = Math.min(100, md.mtd_ach_pct || 0);
+      // Display value: KWD amount for Transfer, count for others
+      var tVal = isAmt ? ('KWD ' + Number(td.actual_count||0).toLocaleString('en',{minimumFractionDigits:0,maximumFractionDigits:0})) : (td.actual_count||0).toLocaleString();
+      var mVal = isAmt ? ('KWD ' + Number(md.actual_count||0).toLocaleString('en',{minimumFractionDigits:0,maximumFractionDigits:0})) : (md.actual_count||0).toLocaleString();
+      var dTgtFmt = isAmt ? ('KWD ' + p.daily.toLocaleString()) : p.daily.toLocaleString();
+      var mTgtFmt = isAmt ? ('KWD ' + p.monthly.toLocaleString()) : p.monthly.toLocaleString();
+      var metricBadge = isAmt ? '<span style="font-size:9px;background:#EDE9FE;color:#6D28D9;padding:1px 5px;border-radius:3px;margin-left:4px">KWD</span>' : '<span style="font-size:9px;background:#DBEAFE;color:#1E40AF;padding:1px 5px;border-radius:3px;margin-left:4px">Count</span>';
+      return '<tr><td style="font-weight:700">' + p.name + metricBadge + '</td>'
+        + '<td>' + dTgtFmt + '</td>'
+        + '<td style="font-weight:600">' + tVal + '</td>'
+        + '<td><span class="badge ' + achC(td.daily_ach_pct || 0) + '">' + (td.daily_ach_pct || 0) + '%</span></td>'
+        + '<td>' + mTgtFmt + '</td>'
+        + '<td style="font-weight:600">' + mVal + '</td>'
+        + '<td><span class="badge ' + achC(md.mtd_ach_pct || 0) + '">' + (md.mtd_ach_pct || 0) + '%</span></td>'
+        + '<td style="min-width:100px"><div class="pbar"><div class="pfill" style="width:' + pp + '%;background:' + pCol(md.mtd_ach_pct || 0) + '"></div></div></td></tr>';
+    }).join('');
+
+  } catch(ex) {
+    document.getElementById('pTbl').innerHTML = '<tr><td colspan="8" style="padding:24px;text-align:center;color:var(--t3)">Error: ' + ex.message + '</td></tr>';
+    console.error('loadAll error:', ex);
+  }
+}
+
+function setTab(tab) {
+  document.getElementById('panelDaily').style.display = tab === 'daily' ? '' : 'none';
+  document.getElementById('panelMTD').style.display   = tab === 'mtd'   ? '' : 'none';
+  document.getElementById('tabDaily').style.cssText = tab === 'daily' ? 'background:#1877C5;color:#fff;flex:1;padding:9px;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:inherit' : 'background:#fff;color:var(--t3);flex:1;padding:9px;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:inherit';
+  document.getElementById('tabMTD').style.cssText   = tab === 'mtd'   ? 'background:#F4A523;color:#fff;flex:1;padding:9px;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:inherit' : 'background:#fff;color:var(--t3);flex:1;padding:9px;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:inherit';
+  if (tab === 'mtd') buildMTDRows();
+}
+
+function buildRows() {
+  document.getElementById('eRows').innerHTML = PRODS.map(function(p) {
+    var isAmt = p.name === 'Transfer to Dirwaza';
+    var phld = isAmt ? 'KWD amount e.g. 56000' : '0';
+    return '<div class="prow">'
+      + '<div><div style="font-size:12px;font-weight:600;color:var(--t2)">' + p.name + (isAmt ? ' <span style="font-size:9px;background:#EDE9FE;color:#6D28D9;padding:1px 4px;border-radius:3px">KWD</span>' : '') + '</div>'
+      + '<div style="font-size:10px;color:var(--t3)">Target: ' + (isAmt ? 'KWD ' : '') + p.daily.toLocaleString() + '</div></div>'
+      + '<div style="text-align:right;font-size:12px;font-weight:600;color:var(--t3)">' + (isAmt ? 'KWD ' : '') + p.daily.toLocaleString() + '</div>'
+      + '<input type="number" class="pinput" id="ec_' + p.id + '" placeholder="' + phld + '" min="0">'
+      + '<input type="number" class="pinput" id="ea_' + p.id + '" placeholder="notes amt" min="0" step="0.001" style="display:none">'
+      + '</div>';
+  }).join('');
+}
+
+function buildMTDRows() {
+  document.getElementById('eMTDRows').innerHTML = PRODS.map(function(p) {
+    var isAmt = p.name === 'Transfer to Dirwaza';
+    var phld = isAmt ? 'KWD total e.g. 344556' : '0';
+    return '<div class="prow">'
+      + '<div><div style="font-size:12px;font-weight:600;color:var(--t2)">' + p.name + (isAmt ? ' <span style="font-size:9px;background:#EDE9FE;color:#6D28D9;padding:1px 4px;border-radius:3px">KWD</span>' : '') + '</div>'
+      + '<div style="font-size:10px;color:var(--t3)">Monthly target: ' + (isAmt ? 'KWD ' : '') + p.monthly.toLocaleString() + '</div></div>'
+      + '<div style="text-align:right;font-size:12px;font-weight:600;color:var(--t3)">' + (isAmt ? 'KWD ' : '') + p.monthly.toLocaleString() + '</div>'
+      + '<input type="number" class="pinput" id="em_' + p.id + '" placeholder="' + phld + '" min="0">'
+      + '</div>';
+  }).join('');
+}
+
+function openM() {
+  document.getElementById('mDate').value = document.getElementById('sDate').value;
+  document.getElementById('mMonth').value = today.slice(0, 7);
+  document.getElementById('mMsg').style.display = 'none';
+  buildRows();
+  setTab('daily');
+  document.getElementById('modal').style.display = 'flex';
+}
+
+function closeM() { document.getElementById('modal').style.display = 'none'; }
+
+async function saveDaily() {
+  var date = document.getElementById('mDate').value;
+  var entries = [];
+  PRODS.forEach(function(p) {
+    var c = document.getElementById('ec_' + p.id).value;
+    var a = document.getElementById('ea_' + p.id).value;
+    if (c && Number(c) > 0) {
+      entries.push({product_or_category: p.name, sales_count: String(Number(c)), sales_amount: a ? String(Number(a)) : '0', sales_target: String(p.daily), monthly_target: String(p.monthly), date: date});
+    }
+  });
+  if (!entries.length) { mMsg('Enter at least one product count', 'error'); return; }
+  var btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    for (var i = 0; i < entries.length; i++) await API.post('sales_entry', entries[i]);
+    mMsg('Saved ' + entries.length + ' product(s)!', 'success');
+    setTimeout(function() { closeM(); loadAll(); }, 1200);
+  } catch(ex) { mMsg('Error: ' + ex.message, 'error'); }
+  btn.disabled = false; btn.textContent = 'Save';
+}
+
+async function saveMTD() {
+  var month = document.getElementById('mMonth').value;
+  if (!month) { mMsg('Please select a month', 'error'); return; }
+  var entries = [];
+  PRODS.forEach(function(p) {
+    var count = document.getElementById('em_' + p.id).value;
+    var amt   = document.getElementById('ema_' + p.id).value;
+    entries.push({product: p.name, count: count || '0', amount: '0'});
+  });
+  var hasData = entries.some(function(e) { return Number(e.count) > 0 || Number(e.amount) > 0; });
+  if (!hasData) { mMsg('Enter at least one product count', 'error'); return; }
+  var btn = document.getElementById('saveMTDBtn');
+  btn.disabled = true; btn.textContent = 'Updating...';
+  try {
+    await API.post('sales_mtd_update', {month: month + '-01', entries: JSON.stringify(entries)});
+    mMsg('MTD totals updated for ' + month + '!', 'success');
+    setTimeout(function() { closeM(); loadAll(); }, 1400);
+  } catch(ex) { mMsg('Error: ' + ex.message, 'error'); }
+  btn.disabled = false; btn.textContent = 'Update MTD Totals';
+}
+
+function mMsg(msg, type) {
+  var el = document.getElementById('mMsg');
+  el.textContent = msg;
+  el.style.background = type === 'success' ? '#DCFCE7' : '#FEE2E2';
+  el.style.color = type === 'success' ? '#166534' : '#991B1B';
+  el.style.display = 'block';
+}
+
+document.getElementById('sDate').addEventListener('change', loadAll);
+document.getElementById('sPeriod').addEventListener('change', loadAll);
+loadAll();
+loadBell();
+
+// Background data refresh every 30s (uses cache — no visible loading)
+(function() {
+  var _bgKey = '_bg_sales';
+  if(window[_bgKey]) clearInterval(window[_bgKey]);
+  window[_bgKey] = setInterval(function(){
+    loadAll();
+  }, 180000);
+})();
+</script>
+
+<!-- Mobile Bottom Navigation -->
+<nav class="mobile-bottom-nav" id="mobileBottomNav">
+  <a href="/cc.task.mane/index.html" class="mbn-item" data-page="index">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    <span>Home</span>
+  </a>
+  <a href="/cc.task.mane/tasks.html" class="mbn-item" data-page="tasks">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    <span>Tasks</span>
+  </a>
+  <a href="/cc.task.mane/handover.html" class="mbn-item" data-page="handover">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+    <span>Handover</span>
+  </a>
+  <a href="/cc.task.mane/training.html" class="mbn-item" data-page="training">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+    <span>Training</span>
+  </a>
+  <a href="/cc.task.mane/notifications.html" class="mbn-item" data-page="notifications">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    <span>Alerts</span>
+  </a>
+</nav>
+</body>
+</html>

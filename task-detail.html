@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard — CC Task Manager</title>
+<title>Task Detail — CC Task Manager</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
 <style>
@@ -699,6 +699,7 @@ input, select, textarea { font-family: var(--font); }
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
 
+@keyframes tdSpin{to{transform:rotate(360deg)}}
 
 /* ── UNIVERSAL MOBILE ─────────────────────────────────────── */
 @media (max-width: 768px) {
@@ -924,7 +925,7 @@ input, select, textarea {
     <div class="sidebar-title">CC Task Manager</div>
     <div class="sidebar-sub">Kuwait International Bank</div>
   </div>
-  <div class="sidebar-nav"><div class='nav-section'>Main</div><a href="/cc.task.mane/index.html" class="nav-item active"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a><a href="/cc.task.mane/tasks.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Tasks</a><a href="/cc.task.mane/tasks-archive.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>Task Archive</a><a href="/cc.task.mane/todo.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><polyline points="3 6 4 7 6 5"/><polyline points="3 12 4 13 6 11"/><polyline points="3 18 4 19 6 17"/></svg>My To-Do</a><a href="/cc.task.mane/handover.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Handover</a><a href="/cc.task.mane/training.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Training</a><a href="/cc.task.mane/sales.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>Sales</a><div class='nav-section'>System</div><a href="/cc.task.mane/notifications.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Notifications</a><a href="/cc.task.mane/settings.html" class="nav-item" data-roles="HoD"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Settings</a></div>
+  <div class="sidebar-nav"><div class='nav-section'>Main</div><a href="/cc.task.mane/index.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a><a href="/cc.task.mane/tasks.html" class="nav-item active"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Tasks</a><a href="/cc.task.mane/tasks-archive.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>Task Archive</a><a href="/cc.task.mane/todo.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><polyline points="3 6 4 7 6 5"/><polyline points="3 12 4 13 6 11"/><polyline points="3 18 4 19 6 17"/></svg>My To-Do</a><a href="/cc.task.mane/handover.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Handover</a><a href="/cc.task.mane/training.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Training</a><a href="/cc.task.mane/sales.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>Sales</a><div class='nav-section'>System</div><a href="/cc.task.mane/notifications.html" class="nav-item"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Notifications</a><a href="/cc.task.mane/settings.html" class="nav-item" data-roles="HoD"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Settings</a></div>
   <div class="sidebar-footer">
     <div class="user-chip">
       <div class="user-avatar" id="avatarInitials">?</div>
@@ -936,33 +937,13 @@ input, select, textarea {
 <main class="main-content">
 <header class="top-bar">
   <button class="sidebar-toggle" id="sidebarToggle" style="touch-action:manipulation"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-  <div class="breadcrumb">Dashboard</div>
-  <div class="search-bar"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input type="text" id="srch" placeholder="Search..."></div>
+  <div class="breadcrumb">Task Detail</div>
+  
   <button class="notif-bell" id="notifBell" onclick="loadBell()"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><div class="notif-badge hidden" id="notifBadge"></div></button>
 </header>
-<div class="page-content">
-  <div class="page-header">
-    <div><h1 class="page-title">Operations Dashboard</h1><p class="page-sub" id="dsub">Good morning</p></div>
-    <div class="page-actions" data-roles="HoD,Manager">
-      <a href="/cc.task.mane/tasks.html#new" class="btn btn-primary" data-roles="HoD,Manager,CC Manager"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>New Task</a>
-      <a href="/cc.task.mane/handover-form.html" class="btn btn-secondary">Submit Handover</a>
-    </div>
-  </div>
-  <div class="kpi-grid">
-    <div class="kpi-card kpi-blue"><div class="kpi-icon blue"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="kpi-value" id="k1">—</div><div class="kpi-label">Total Tasks</div><div class="kpi-delta neutral" id="k1s">—</div></div>
-    <div class="kpi-card kpi-red"><div class="kpi-icon red"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="kpi-value red" id="k2">—</div><div class="kpi-label">Overdue</div><div class="kpi-delta dn" id="k2s">—</div></div>
-    <div class="kpi-card kpi-green"><div class="kpi-icon green"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/></svg></div><div class="kpi-value" id="k3">—</div><div class="kpi-label">Handovers Today</div><div class="kpi-delta" id="k3s">—</div></div>
-    <div class="kpi-card kpi-amber"><div class="kpi-icon amber"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div><div class="kpi-value" id="k4">—</div><div class="kpi-label">Sales Achievement</div><div class="kpi-delta up" id="k4s">—</div></div>
-    <div class="kpi-card kpi-purple"><div class="kpi-icon purple"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div><div class="kpi-value" id="k5">—</div><div class="kpi-label">Active Training</div><div class="kpi-delta dn" id="k5s">—</div></div>
-  </div>
-  <div class="bottom-grid">
-    <div class="panel"><div class="panel-header"><span class="panel-title">Active Tasks</span><a href="/cc.task.mane/tasks.html" class="panel-link">View all →</a></div><div id="dtasks"></div></div>
-    <div class="panel"><div class="panel-header"><span class="panel-title">Recent Alerts</span><a href="/cc.task.mane/notifications.html" class="panel-link">All →</a></div><div id="dalerts"></div></div>
-    <div class="panel"><div class="panel-header"><span class="panel-title">My Score</span></div>
-      <div style="text-align:center;padding:12px 0 8px"><div style="font-size:48px;font-weight:800;color:var(--t1);line-height:1" id="scoreNum">—</div><div style="font-size:11px;color:var(--t3);margin-bottom:14px">Today's score</div></div>
-      <div id="scoreBreak"></div>
-    </div>
-  </div>
+<div class="page-content" style="max-width:900px">
+  <div class="page-header"><a href="/cc.task.mane/tasks.html" class="btn btn-secondary">← Back</a></div>
+  <div id="tContent"></div>
 </div>
 </main>
 <script>
@@ -1021,7 +1002,7 @@ AUTH.requireAuth();
 // Auto-refreshes in background (2-5min depending on page).
 // ═══════════════════════════════════════════════════════════════════
 var CACHE = {
-  _TTL: 600000,        // 5 min max age before forced refresh
+  _TTL: 300000,        // 5 min max age before forced refresh
   _BG:  120000,        // 2min background refresh interval (per-page varies)
   _pfx: 'kib_cache_',  // storage key prefix
   _timers: {},
@@ -1151,79 +1132,246 @@ UTILS.sidebar();
 async function loadBell(){
   try{var d=await API.get('notif_list',{limit:'5',unread_only:'true'});var nb=document.getElementById('notifBadge');if(nb){if(d.unread_count>0){nb.textContent=d.unread_count;nb.classList.remove('hidden');}else{nb.classList.add('hidden');}}}catch(e){}
 }
-loadBell();if(window._interval_index)clearInterval(window._interval_index);window._interval_index=setInterval(loadBell,60000);
+loadBell();if(window._interval_task_detail)clearInterval(window._interval_task_detail);window._interval_task_detail=setInterval(loadBell,60000);
 
-var hr=new Date().getHours();
-document.getElementById('dsub').textContent='Good '+(hr<12?'morning':hr<17?'afternoon':'evening')+', '+(AUTH.getSession().display_name||AUTH.getSession().full_name.split(' ')[0]);
+var tid=new URLSearchParams(location.search).get('id');
+if(!tid)location.href='/cc.task.mane/tasks.html';
+var PRI={Critical:'badge-red',High:'badge-orange',Medium:'badge-blue',Low:'badge-green'};
+var STA={Completed:'sp-completed',Overdue:'sp-overdue',Escalated:'sp-escalated',InProgress:'sp-inprogress',New:'sp-new',Assigned:'sp-inprogress',Pending:'sp-pending'};
 
-async function loadDash(){
-  UTILS.loader('dtasks');
-  try{
-    var d=await API.get('dashboard',{});
-    document.getElementById('k1').textContent=d.tasks.total;
-    document.getElementById('k1s').textContent=d.tasks.completion_rate+'% completion';
-    document.getElementById('k2').textContent=d.tasks.overdue;
-    document.getElementById('k2s').textContent=d.tasks.overdue+' need attention';
-    document.getElementById('k3').textContent=d.handovers.submitted+'/'+(d.handovers.total||2);
-    var h3=document.getElementById('k3s');h3.className='kpi-delta '+(d.handovers.missing>0?'dn':'up');h3.textContent=d.handovers.missing>0?d.handovers.missing+' missing':'All submitted';
-    var ach=d.sales.avg_achievement_pct||0;
-    document.getElementById('k4').textContent=ach+'%';
-    var k4s=document.getElementById('k4s');
-    k4s.textContent='Avg daily target | TD: KWD '+(d.sales.transfer_today||0).toLocaleString();
-    k4s.className='kpi-delta '+(ach>=90?'up':ach>=70?'':'dn');
-    document.getElementById('k5').textContent=d.training.active;
-    var h5=document.getElementById('k5s');h5.className='kpi-delta '+(d.training.delayed>0?'dn':'up');h5.textContent=d.training.delayed>0?d.training.delayed+' delayed':'All on track';
-
-    // Risk tasks
-    var tc=document.getElementById('dtasks');
-    if(!d.risk_tasks||!d.risk_tasks.length){UTILS.empty('dtasks','No active tasks');return;}
-    var PRI={Critical:'var(--red)',High:'var(--amber)',Medium:'var(--blue)',Low:'var(--green)'};
-    var SPC={Completed:'sp-completed',Overdue:'sp-overdue',Escalated:'sp-escalated',InProgress:'sp-inprogress',New:'sp-new',Assigned:'sp-inprogress',Pending:'sp-pending'};
-    tc.innerHTML=d.risk_tasks.map(function(t){
-      return '<div class="task-row" onclick="location.href=\'/cc.task.mane/task-detail.html?id='+t.task_id+'\'">'+
-        '<div class="priority-line" style="background:'+(PRI[t.priority]||'var(--blue)')+'"></div>'+
-        '<div class="task-info"><div class="task-title">'+UTILS.esc(t.title)+'</div><div class="task-meta">'+UTILS.esc(t.assigned_to_name)+' · '+t.category+'</div></div>'+
-        UTILS.av(t.assigned_to_name,26)+
-        '<span class="status-pill '+(SPC[t.status]||'sp-new')+'">'+(t.is_overdue==='TRUE'?'Overdue':t.status)+'</span></div>';
-    }).join('');
-
-    // Alerts
-    if(!d.recent_alerts||!d.recent_alerts.length){UTILS.empty('dalerts','No recent alerts');return;}
-    var SEV={critical:'var(--red)',warning:'var(--amber)',info:'var(--green)'};
-    document.getElementById('dalerts').innerHTML=d.recent_alerts.slice(0,5).map(function(n){
-      return '<div class="notif-item" style="cursor:pointer;padding:9px 0;border-bottom:1px solid var(--border)">'+
-        '<div class="notif-severity" style="background:'+(SEV[n.severity]||SEV.info)+'"></div>'+
-        '<div><div class="notif-title">'+UTILS.esc(n.title)+'</div><div class="notif-body">'+UTILS.esc(n.message)+'</div><div class="notif-time">'+UTILS.fdt(n.created_datetime)+'</div></div></div>';
-    }).join('');
-
-    // Score
-    if(d.score){
-      document.getElementById('scoreNum').textContent=d.score.final_score;
-      var parts=[['Task completion',d.score.task_completion_score],['SLA compliance',d.score.sla_compliance_score],['Handover quality',d.score.handover_quality_score],['Training',d.score.training_progress_score],['Sales',d.score.sales_achievement_score]];
-      document.getElementById('scoreBreak').innerHTML='<div class="score-breakdown">'+parts.map(function(p){return'<div class="sr"><span class="sr-lbl">'+p[0]+'</span><div class="sr-bar"><div class="sr-fill" style="width:'+Math.min(100,Number(p[1]||0))+'%"></div></div><span class="sr-val">'+(p[1]||0)+'</span></div>';}).join('')+'</div>';
-    }
-  }catch(ex){UTILS.empty('dtasks','Could not load dashboard',ex.message);}
+var avatarColorsTD = ['#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#3B82F6','#0EA472','#EF4444'];
+function aColorTD(name){ return avatarColorsTD[(name||'A').charCodeAt(0) % avatarColorsTD.length]; }
+function avatarTD(name, size){
+  size = size || 36;
+  var c = aColorTD(name);
+  var ini = String(name||'?').split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
+  return '<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+c+';display:flex;align-items:center;justify-content:center;font-size:'+(size*0.38|0)+'px;font-weight:800;color:#fff;flex-shrink:0;box-shadow:0 2px 8px '+c+'44">'+ini+'</div>';
 }
-loadDash();
 
+function switchTDTab(activeId){
+  var map={'tdtab-detail':'tdpanel-detail','tdtab-comments':'tdpanel-comments','tdtab-activity':'tdpanel-activity'};
+  Object.keys(map).forEach(function(tabId){
+    var tab=document.getElementById(tabId);
+    var panel=document.getElementById(map[tabId]);
+    var active=tabId===activeId;
+    if(tab){tab.style.color=active?'#fff':'rgba(255,255,255,.45)';tab.style.borderBottom=active?'2px solid #60A5FA':'2px solid transparent';tab.style.fontWeight=active?'700':'500';}
+    if(panel) panel.style.display=active?'':'none';
+  });
+}
 
-// Background data refresh every 30s (uses cache — no visible loading)
-(function() {
-  var _bgKey = '_bg_index';
-  if(window[_bgKey]) clearInterval(window[_bgKey]);
-  window[_bgKey] = setInterval(function(){
-    loadDash();
-  }, 120000);
-})();
+var currentTD = null;
+
+async function loadTD(){
+  document.getElementById('tContent').innerHTML='<div style="padding:60px;text-align:center;color:#94A3B8"><div style="width:40px;height:40px;border:3px solid #E2E8F0;border-top-color:#1A4A7A;border-radius:50%;animation:tdSpin .8s linear infinite;margin:0 auto 12px"></div>Loading task...</div>';
+  try{
+    var d = await API.get('tasks_detail',{task_id:tid});
+    currentTD = d;
+    renderTD(d);
+  }catch(ex){
+    document.getElementById('tContent').innerHTML='<div style="padding:40px;text-align:center;color:#EF4444">Could not load: '+UTILS.esc(ex.message)+'</div>';
+  }
+}
+
+function renderTD(d){
+  var t = d.task;
+  var comments = d.comments || [];
+  var activity = d.activity || [];
+  var tr = UTILS.tr(t.due_datetime);
+  var isA = t.assigned_to_user_id === AUTH.getUserId();
+  var isM = AUTH.hasRole(['HoD','CC Manager','Manager']);
+  var canAct = (isA || isM) && t.status !== 'Completed' && t.status !== 'Cancelled';
+  var pct = Math.min(100, Number(t.progress_percentage) || 0);
+
+  var statusColors={New:'#6366F1',InProgress:'#3B82F6',Completed:'#10B981',Blocked:'#EF4444',Escalated:'#F59E0B',Cancelled:'#94A3B8',Assigned:'#6366F1'};
+  var statusBgs={New:'#EEF2FF',InProgress:'#EFF6FF',Completed:'#ECFDF5',Blocked:'#FEF2F2',Escalated:'#FFFBEB',Cancelled:'#F8FAFC',Assigned:'#EEF2FF'};
+  var priColors={Critical:'#EF4444',High:'#F59E0B',Medium:'#3B82F6',Low:'#10B981'};
+  var sc=statusColors[t.status]||'#94A3B8';
+  var sb=statusBgs[t.status]||'#F8FAFC';
+  var pc=priColors[t.priority]||'#94A3B8';
+
+  var html='';
+
+  // ── CARD WRAPPER ────────────────────────────────────────────────
+  html += '<div style="background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 4px 32px rgba(0,0,0,.10);max-width:720px;margin:0 auto;border:1px solid #E2E8F0">';
+
+  // ── HEADER ──────────────────────────────────────────────────────
+  html += '<div style="background:linear-gradient(160deg,#0D1F3C 0%,#1E3A6E 60%,#1A4A7A 100%);padding:22px 28px 0">';
+
+  // Status + priority + ID row
+  html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">';
+  html += '<span style="font-size:10px;font-weight:700;background:'+sb+';color:'+sc+';padding:3px 12px;border-radius:20px">'+t.status+'</span>';
+  html += '<span style="font-size:10px;font-weight:700;background:'+pc+'22;color:'+pc+';padding:3px 10px;border-radius:20px">'+t.priority+'</span>';
+  if(t.is_overdue==='TRUE'&&t.status!=='Completed') html += '<span style="font-size:10px;font-weight:700;background:#FEF2F2;color:#EF4444;padding:3px 10px;border-radius:20px">⚠ OVERDUE</span>';
+  if(t.recurring_flag==='TRUE') html += '<span style="font-size:10px;font-weight:700;background:rgba(255,255,255,.15);color:rgba(255,255,255,.8);padding:3px 10px;border-radius:20px">↺ Recurring</span>';
+  html += '<span style="font-size:10px;color:rgba(255,255,255,.3);margin-left:auto">'+UTILS.esc(t.task_id)+'</span>';
+  html += '</div>';
+
+  // Title + avatar
+  html += '<div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:18px">';
+  html += '<div style="flex:1;min-width:0">';
+  html += '<div style="font-size:22px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:6px">'+UTILS.esc(t.title)+'</div>';
+  html += '<div style="font-size:11px;color:rgba(255,255,255,.4)">'+UTILS.esc(t.category||'Task')+'  ·  Assigned by '+UTILS.esc(t.assigned_by_name||'—')+'</div>';
+  html += '</div>';
+  html += '<div style="flex-shrink:0;text-align:center">';
+  html += avatarTD(t.assigned_to_name, 52);
+  html += '<div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:4px;max-width:64px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+UTILS.esc((t.assigned_to_name||'').split(' ')[0])+'</div>';
+  html += '</div></div>';
+
+  // Stats strip
+  html += '<div style="display:flex;background:rgba(0,0,0,.15);border-radius:10px 10px 0 0;overflow:hidden;margin:0 -28px">';
+  html += '<div style="flex:1;padding:11px 18px;border-right:1px solid rgba(255,255,255,.06)">';
+  html += '<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">⏰ Due</div>';
+  html += '<div style="font-size:12px;font-weight:700;color:'+(tr.overdue?'#FCA5A5':'rgba(255,255,255,.9)')+'">'+UTILS.fdt(t.due_datetime)+'</div>';
+  html += '<div style="font-size:10px;color:rgba(255,255,255,.4)">'+tr.label+'</div>';
+  html += '</div>';
+  html += '<div style="flex:1;padding:11px 18px;border-right:1px solid rgba(255,255,255,.06)">';
+  html += '<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">📋 Category</div>';
+  html += '<div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.9)">'+UTILS.esc(t.category||'—')+'</div>';
+  html += '</div>';
+  html += '<div style="flex:1;padding:11px 18px">';
+  html += '<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">📊 Progress</div>';
+  html += '<div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.9)">'+pct+'%</div>';
+  html += '</div>';
+  html += '</div>';
+
+  // Tab bar
+  html += '<div style="display:flex;background:rgba(0,0,0,.2);margin:0 -28px">';
+  [{id:'tdtab-detail',label:'Details'},{id:'tdtab-comments',label:'Comments',badge:comments.length},{id:'tdtab-activity',label:'Activity',badge:activity.length}].forEach(function(tb,i){
+    var active=i===0;
+    html += '<button id="'+tb.id+'" onclick="switchTDTab(\''+tb.id+'\')" style="flex:1;background:none;border:none;border-bottom:'+(active?'2px solid #60A5FA':'2px solid transparent')+';padding:11px 6px 9px;font-size:12px;font-weight:'+(active?'700':'500')+';color:'+(active?'#fff':'rgba(255,255,255,.45)')+';cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .2s">';
+    html += tb.label;
+    if(tb.badge) html += ' <span style="background:rgba(255,255,255,.18);color:#fff;font-size:9px;font-weight:700;padding:1px 7px;border-radius:20px;margin-left:3px">'+tb.badge+'</span>';
+    html += '</button>';
+  });
+  html += '</div></div>'; // end header
+
+  // ── PANELS ──────────────────────────────────────────────────────
+  html += '<div style="padding:22px 28px 28px">';
+
+  // DETAILS
+  html += '<div id="tdpanel-detail">';
+  if(t.description){
+    html += '<div style="background:#EFF6FF;border-left:3px solid #3B82F6;border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:18px;font-size:13px;color:#1E3A5F;line-height:1.6">'+UTILS.esc(t.description)+'</div>';
+  }
+  // Progress bar
+  html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">';
+  html += '<div style="flex:1;background:#E2E8F0;border-radius:6px;height:8px;overflow:hidden">';
+  html += '<div style="height:100%;border-radius:6px;background:'+(pct>=100?'#10B981':pct>50?'#3B82F6':'#F59E0B')+';width:'+pct+'%;transition:width .5s"></div>';
+  html += '</div>';
+  html += '<span style="font-size:13px;font-weight:700;color:'+(pct>=100?'#059669':'#64748B')+'">'+pct+'%</span>';
+  html += '</div>';
+  // Meta grid
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">';
+  html += '<div style="background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:12px;padding:14px">';
+  html += '<div style="font-size:9px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Assigned To</div>';
+  html += '<div style="display:flex;align-items:center;gap:10px">'+avatarTD(t.assigned_to_name,32)+'<span style="font-weight:600;font-size:13px;color:#0F172A">'+UTILS.esc(t.assigned_to_name||'—')+'</span></div>';
+  html += '</div>';
+  html += '<div style="background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:12px;padding:14px">';
+  html += '<div style="font-size:9px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Assigned By</div>';
+  html += '<div style="display:flex;align-items:center;gap:10px">'+avatarTD(t.assigned_by_name,32)+'<span style="font-weight:600;font-size:13px;color:#0F172A">'+UTILS.esc(t.assigned_by_name||'—')+'</span></div>';
+  html += '</div>';
+  html += '</div>';
+  if(t.sla_value){
+    html += '<div style="background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:13px;color:#92400E">⏱ SLA: <b>'+UTILS.esc(t.sla_value+' '+t.sla_unit)+'</b></div>';
+  }
+  // Actions
+  if(t.status==='Cancelled'){
+    html += '<div style="background:#FEF2F2;border:1.5px solid #FECACA;border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:10px"><div style="font-size:20px">🚫</div><div><div style="font-size:13px;font-weight:700;color:#991B1B">Task Cancelled</div><div style="font-size:12px;color:#EF4444;margin-top:2px">This task has been cancelled and is no longer active</div></div></div>';
+  }
+  if(canAct){
+    html += '<div style="display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid #F1F5F9;padding-top:18px">';
+    if(t.status==='New'||t.status==='Assigned') html += '<button onclick="updTD(\'InProgress\')" style="background:linear-gradient(135deg,#3B82F6,#1D4ED8);color:#fff;border:none;border-radius:10px;padding:11px 22px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px #3B82F633">▶ Start</button>';
+    html += '<button onclick="updTD(\'Completed\')" style="background:linear-gradient(135deg,#10B981,#059669);color:#fff;border:none;border-radius:10px;padding:11px 22px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px #10B98133">✓ Complete</button>';
+    if(isM) html += '<button onclick="updTD(\'Escalated\')" style="background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;border:none;border-radius:10px;padding:11px 22px;font-size:13px;font-weight:700;cursor:pointer">⚡ Escalate</button>';
+    if(isM) html += '<button onclick="if(confirm(\'Cancel this task? This cannot be undone.\'))updTD(\'Cancelled\')" style="background:#FEF2F2;border:1.5px solid #FECACA;color:#EF4444;border-radius:10px;padding:11px 18px;font-size:13px;font-weight:600;cursor:pointer">✕ Cancel Task</button>';
+    html += '</div>';
+  }
+  html += '</div>';
+
+  // COMMENTS
+  html += '<div id="tdpanel-comments" style="display:none">';
+  if(comments.length===0){
+    html += '<div style="text-align:center;padding:40px 0 20px"><div style="width:52px;height:52px;border-radius:50%;background:#EFF6FF;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 10px">💬</div><div style="font-size:13px;font-weight:600;color:#64748B">No comments yet</div></div>';
+  } else {
+    html += '<div style="display:flex;flex-direction:column;gap:12px;margin-bottom:18px">';
+    comments.forEach(function(c){
+      var ac=aColorTD(c.author_name);
+      var isMgr=c.is_manager_note==='TRUE';
+      html += '<div style="display:flex;gap:10px">';
+      html += '<div style="width:36px;height:36px;border-radius:50%;background:'+ac+';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:800;color:#fff">'+UTILS.ini(c.author_name)+'</div>';
+      html += '<div style="flex:1;min-width:0"><div style="background:'+(isMgr?'#EFF6FF':'#F8FAFC')+';border:1px solid '+(isMgr?'#BFDBFE':'#E2E8F0')+';border-radius:4px 14px 14px 14px;padding:11px 14px">';
+      html += '<div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:12px;font-weight:700;color:#0F172A">'+UTILS.esc(c.author_name)+(isMgr?' <span style="font-size:9px;background:#BFDBFE;color:#1E40AF;padding:1px 6px;border-radius:10px">Manager</span>':'')+'</span><span style="font-size:10px;color:#94A3B8">'+UTILS.fdt(c.created_datetime)+'</span></div>';
+      html += '<div style="font-size:13px;color:#334155;line-height:1.5;white-space:pre-wrap">'+UTILS.esc(c.comment_text)+'</div>';
+      html += '</div></div></div>';
+    });
+    html += '</div>';
+  }
+  var myS=AUTH.getSession()||{};var myAc=aColorTD(myS.full_name||'?');
+  html += '<div style="display:flex;gap:10px;align-items:flex-end;padding-top:14px;border-top:1px solid #F1F5F9">';
+  html += '<div style="width:36px;height:36px;border-radius:50%;background:'+myAc+';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:800;color:#fff">'+UTILS.ini(myS.full_name||'?')+'</div>';
+  html += '<textarea id="tdCmt" rows="2" placeholder="Write a comment..." style="flex:1;padding:10px 14px;border:1.5px solid #E2E8F0;border-radius:12px;font-size:13px;font-family:inherit;resize:none;box-sizing:border-box;background:#F8FAFC;outline:none;min-width:0"></textarea>';
+  html += '<button onclick="addTDComment()" style="background:linear-gradient(135deg,#1E3A6E,#1A4A7A);color:#fff;border:none;border-radius:12px;padding:11px 20px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0">Send</button>';
+  html += '</div></div>';
+
+  // ACTIVITY
+  html += '<div id="tdpanel-activity" style="display:none">';
+  if(activity.length===0){
+    html += '<div style="text-align:center;padding:40px;color:#94A3B8;font-size:13px">No activity yet</div>';
+  } else {
+    html += '<div style="display:flex;flex-direction:column">';
+    activity.forEach(function(a,idx){
+      html += '<div style="display:flex;gap:12px;padding:12px 0;'+(idx>0?'border-top:1px solid #F1F5F9':'')+'">';
+      html += '<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:32px">';
+      html += '<div style="width:10px;height:10px;border-radius:50%;background:#3B82F6;border:2px solid #EFF6FF;margin-top:2px;flex-shrink:0"></div>';
+      if(idx<activity.length-1) html += '<div style="width:2px;flex:1;background:#E2E8F0;margin-top:4px"></div>';
+      html += '</div>';
+      html += '<div style="flex:1;min-width:0;padding-bottom:4px">';
+      html += '<div style="font-size:13px;font-weight:600;color:#0F172A">'+UTILS.esc(a.performed_by_name||'System')+'</div>';
+      html += '<div style="font-size:12px;color:#64748B;margin-top:2px">'+UTILS.esc(a.action_description||a.action||a.action_type||'')+'</div>';
+      html += '<div style="font-size:10px;color:#94A3B8;margin-top:3px">'+UTILS.fdt(a.performed_datetime||a.created_datetime||'')+'</div>';
+      html += '</div></div>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+
+  html += '</div></div>'; // end panels + card wrapper
+
+  document.getElementById('tContent').innerHTML = html;
+}
+
+async function updTD(status){
+  var notes = status==='Completed' ? (prompt('Completion notes (optional):')||'') : '';
+  try{
+    await API.post('tasks_update',{task_id:tid,status:status,completion_notes:notes});
+    UTILS.toast('Task '+status.toLowerCase(),'success');
+    loadTD();
+  }catch(ex){UTILS.toast('Error: '+ex.message,'error');}
+}
+
+async function addTDComment(){
+  var txt=(document.getElementById('tdCmt')||{}).value||'';
+  txt=txt.trim();
+  if(!txt){UTILS.toast('Write a comment first','error');return;}
+  try{
+    await API.post('tasks_comment',{task_id:tid,comment_text:txt});
+    UTILS.toast('Comment added','success');
+    loadTD();
+    setTimeout(function(){switchTDTab('tdtab-comments');},400);
+  }catch(ex){UTILS.toast('Error: '+ex.message,'error');}
+}
+
+loadTD();
+
 </script>
 
 <!-- Mobile Bottom Navigation -->
 <nav class="mobile-bottom-nav" id="mobileBottomNav">
-  <a href="/cc.task.mane/index.html" class="mbn-item active" data-page="index">
+  <a href="/cc.task.mane/index.html" class="mbn-item" data-page="index">
     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
     <span>Home</span>
   </a>
-  <a href="/cc.task.mane/tasks.html" class="mbn-item" data-page="tasks">
+  <a href="/cc.task.mane/tasks.html" class="mbn-item active" data-page="tasks">
     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
     <span>Tasks</span>
   </a>
